@@ -17,6 +17,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
+  SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { useAppStore } from "@/store/use-app-store"
 
@@ -50,16 +51,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="offcanvas" className="border-none p-2" {...props}>
       <SidebarHeader className="p-2">
         <div className="flex items-center gap-3 px-1 py-1.5">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
-            <RodeoLogo className="size-7" />
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
+            <RodeoLogo className="size-8" />
           </span>
-          <span className="text-base font-semibold tracking-tight">Rodeo</span>
+          <span className="text-lg font-semibold tracking-tight">Rodeo</span>
         </div>
       </SidebarHeader>
       <SidebarContent className="gap-4 pt-2">
         <NavGroup label="Practice" items={practiceItems} className="py-0" />
+        <SidebarSeparator className="mx-3" />
         <NavGroup label="Tools" items={toolItems} className="py-0" />
-        <NavGroup items={footerItems} className="mt-auto py-0" />
+        <SidebarSeparator className="mx-3 mt-auto" />
+        <NavGroup items={footerItems} className="py-0" />
       </SidebarContent>
     </Sidebar>
   )

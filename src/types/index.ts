@@ -17,3 +17,36 @@ export interface UserProfile {
   email: string
   avatarUrl?: string
 }
+
+export type Difficulty = "easy" | "medium" | "hard"
+
+export interface Problem {
+  id: number
+  title: string
+  slug: string
+  difficulty: Difficulty
+  premium: boolean
+  acceptance: number
+  topics: string[]
+}
+
+export type DifficultyFilter = Difficulty | "all"
+
+export type AccessFilter = "all" | "free" | "premium"
+
+export type ProblemSort =
+  | "id-asc"
+  | "id-desc"
+  | "title-asc"
+  | "title-desc"
+  | "difficulty-asc"
+  | "difficulty-desc"
+  | "acceptance-desc"
+  | "acceptance-asc"
+
+export interface ProblemFilters {
+  search: string
+  difficulty: DifficultyFilter
+  topic: string
+  access: AccessFilter
+}
