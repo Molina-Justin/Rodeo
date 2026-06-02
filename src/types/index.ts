@@ -1,20 +1,30 @@
 export type NavView =
+  | "focus"
   | "dashboard"
-  | "lifecycle"
+  | "problems"
+  | "schedule"
+  | "review-queue"
+  | "tracks"
+  | "library"
   | "analytics"
-  | "projects"
-  | "team"
-  | "data-library"
-  | "reports"
-  | "word-assistant"
   | "settings"
   | "help"
+
+export type DashboardTab = "overview" | "sessions" | "progress" | "roadmap"
 
 export type TableTab =
   | "outline"
   | "past-performance"
   | "key-personnel"
   | "focus-documents"
+
+export type TrackSignal = "low" | "medium" | "high"
+
+export interface StudyTrack {
+  id: string
+  name: string
+  signal: TrackSignal
+}
 
 export interface MetricCardData {
   title: string

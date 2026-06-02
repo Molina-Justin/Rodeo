@@ -1,21 +1,24 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
-import { SectionCards } from "@/components/section-cards"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DataTable } from "@/components/data-table"
+import { DashboardPlaceholder } from "@/components/dashboard/dashboard-placeholder"
+import { DashboardToolbar } from "@/components/layout/dashboard-toolbar"
+import { SiteHeader } from "@/components/layout/site-header"
+import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import data from "@/app/dashboard/data.json"
 
 export function App() {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "17rem",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset className="overflow-hidden border border-border">
         <SiteHeader />
-        <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          <SectionCards />
-          <ChartAreaInteractive />
-          <DataTable data={data} />
+        <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-6 pt-2 pb-8">
+          <DashboardToolbar />
+          <DashboardPlaceholder />
         </div>
       </SidebarInset>
     </SidebarProvider>
