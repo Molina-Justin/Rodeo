@@ -1,21 +1,27 @@
-# React + TypeScript + Vite + shadcn/ui
+# Rodeo
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+A single-user, local-first technical interview preparation app: time tracker, spaced-repetition engine, and progress dashboard.
 
-## Adding components
+## Stack
 
-To add components to your app, run the following command:
+React + TypeScript, Vite, Tailwind CSS, shadcn/ui, lucide-react, Zustand.
+
+## Scripts
 
 ```bash
-npx shadcn@latest add button
+npm run dev        # start the dev server on http://localhost:5199
+npm run build      # typecheck and build for production
+npm run typecheck  # tsc --noEmit
+npm run lint       # eslint
+npm run format     # prettier
 ```
 
-This will place the ui components in the `src/components` directory.
+## Structure
 
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button"
-```
+- `src/components/layout` — app shell: header, dashboard toolbar, theme toggle
+- `src/components/sidebar` — sidebar shell and navigation groups
+- `src/components/dashboard` — dashboard surfaces
+- `src/components/brand` — logo mark
+- `src/components/ui` — shadcn/ui primitives
+- `src/store` — Zustand state
+- `src/types` — shared types
