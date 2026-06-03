@@ -44,6 +44,26 @@ export type ProblemSort =
   | "acceptance-desc"
   | "acceptance-asc"
 
+export type AttemptOutcome = "optimal" | "hint" | "solution" | "failed"
+
+export interface Attempt {
+  problemId: number
+  completedAt: string
+  durationMinutes: number
+  outcome: AttemptOutcome
+}
+
+export type ProblemStatus = "not-started" | "solved" | "review" | "struggling"
+
+export type ProblemColumnId =
+  | "status"
+  | "number"
+  | "problem"
+  | "topic"
+  | "difficulty"
+  | "acceptance"
+  | "lastAttempt"
+
 export interface ProblemFilters {
   search: string
   difficulty: DifficultyFilter

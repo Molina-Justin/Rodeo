@@ -1,6 +1,16 @@
-import { SearchIcon, XIcon } from "lucide-react"
+import { Columns3Icon, SearchIcon, XIcon } from "lucide-react"
 
+import { PROBLEM_COLUMNS } from "@/components/problems/problems-columns"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   InputGroup,
   InputGroupAddon,
@@ -17,6 +27,7 @@ import { ALL_TOPICS } from "@/lib/problems"
 import type {
   AccessFilter,
   DifficultyFilter,
+  ProblemColumnId,
   ProblemFilters,
   ProblemSort,
 } from "@/types"
@@ -50,8 +61,10 @@ interface ProblemsToolbarProps {
   sort: ProblemSort
   topics: string[]
   isFiltered: boolean
+  visibleColumns: ProblemColumnId[]
   onFiltersChange: (filters: Partial<ProblemFilters>) => void
   onSortChange: (sort: ProblemSort) => void
+  onColumnToggle: (column: ProblemColumnId, visible: boolean) => void
   onReset: () => void
 }
 
@@ -60,8 +73,10 @@ export function ProblemsToolbar({
   sort,
   topics,
   isFiltered,
+  visibleColumns,
   onFiltersChange,
   onSortChange,
+  onColumnToggle,
   onReset,
 }: ProblemsToolbarProps) {
   return (
@@ -152,6 +167,44 @@ export function ProblemsToolbar({
           ))}
         </SelectContent>
       </Select>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="outline"
+              className="h-10 rounded-lg"
+              aria-label="Toggle columns"
+            />
+          }
+        >
+          <Columns3Icon />
+          Columns
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-44 rounded-xl">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              Visible columns
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {PROBLEM_COLUMNS.map((column) => {
+              const checked = visibleColumns.includes(column.id)
+
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={checked}
+                  disabled={checked && visibleColumns.length === 1}
+                  onCheckedChange={(value) => onColumnToggle(column.id, value)}
+                  closeOnClick={false}
+                >
+                  {column.label}
+                </DropdownMenuCheckboxItem>
+              )
+            })}
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {isFiltered ? (
         <Button
