@@ -16,6 +16,7 @@ import {
   filterProblems,
   sortProblems,
 } from "@/lib/problems"
+import { useAppStore } from "@/store/use-app-store"
 import type { ProblemColumnId, ProblemFilters, ProblemSort } from "@/types"
 
 const PAGE_SIZE = 25
@@ -23,12 +24,14 @@ const PAGE_SIZE = 25
 const defaultFilters: ProblemFilters = {
   search: "",
   difficulty: "all",
+  status: "all",
   topic: ALL_TOPICS,
   access: "all",
 }
 
 export function ProblemsPage() {
   const { problems, status } = useProblems()
+  const lastAttemptByProblem = useAppStore((state) => state.lastAttemptByProblem)
   const [filters, setFilters] = React.useState<ProblemFilters>(defaultFilters)
   const [sort, setSort] = React.useState<ProblemSort>("id-asc")
   const [page, setPage] = React.useState(0)
@@ -39,8 +42,12 @@ export function ProblemsPage() {
   const topics = React.useMemo(() => collectTopics(problems), [problems])
 
   const visibleProblems = React.useMemo(
-    () => sortProblems(filterProblems(problems, filters), sort),
-    [problems, filters, sort]
+    () =>
+      sortProblems(
+        filterProblems(problems, filters, lastAttemptByProblem),
+        sort
+      ),
+    [problems, filters, sort, lastAttemptByProblem]
   )
 
   const pageProblems = React.useMemo(
@@ -48,11 +55,13 @@ export function ProblemsPage() {
     [visibleProblems, page]
   )
 
-  const isFiltered =
-    filters.search !== "" ||
-    filters.difficulty !== "all" ||
-    filters.topic !== ALL_TOPICS ||
-    filters.access !== "all"
+  const activeFilterCount = [
+    filters.search !== "",
+    filters.difficulty !== "all",
+    filters.status !== "all",
+    filters.topic !== ALL_TOPICS,
+    filters.access !== "all",
+  ].filter(Boolean).length
 
   const updateFilters = (next: Partial<ProblemFilters>) => {
     setFilters((current) => ({ ...current, ...next }))
@@ -84,14 +93,6 @@ export function ProblemsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-3xl font-semibold tracking-tight">Problems</h1>
-        <p className="text-sm text-muted-foreground">
-          The full LeetCode catalog. Filter it down, then log an attempt against
-          anything you work on.
-        </p>
-      </div>
-
       {status === "error" ? (
         <Empty className="min-h-64 border border-dashed border-border">
           <EmptyHeader>
@@ -121,7 +122,7 @@ export function ProblemsPage() {
             filters={filters}
             sort={sort}
             topics={topics}
-            isFiltered={isFiltered}
+            activeFilterCount={activeFilterCount}
             visibleColumns={visibleColumns}
             onFiltersChange={updateFilters}
             onSortChange={updateSort}

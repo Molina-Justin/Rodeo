@@ -177,7 +177,7 @@ export function ProblemsTable({
                       </TableCell>
                     ) : null}
                     {shows("number") ? (
-                      <TableCell className="font-mono text-xs text-muted-foreground">
+                      <TableCell className="font-mono text-xs text-sky-700/80 dark:text-sky-300/80">
                         {problem.id}
                       </TableCell>
                     ) : null}
@@ -191,7 +191,7 @@ export function ProblemsTable({
                         >
                           {problem.title}
                           {problem.premium ? (
-                            <LockIcon className="size-3.5 text-muted-foreground" />
+                            <LockIcon className="size-3.5 text-amber-600 dark:text-amber-400" />
                           ) : null}
                           <ExternalLinkIcon className="size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                         </a>
@@ -204,7 +204,7 @@ export function ProblemsTable({
                             <Badge
                               key={topic}
                               variant="outline"
-                              className="rounded-md font-normal text-muted-foreground"
+                              className="rounded-md border-violet-500/20 bg-violet-500/10 font-normal text-violet-700 dark:text-violet-300"
                             >
                               {topic}
                             </Badge>

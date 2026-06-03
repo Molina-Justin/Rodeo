@@ -1,4 +1,5 @@
-import type { Problem, ProblemFilters, ProblemSort } from "@/types"
+import { deriveStatus } from "@/lib/attempts"
+import type { Attempt, Problem, ProblemFilters, ProblemSort } from "@/types"
 
 const DIFFICULTY_RANK: Record<Problem["difficulty"], number> = {
   easy: 0,
@@ -39,7 +40,8 @@ function matchesSearch(problem: Problem, search: string) {
 
 export function filterProblems(
   problems: Problem[],
-  filters: ProblemFilters
+  filters: ProblemFilters,
+  lastAttemptByProblem: Record<number, Attempt>
 ): Problem[] {
   return problems.filter((problem) => {
     if (!matchesSearch(problem, filters.search)) {
@@ -51,6 +53,13 @@ export function filterProblems(
     }
 
     if (filters.topic !== ALL_TOPICS && !problem.topics.includes(filters.topic)) {
+      return false
+    }
+
+    if (
+      filters.status !== "all" &&
+      deriveStatus(lastAttemptByProblem[problem.id]) !== filters.status
+    ) {
       return false
     }
 

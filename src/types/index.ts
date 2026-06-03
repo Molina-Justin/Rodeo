@@ -64,9 +64,12 @@ export type ProblemColumnId =
   | "acceptance"
   | "lastAttempt"
 
+export type StatusFilter = ProblemStatus | "all"
+
 export interface ProblemFilters {
   search: string
   difficulty: DifficultyFilter
+  status: StatusFilter
   topic: string
   access: AccessFilter
 }
