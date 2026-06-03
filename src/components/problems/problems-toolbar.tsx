@@ -42,7 +42,6 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
-import { ALL_TOPICS } from "@/lib/problems"
 import type {
   AccessFilter,
   DifficultyFilter,
@@ -158,7 +157,6 @@ const triggerClass = "h-10 gap-2 rounded-lg px-3 font-normal"
 interface ProblemsToolbarProps {
   filters: ProblemFilters
   sort: ProblemSort
-  topics: string[]
   activeFilterCount: number
   visibleColumns: ProblemColumnId[]
   onFiltersChange: (filters: Partial<ProblemFilters>) => void
@@ -209,7 +207,6 @@ function Section<T extends string>({
 export function ProblemsToolbar({
   filters,
   sort,
-  topics,
   activeFilterCount,
   visibleColumns,
   onFiltersChange,
@@ -217,8 +214,6 @@ export function ProblemsToolbar({
   onColumnToggle,
   onReset,
 }: ProblemsToolbarProps) {
-  const activeSort = sortOptions.find((option) => option.value === sort)
-
   return (
     <div className="flex flex-wrap items-center gap-3">
       <InputGroup className="h-10 w-full min-w-56 flex-1 rounded-lg sm:max-w-sm">
@@ -247,7 +242,7 @@ export function ProblemsToolbar({
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          className="max-h-96 min-w-56 overflow-y-auto rounded-xl p-1.5"
+          className="min-w-56 rounded-xl p-1.5"
         >
           <Section
             label="Difficulty"
@@ -275,35 +270,6 @@ export function ProblemsToolbar({
             value={filters.access}
             onChange={(value) => onFiltersChange({ access: value })}
           />
-          <DropdownMenuSeparator className="my-1.5" />
-          <DropdownMenuRadioGroup
-            value={filters.topic}
-            onValueChange={(next) => onFiltersChange({ topic: next as string })}
-          >
-            <DropdownMenuLabel className="mb-1 flex items-center gap-2 px-2.5 text-xs font-medium text-muted-foreground">
-              <TagIcon className="size-3.5 text-violet-600 dark:text-violet-400" />
-              Topic
-            </DropdownMenuLabel>
-            <DropdownMenuRadioItem
-                value={ALL_TOPICS}
-                className={menuItemClass}
-                closeOnClick={false}
-              >
-                <LayersIcon />
-                Any topic
-              </DropdownMenuRadioItem>
-              {topics.map((topic) => (
-                <DropdownMenuRadioItem
-                  key={topic}
-                  value={topic}
-                  className={menuItemClass}
-                  closeOnClick={false}
-                >
-                  <TagIcon className="text-violet-600 dark:text-violet-400" />
-                {topic}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -312,7 +278,7 @@ export function ProblemsToolbar({
           render={<Button variant="outline" className={triggerClass} />}
         >
           <ArrowUpDownIcon className="text-emerald-600 dark:text-emerald-400" />
-          {activeSort ? activeSort.label : "Sort"}
+          Sort
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-56 rounded-xl p-1.5">
           <DropdownMenuRadioGroup
@@ -339,7 +305,9 @@ export function ProblemsToolbar({
 
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<Button variant="outline" className={triggerClass} />}
+          render={
+            <Button variant="outline" className={`${triggerClass} ml-auto`} />
+          }
         >
           <Columns3Icon className="text-violet-600 dark:text-violet-400" />
           Columns

@@ -10,12 +10,7 @@ import { ProblemsToolbar } from "@/components/problems/problems-toolbar"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useProblems } from "@/hooks/use-problems"
-import {
-  ALL_TOPICS,
-  collectTopics,
-  filterProblems,
-  sortProblems,
-} from "@/lib/problems"
+import { filterProblems, sortProblems } from "@/lib/problems"
 import { useAppStore } from "@/store/use-app-store"
 import type { ProblemColumnId, ProblemFilters, ProblemSort } from "@/types"
 
@@ -25,7 +20,6 @@ const defaultFilters: ProblemFilters = {
   search: "",
   difficulty: "all",
   status: "all",
-  topic: ALL_TOPICS,
   access: "all",
 }
 
@@ -38,8 +32,6 @@ export function ProblemsPage() {
   const [visibleColumns, setVisibleColumns] = React.useState<ProblemColumnId[]>(
     DEFAULT_VISIBLE_COLUMNS
   )
-
-  const topics = React.useMemo(() => collectTopics(problems), [problems])
 
   const visibleProblems = React.useMemo(
     () =>
@@ -59,7 +51,6 @@ export function ProblemsPage() {
     filters.search !== "",
     filters.difficulty !== "all",
     filters.status !== "all",
-    filters.topic !== ALL_TOPICS,
     filters.access !== "all",
   ].filter(Boolean).length
 
@@ -121,7 +112,6 @@ export function ProblemsPage() {
           <ProblemsToolbar
             filters={filters}
             sort={sort}
-            topics={topics}
             activeFilterCount={activeFilterCount}
             visibleColumns={visibleColumns}
             onFiltersChange={updateFilters}

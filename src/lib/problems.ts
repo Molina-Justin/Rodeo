@@ -7,20 +7,6 @@ const DIFFICULTY_RANK: Record<Problem["difficulty"], number> = {
   hard: 2,
 }
 
-export const ALL_TOPICS = "all"
-
-export function collectTopics(problems: Problem[]): string[] {
-  const topics = new Set<string>()
-
-  for (const problem of problems) {
-    for (const topic of problem.topics) {
-      topics.add(topic)
-    }
-  }
-
-  return [...topics].sort((a, b) => a.localeCompare(b))
-}
-
 function matchesSearch(problem: Problem, search: string) {
   if (!search) {
     return true
@@ -49,10 +35,6 @@ export function filterProblems(
     }
 
     if (filters.difficulty !== "all" && problem.difficulty !== filters.difficulty) {
-      return false
-    }
-
-    if (filters.topic !== ALL_TOPICS && !problem.topics.includes(filters.topic)) {
       return false
     }
 

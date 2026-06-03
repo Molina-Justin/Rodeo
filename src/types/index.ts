@@ -70,6 +70,5 @@ export interface ProblemFilters {
   search: string
   difficulty: DifficultyFilter
   status: StatusFilter
-  topic: string
   access: AccessFilter
 }
