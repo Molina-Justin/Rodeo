@@ -1,12 +1,16 @@
-import { ExternalLinkIcon, LockIcon, TagIcon, TimerIcon } from "lucide-react"
+import { LockIcon } from "lucide-react"
 
+import {
+  DIFFICULTY_LABELS,
+  DIFFICULTY_STYLES,
+  STATUS_META,
+} from "@/components/problems/problem-meta"
+import { ProblemTimer } from "@/components/problems/problem-timer"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -17,28 +21,39 @@ import {
   formatDuration,
   formatElapsed,
 } from "@/lib/attempts"
-import { problemUrl } from "@/lib/problems"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/use-app-store"
-import type { Problem } from "@/types"
-import {
-  DIFFICULTY_LABELS,
-  DIFFICULTY_STYLES,
-  STATUS_META,
-} from "@/components/problems/problem-meta"
+import type { Attempt, Problem, ProblemStatus } from "@/types"
+
+const dotStyles: Record<ProblemStatus, string> = {
+  "not-started": "bg-muted-foreground/40",
+  solved: "bg-emerald-500",
+  review: "bg-amber-500",
+  struggling: "bg-destructive",
+}
+
+function AttemptRow({ attempt }: { attempt: Attempt }) {
+  const status = deriveStatus(attempt)
+
+  return (
+    <li className="flex items-center gap-4 rounded-lg bg-muted/50 px-4 py-3 text-sm">
+      <span className={cn("size-2 shrink-0 rounded-full", dotStyles[status])} />
+      <span className="w-20 font-mono text-muted-foreground">
+        {formatElapsed(attempt.completedAt)}
+      </span>
+      <span className="w-12 tabular-nums">
+        {formatDuration(attempt.durationMinutes)}
+      </span>
+      <span className="text-muted-foreground">
+        {OUTCOME_LABELS[attempt.outcome]}
+      </span>
+    </li>
+  )
+}
 
 interface ProblemDialogProps {
   problem: Problem | null
   onOpenChange: (open: boolean) => void
-}
-
-function Stat({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium">{children}</span>
-    </div>
-  )
 }
 
 export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
@@ -52,123 +67,81 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
     .filter((attempt) => attempt.problemId === problem.id)
     .sort((a, b) => b.completedAt.localeCompare(a.completedAt))
 
-  const latest = problemAttempts[0]
-  const status = deriveStatus(latest)
+  const status = deriveStatus(problemAttempts[0])
   const { label: statusLabel, icon: StatusIcon, className: statusClass } =
     STATUS_META[status]
 
-  const totalMinutes = problemAttempts.reduce(
-    (total, attempt) => total + attempt.durationMinutes,
-    0
-  )
-
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="gap-5 p-6 sm:max-w-lg">
-        <DialogHeader className="gap-2">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-sky-700/80 dark:text-sky-300/80">
-              #{problem.id}
-            </span>
-            <Badge
-              className={cn(
-                "rounded-md font-medium",
-                DIFFICULTY_STYLES[problem.difficulty]
-              )}
-            >
-              {DIFFICULTY_LABELS[problem.difficulty]}
-            </Badge>
-            {problem.premium ? (
+      <DialogContent className="gap-0 p-0 sm:max-w-2xl">
+        <DialogHeader className="gap-4 p-6">
+          <div className="flex flex-col gap-3">
+            <DialogTitle className="flex items-baseline gap-3 text-3xl leading-tight">
+              <span className="font-mono text-base text-muted-foreground">
+                #{problem.id}
+              </span>
+              {problem.title}
+            </DialogTitle>
+            <DialogDescription className="flex items-center gap-2">
+              <Badge
+                className={cn(
+                  "rounded-md px-2.5 py-1 font-medium",
+                  DIFFICULTY_STYLES[problem.difficulty]
+                )}
+              >
+                {DIFFICULTY_LABELS[problem.difficulty]}
+              </Badge>
+              <Badge
+                variant="secondary"
+                className="rounded-md px-2.5 py-1 font-normal"
+              >
+                {problemAttempts.length}{" "}
+                {problemAttempts.length === 1 ? "attempt" : "attempts"}
+              </Badge>
               <Badge
                 variant="outline"
-                className="gap-1 rounded-md font-normal text-amber-600 dark:text-amber-400"
+                className={cn("gap-1.5 rounded-md px-2.5 py-1 font-normal", statusClass)}
               >
-                <LockIcon className="size-3" />
-                Premium
+                <StatusIcon className="size-3.5" />
+                {statusLabel}
               </Badge>
-            ) : null}
-          </div>
-          <DialogTitle className="text-xl leading-snug">
-            {problem.title}
-          </DialogTitle>
-          <DialogDescription className="flex items-center gap-2">
-            <StatusIcon className={cn("size-4", statusClass)} />
-            <span className={statusClass}>{statusLabel}</span>
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid grid-cols-3 gap-4">
-          <Stat label="Acceptance">{problem.acceptance.toFixed(1)}%</Stat>
-          <Stat label="Attempts">{problemAttempts.length}</Stat>
-          <Stat label="Time invested">
-            {totalMinutes === 0 ? "—" : formatDuration(totalMinutes)}
-          </Stat>
-        </div>
-
-        {problem.topics.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            <span className="flex items-center gap-2 text-xs text-muted-foreground">
-              <TagIcon className="size-3.5 text-violet-600 dark:text-violet-400" />
-              Topics
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {problem.topics.map((topic) => (
+              {problem.premium ? (
                 <Badge
-                  key={topic}
                   variant="outline"
-                  className="rounded-md border-violet-500/20 bg-violet-500/10 font-normal text-violet-700 dark:text-violet-300"
+                  className="gap-1.5 rounded-md px-2.5 py-1 font-normal text-amber-600 dark:text-amber-400"
                 >
-                  {topic}
+                  <LockIcon className="size-3.5" />
+                  Premium
                 </Badge>
-              ))}
-            </div>
+              ) : null}
+            </DialogDescription>
           </div>
-        ) : null}
+
+          <ProblemTimer problem={problem} />
+        </DialogHeader>
 
         <Separator />
 
-        <div className="flex flex-col gap-3">
-          <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <TimerIcon className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-            Attempt history
-          </span>
+        <div className="flex flex-col gap-3 p-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-semibold">Attempt history</h3>
+            <span className="text-sm text-muted-foreground">
+              {problemAttempts.length}{" "}
+              {problemAttempts.length === 1 ? "attempt" : "attempts"}
+            </span>
+          </div>
           {problemAttempts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
               No attempts logged yet.
             </p>
           ) : (
             <ul className="flex flex-col gap-2">
               {problemAttempts.map((attempt) => (
-                <li
-                  key={attempt.completedAt}
-                  className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
-                >
-                  <span>{formatElapsed(attempt.completedAt)}</span>
-                  <span className="flex items-center gap-2 text-muted-foreground">
-                    <span className="tabular-nums">
-                      {formatDuration(attempt.durationMinutes)}
-                    </span>
-                    <span>·</span>
-                    <span>{OUTCOME_LABELS[attempt.outcome]}</span>
-                  </span>
-                </li>
+                <AttemptRow key={attempt.completedAt} attempt={attempt} />
               ))}
             </ul>
           )}
         </div>
-
-        <DialogFooter>
-          <Button
-            variant="outline"
-            className="rounded-lg"
-            render={
-              <a href={problemUrl(problem)} target="_blank" rel="noreferrer" />
-            }
-          >
-            <ExternalLinkIcon />
-            Open on LeetCode
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
