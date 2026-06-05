@@ -1,13 +1,4 @@
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CircleAlertIcon,
-  CircleCheckIcon,
-  CircleDashedIcon,
-  CircleDotIcon,
-  ExternalLinkIcon,
-  LockIcon,
-} from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, LockIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,59 +10,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  DIFFICULTY_LABELS,
+  DIFFICULTY_STYLES,
+  STATUS_META,
+} from "@/components/problems/problem-meta"
 import { deriveStatus, formatLastAttempt } from "@/lib/attempts"
-import { problemUrl } from "@/lib/problems"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/use-app-store"
-import type {
-  Attempt,
-  Difficulty,
-  Problem,
-  ProblemColumnId,
-  ProblemStatus,
-} from "@/types"
-
-const difficultyStyles: Record<Difficulty, string> = {
-  easy: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  medium: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  hard: "bg-destructive/10 text-destructive",
-}
-
-const difficultyLabels: Record<Difficulty, string> = {
-  easy: "Easy",
-  medium: "Medium",
-  hard: "Hard",
-}
-
-const statusMeta: Record<
-  ProblemStatus,
-  { label: string; icon: typeof CircleDashedIcon; className: string }
-> = {
-  "not-started": {
-    label: "Not started",
-    icon: CircleDashedIcon,
-    className: "text-muted-foreground",
-  },
-  solved: {
-    label: "Solved",
-    icon: CircleCheckIcon,
-    className: "text-emerald-600 dark:text-emerald-400",
-  },
-  review: {
-    label: "Review",
-    icon: CircleDotIcon,
-    className: "text-amber-600 dark:text-amber-400",
-  },
-  struggling: {
-    label: "Struggling",
-    icon: CircleAlertIcon,
-    className: "text-destructive",
-  },
-}
+import type { Attempt, Problem, ProblemColumnId } from "@/types"
 
 function StatusCell({ attempt }: { attempt: Attempt | undefined }) {
   const status = deriveStatus(attempt)
-  const { label, icon: Icon, className } = statusMeta[status]
+  const { label, icon: Icon, className } = STATUS_META[status]
 
   return (
     <span className={cn("inline-flex items-center gap-2 text-sm", className)}>
@@ -101,6 +52,7 @@ function LastAttemptCell({ attempt }: { attempt: Attempt | undefined }) {
 
 interface ProblemsTableProps {
   problems: Problem[]
+  onSelect: (problem: Problem) => void
   visibleColumns: ProblemColumnId[]
   page: number
   pageSize: number
@@ -110,6 +62,7 @@ interface ProblemsTableProps {
 
 export function ProblemsTable({
   problems,
+  onSelect,
   visibleColumns,
   page,
   pageSize,
@@ -170,7 +123,11 @@ export function ProblemsTable({
                 const attempt = lastAttemptByProblem[problem.id]
 
                 return (
-                  <TableRow key={problem.id} className="h-14">
+                  <TableRow
+                    key={problem.id}
+                    className="h-14 cursor-pointer"
+                    onClick={() => onSelect(problem)}
+                  >
                     {shows("status") ? (
                       <TableCell className="pl-6">
                         <StatusCell attempt={attempt} />
@@ -183,18 +140,12 @@ export function ProblemsTable({
                     ) : null}
                     {shows("problem") ? (
                       <TableCell>
-                        <a
-                          href={problemUrl(problem)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="group inline-flex items-center gap-2 font-medium"
-                        >
+                        <span className="inline-flex items-center gap-2 font-medium">
                           {problem.title}
                           {problem.premium ? (
                             <LockIcon className="size-3.5 text-amber-600 dark:text-amber-400" />
                           ) : null}
-                          <ExternalLinkIcon className="size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                        </a>
+                        </span>
                       </TableCell>
                     ) : null}
                     {shows("topic") ? (
@@ -225,10 +176,10 @@ export function ProblemsTable({
                         <Badge
                           className={cn(
                             "rounded-md font-medium",
-                            difficultyStyles[problem.difficulty]
+                            DIFFICULTY_STYLES[problem.difficulty]
                           )}
                         >
-                          {difficultyLabels[problem.difficulty]}
+                          {DIFFICULTY_LABELS[problem.difficulty]}
                         </Badge>
                       </TableCell>
                     ) : null}

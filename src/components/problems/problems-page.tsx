@@ -5,6 +5,7 @@ import {
   DEFAULT_VISIBLE_COLUMNS,
   PROBLEM_COLUMNS,
 } from "@/components/problems/problems-columns"
+import { ProblemDialog } from "@/components/problems/problem-dialog"
 import { ProblemsTable } from "@/components/problems/problems-table"
 import { ProblemsToolbar } from "@/components/problems/problems-toolbar"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -12,7 +13,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useProblems } from "@/hooks/use-problems"
 import { filterProblems, sortProblems } from "@/lib/problems"
 import { useAppStore } from "@/store/use-app-store"
-import type { ProblemColumnId, ProblemFilters, ProblemSort } from "@/types"
+import type {
+  Problem,
+  ProblemColumnId,
+  ProblemFilters,
+  ProblemSort,
+} from "@/types"
 
 const PAGE_SIZE = 25
 
@@ -31,6 +37,9 @@ export function ProblemsPage() {
   const [page, setPage] = React.useState(0)
   const [visibleColumns, setVisibleColumns] = React.useState<ProblemColumnId[]>(
     DEFAULT_VISIBLE_COLUMNS
+  )
+  const [selectedProblem, setSelectedProblem] = React.useState<Problem | null>(
+    null
   )
 
   const visibleProblems = React.useMemo(
@@ -122,10 +131,19 @@ export function ProblemsPage() {
           <ProblemsTable
             problems={pageProblems}
             visibleColumns={visibleColumns}
+            onSelect={setSelectedProblem}
             page={page}
             pageSize={PAGE_SIZE}
             total={visibleProblems.length}
             onPageChange={setPage}
+          />
+          <ProblemDialog
+            problem={selectedProblem}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedProblem(null)
+              }
+            }}
           />
         </>
       ) : null}
