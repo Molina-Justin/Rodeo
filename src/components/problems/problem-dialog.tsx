@@ -38,7 +38,7 @@ function AttemptRow({ attempt }: { attempt: Attempt }) {
   return (
     <li className="flex items-center gap-4 rounded-lg bg-muted/50 px-4 py-3 text-sm">
       <span className={cn("size-2 shrink-0 rounded-full", dotStyles[status])} />
-      <span className="w-20 font-mono text-muted-foreground">
+      <span className="w-16 font-mono text-xs text-muted-foreground">
         {formatElapsed(attempt.completedAt)}
       </span>
       <span className="w-12 tabular-nums">
@@ -73,34 +73,31 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 p-0 sm:max-w-2xl">
-        <DialogHeader className="gap-4 p-6">
+      <DialogContent className="gap-0 p-0 sm:max-w-lg">
+        <DialogHeader className="gap-4 p-5">
           <div className="flex flex-col gap-3">
-            <DialogTitle className="flex items-baseline gap-3 text-3xl leading-tight">
-              <span className="font-mono text-base text-muted-foreground">
+            <DialogTitle className="flex items-baseline gap-2 leading-snug">
+              <span className="font-mono text-xs text-muted-foreground">
                 #{problem.id}
               </span>
               {problem.title}
             </DialogTitle>
             <DialogDescription className="flex items-center gap-2">
               <Badge
-                className={cn(
-                  "rounded-md px-2.5 py-1 font-medium",
-                  DIFFICULTY_STYLES[problem.difficulty]
-                )}
+                className={cn("rounded-md font-medium", DIFFICULTY_STYLES[problem.difficulty])}
               >
                 {DIFFICULTY_LABELS[problem.difficulty]}
               </Badge>
               <Badge
                 variant="secondary"
-                className="rounded-md px-2.5 py-1 font-normal"
+                className="rounded-md font-normal"
               >
                 {problemAttempts.length}{" "}
                 {problemAttempts.length === 1 ? "attempt" : "attempts"}
               </Badge>
               <Badge
                 variant="outline"
-                className={cn("gap-1.5 rounded-md px-2.5 py-1 font-normal", statusClass)}
+                className={cn("gap-1.5 rounded-md font-normal", statusClass)}
               >
                 <StatusIcon className="size-3.5" />
                 {statusLabel}
@@ -108,7 +105,7 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
               {problem.premium ? (
                 <Badge
                   variant="outline"
-                  className="gap-1.5 rounded-md px-2.5 py-1 font-normal text-amber-600 dark:text-amber-400"
+                  className="gap-1.5 rounded-md font-normal text-amber-600 dark:text-amber-400"
                 >
                   <LockIcon className="size-3.5" />
                   Premium
@@ -122,10 +119,10 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
 
         <Separator />
 
-        <div className="flex flex-col gap-3 p-6">
+        <div className="flex flex-col gap-3 p-5">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold">Attempt history</h3>
-            <span className="text-sm text-muted-foreground">
+            <h3 className="text-sm font-medium">Attempt history</h3>
+            <span className="text-xs text-muted-foreground">
               {problemAttempts.length}{" "}
               {problemAttempts.length === 1 ? "attempt" : "attempts"}
             </span>

@@ -48,10 +48,10 @@ export function ProblemTimer({ problem }: { problem: Problem }) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 rounded-xl border border-dashed border-border px-6 py-10">
+    <div className="flex flex-col items-center gap-5 rounded-xl border border-dashed border-border px-6 py-8">
       <span
         className={cn(
-          "font-mono text-6xl tracking-tight tabular-nums",
+          "font-mono text-3xl tracking-tight tabular-nums",
           idle ? "text-muted-foreground/20" : "text-foreground"
         )}
       >
@@ -61,7 +61,6 @@ export function ProblemTimer({ problem }: { problem: Problem }) {
       {running ? (
         <div className="flex items-center gap-3">
           <Button
-            size="lg"
             className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90"
             onClick={() => setRunning(false)}
           >
@@ -69,7 +68,6 @@ export function ProblemTimer({ problem }: { problem: Problem }) {
             Pause
           </Button>
           <Button
-            size="lg"
             variant="outline"
             className="rounded-lg"
             onClick={() => {
@@ -84,7 +82,6 @@ export function ProblemTimer({ problem }: { problem: Problem }) {
       ) : (
         <div className="flex items-center gap-3">
           <Button
-            size="lg"
             className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90"
             onClick={() => start(true)}
           >
@@ -92,7 +89,6 @@ export function ProblemTimer({ problem }: { problem: Problem }) {
             {idle ? "Start timer & record" : "Resume"}
           </Button>
           <Button
-            size="lg"
             variant="outline"
             className="rounded-lg"
             onClick={() => start(false)}
