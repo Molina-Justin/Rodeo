@@ -46,11 +46,25 @@ export type ProblemSort =
 
 export type AttemptOutcome = "optimal" | "hint" | "solution" | "failed"
 
+export type AttemptEffort = "light" | "moderate" | "heavy" | "brutal"
+
+export type AttemptBlocker =
+  | "none"
+  | "pattern"
+  | "edge-cases"
+  | "complexity"
+  | "implementation"
+  | "debugging"
+  | "time"
+
 export interface Attempt {
   problemId: number
   completedAt: string
   durationMinutes: number
   outcome: AttemptOutcome
+  effort: AttemptEffort
+  blocker: AttemptBlocker
+  notes: string
 }
 
 export type ProblemStatus = "not-started" | "solved" | "review" | "struggling"

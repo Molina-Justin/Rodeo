@@ -1,4 +1,10 @@
-import type { Attempt, AttemptOutcome, ProblemStatus } from "@/types"
+import type {
+  Attempt,
+  AttemptBlocker,
+  AttemptEffort,
+  AttemptOutcome,
+  ProblemStatus,
+} from "@/types"
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 
@@ -10,10 +16,27 @@ const OUTCOME_STATUS: Record<AttemptOutcome, ProblemStatus> = {
 }
 
 export const OUTCOME_LABELS: Record<AttemptOutcome, string> = {
-  optimal: "Optimal",
+  optimal: "Solo",
   hint: "Hint",
   solution: "Solution",
   failed: "Failed",
+}
+
+export const EFFORT_LABELS: Record<AttemptEffort, string> = {
+  light: "Light",
+  moderate: "Moderate",
+  heavy: "Heavy",
+  brutal: "Brutal",
+}
+
+export const BLOCKER_LABELS: Record<AttemptBlocker, string> = {
+  none: "Nothing — it flowed",
+  pattern: "Missed the pattern",
+  "edge-cases": "Edge cases",
+  complexity: "Time or space complexity",
+  implementation: "Implementation details",
+  debugging: "Debugging",
+  time: "Ran out of time",
 }
 
 /** Latest attempt per problem, so table rows resolve in constant time. */

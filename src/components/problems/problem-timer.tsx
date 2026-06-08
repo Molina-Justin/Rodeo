@@ -1,53 +1,12 @@
 import * as React from "react"
-import {
-  CircleAlertIcon,
-  CircleCheckIcon,
-  CircleDotIcon,
-  CircleXIcon,
-  MicIcon,
-  PauseIcon,
-  PlayIcon,
-  RotateCcwIcon,
-  SquareIcon,
-} from "lucide-react"
+import { MicIcon, PauseIcon, PlayIcon, RotateCcwIcon, SquareIcon } from "lucide-react"
 
+import { AttemptForm } from "@/components/problems/attempt-form"
 import { Button } from "@/components/ui/button"
 import { problemUrl } from "@/lib/problems"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/use-app-store"
-import type { AttemptOutcome, Problem } from "@/types"
-
-const outcomeChoices: {
-  outcome: AttemptOutcome
-  label: string
-  icon: typeof CircleCheckIcon
-  className: string
-}[] = [
-  {
-    outcome: "optimal",
-    label: "Optimal",
-    icon: CircleCheckIcon,
-    className: "text-emerald-600 dark:text-emerald-400",
-  },
-  {
-    outcome: "hint",
-    label: "Hint",
-    icon: CircleDotIcon,
-    className: "text-amber-600 dark:text-amber-400",
-  },
-  {
-    outcome: "solution",
-    label: "Solution",
-    icon: CircleAlertIcon,
-    className: "text-sky-600 dark:text-sky-400",
-  },
-  {
-    outcome: "failed",
-    label: "Failed",
-    icon: CircleXIcon,
-    className: "text-destructive",
-  },
-]
+import type { Attempt, Problem } from "@/types"
 
 function format(elapsedMs: number) {
   const totalSeconds = Math.floor(elapsedMs / 1000)
@@ -98,15 +57,28 @@ export function ProblemTimer({ problem }: { problem: Problem }) {
     setElapsed(0)
   }
 
-  const save = (outcome: AttemptOutcome) => {
-    logAttempt({
-      problemId: problem.id,
-      completedAt: new Date().toISOString(),
-      durationMinutes: Math.max(1, Math.round(elapsed / 60000)),
-      outcome,
-    })
-
+  const save = (attempt: Attempt) => {
+    logAttempt(attempt)
     reset()
+  }
+
+  if (awaitingOutcome) {
+    return (
+      <div className="flex flex-col gap-5 rounded-xl border border-border p-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium">Log this attempt</span>
+          <span className="font-mono text-sm tabular-nums text-muted-foreground">
+            {format(elapsed)}
+          </span>
+        </div>
+        <AttemptForm
+          problemId={problem.id}
+          elapsedMinutes={Math.max(1, Math.round(elapsed / 60000))}
+          onSave={save}
+          onCancel={reset}
+        />
+      </div>
+    )
   }
 
   return (
@@ -120,31 +92,7 @@ export function ProblemTimer({ problem }: { problem: Problem }) {
         {format(elapsed)}
       </span>
 
-      {awaitingOutcome ? (
-        <div className="flex flex-col items-center gap-3">
-          <span className="text-sm text-muted-foreground">How did it go?</span>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {outcomeChoices.map((choice) => (
-              <Button
-                key={choice.outcome}
-                variant="outline"
-                className="rounded-lg"
-                onClick={() => save(choice.outcome)}
-              >
-                <choice.icon className={choice.className} />
-                {choice.label}
-              </Button>
-            ))}
-          </div>
-          <Button
-            variant="ghost"
-            className="rounded-lg text-muted-foreground"
-            onClick={reset}
-          >
-            Discard
-          </Button>
-        </div>
-      ) : running ? (
+      {running ? (
         <div className="flex items-center gap-3">
           <Button
             className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90"
