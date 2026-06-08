@@ -43,7 +43,7 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-svh gap-0 overflow-y-auto p-0 sm:max-w-lg">
+      <DialogContent className="max-h-svh gap-0 overflow-y-auto p-0 sm:max-w-xl">
         <DialogHeader className="gap-4 p-5">
           <div className="flex flex-col gap-3">
             <DialogTitle className="flex items-baseline gap-2 leading-snug">

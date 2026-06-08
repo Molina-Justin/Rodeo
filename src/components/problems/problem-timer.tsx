@@ -64,10 +64,10 @@ export function ProblemTimer({ problem }: { problem: Problem }) {
 
   if (awaitingOutcome) {
     return (
-      <div className="flex flex-col gap-5 rounded-xl border border-border p-4">
-        <div className="flex items-center justify-between">
+      <div className="-mx-5 -mb-1 flex flex-col border-y border-border">
+        <div className="flex items-baseline justify-between gap-3 px-6 pt-4">
           <span className="text-sm font-medium">Log this attempt</span>
-          <span className="font-mono text-sm tabular-nums text-muted-foreground">
+          <span className="font-mono text-xs tabular-nums text-muted-foreground">
             {format(elapsed)}
           </span>
         </div>

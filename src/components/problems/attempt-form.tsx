@@ -5,16 +5,11 @@ import {
   CircleCheckIcon,
   CircleDotIcon,
   CircleXIcon,
-  ClockIcon,
-  FileTextIcon,
-  GaugeIcon,
-  OctagonAlertIcon,
 } from "lucide-react"
 
 import { NotesEditor } from "@/components/problems/notes-editor"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Field, FieldLabel } from "@/components/ui/field"
 import {
   InputGroup,
   InputGroupAddon,
@@ -45,27 +40,29 @@ import type {
 const outcomeChoices: {
   value: AttemptOutcome
   icon: typeof CircleCheckIcon
-  className: string
+  selectedClass: string
 }[] = [
   {
     value: "optimal",
     icon: CircleCheckIcon,
-    className: "text-emerald-600 dark:text-emerald-400",
+    selectedClass:
+      "data-pressed:text-emerald-700 dark:data-pressed:text-emerald-400",
   },
   {
     value: "hint",
     icon: CircleDotIcon,
-    className: "text-amber-600 dark:text-amber-400",
+    selectedClass:
+      "data-pressed:text-amber-700 dark:data-pressed:text-amber-400",
   },
   {
     value: "solution",
     icon: CircleAlertIcon,
-    className: "text-sky-600 dark:text-sky-400",
+    selectedClass: "data-pressed:text-sky-700 dark:data-pressed:text-sky-400",
   },
   {
     value: "failed",
     icon: CircleXIcon,
-    className: "text-destructive",
+    selectedClass: "data-pressed:text-destructive",
   },
 ]
 
@@ -81,8 +78,29 @@ const blockerChoices: AttemptBlocker[] = [
   "time",
 ]
 
-const fieldLabelClass =
-  "flex items-center gap-2 text-xs font-medium text-muted-foreground"
+const segmentClass = "h-9 flex-1 text-sm font-normal data-pressed:font-medium"
+
+function Row({
+  label,
+  hint,
+  children,
+}: {
+  label: string
+  hint?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-xs font-medium">{label}</span>
+        {hint ? (
+          <span className="text-xs text-muted-foreground">{hint}</span>
+        ) : null}
+      </div>
+      {children}
+    </div>
+  )
+}
 
 function formatDate(date: Date) {
   return date.toLocaleDateString(undefined, {
@@ -127,163 +145,139 @@ export function AttemptForm({
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-5">
-      <div className="grid grid-cols-2 gap-4">
-        <Field>
-          <FieldLabel className={fieldLabelClass}>
-            <ClockIcon className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-            How long did it take?
-          </FieldLabel>
-          <InputGroup className="h-10 rounded-lg">
-            <InputGroupInput
-              value={duration}
-              inputMode="numeric"
-              onChange={(event) => setDuration(event.target.value)}
-              aria-label="Minutes spent"
-              className="tabular-nums"
-            />
-            <InputGroupAddon align="inline-end" className="pr-3 text-xs">
-              min
-            </InputGroupAddon>
-          </InputGroup>
-        </Field>
-
-        <Field>
-          <FieldLabel className={fieldLabelClass}>
-            <CalendarIcon className="size-3.5 text-sky-600 dark:text-sky-400" />
-            When
-          </FieldLabel>
-          <Popover>
-            <PopoverTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-10 justify-start rounded-lg font-normal"
-                />
-              }
-            >
-              <CalendarIcon className="text-muted-foreground" />
-              {formatDate(date)}
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(next) => next && setDate(next)}
-                autoFocus
+    <form onSubmit={submit} className="flex flex-col">
+      <div className="flex flex-col gap-5 px-6 py-5">
+        <div className="grid grid-cols-2 gap-4">
+          <Row label="Time spent" hint="from timer">
+            <InputGroup className="h-9 rounded-lg">
+              <InputGroupInput
+                value={duration}
+                inputMode="numeric"
+                onChange={(event) => setDuration(event.target.value)}
+                aria-label="Minutes spent"
+                className="tabular-nums"
               />
-            </PopoverContent>
-          </Popover>
-        </Field>
+              <InputGroupAddon
+                align="inline-end"
+                className="pr-3 text-xs text-muted-foreground"
+              >
+                min
+              </InputGroupAddon>
+            </InputGroup>
+          </Row>
+
+          <Row label="Date">
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-9 w-full justify-between rounded-lg font-normal"
+                  />
+                }
+              >
+                {formatDate(date)}
+                <CalendarIcon className="text-muted-foreground" />
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(next) => next && setDate(next)}
+                  autoFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </Row>
+        </div>
+
+        <Row label="Help needed">
+          <ToggleGroup
+            spacing={0}
+            variant="outline"
+            value={[outcome]}
+            onValueChange={(values) => {
+              const next = values[0] as AttemptOutcome | undefined
+              if (next) {
+                setOutcome(next)
+              }
+            }}
+            className="w-full"
+          >
+            {outcomeChoices.map((choice) => (
+              <ToggleGroupItem
+                key={choice.value}
+                value={choice.value}
+                className={cn(segmentClass, choice.selectedClass)}
+              >
+                <choice.icon className="size-3.5" />
+                {OUTCOME_LABELS[choice.value]}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </Row>
+
+        <Row label="Effort">
+          <ToggleGroup
+            spacing={0}
+            variant="outline"
+            value={[effort]}
+            onValueChange={(values) => {
+              const next = values[0] as AttemptEffort | undefined
+              if (next) {
+                setEffort(next)
+              }
+            }}
+            className="w-full"
+          >
+            {effortChoices.map((choice) => (
+              <ToggleGroupItem
+                key={choice}
+                value={choice}
+                className={segmentClass}
+              >
+                {EFFORT_LABELS[choice]}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </Row>
+
+        <Row label="Sticking point">
+          <Select
+            value={blocker}
+            onValueChange={(value) => setBlocker(value as AttemptBlocker)}
+          >
+            <SelectTrigger className="h-9 w-full rounded-lg font-normal">
+              <SelectValue>
+                {(value: AttemptBlocker) => BLOCKER_LABELS[value]}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {blockerChoices.map((choice) => (
+                <SelectItem key={choice} value={choice}>
+                  {BLOCKER_LABELS[choice]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Row>
+
+        <Row label="Notes" hint="Markdown">
+          <NotesEditor value={notes} onChange={setNotes} />
+        </Row>
       </div>
 
-      <Field>
-        <FieldLabel className={fieldLabelClass}>
-          <CircleCheckIcon className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-          How much help did you need?
-        </FieldLabel>
-        <ToggleGroup
-          variant="outline"
-          value={[outcome]}
-          onValueChange={(values) => {
-            const next = values[0] as AttemptOutcome | undefined
-            if (next) {
-              setOutcome(next)
-            }
-          }}
-          className="w-full"
-        >
-          {outcomeChoices.map((choice) => (
-            <ToggleGroupItem
-              key={choice.value}
-              value={choice.value}
-              className="h-10 flex-1 rounded-lg"
-            >
-              <choice.icon
-                className={cn(
-                  outcome === choice.value ? choice.className : undefined
-                )}
-              />
-              {OUTCOME_LABELS[choice.value]}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      </Field>
-
-      <Field>
-        <FieldLabel className={fieldLabelClass}>
-          <GaugeIcon className="size-3.5 text-amber-600 dark:text-amber-400" />
-          How hard did it feel?
-        </FieldLabel>
-        <ToggleGroup
-          variant="outline"
-          value={[effort]}
-          onValueChange={(values) => {
-            const next = values[0] as AttemptEffort | undefined
-            if (next) {
-              setEffort(next)
-            }
-          }}
-          className="w-full"
-        >
-          {effortChoices.map((choice) => (
-            <ToggleGroupItem
-              key={choice}
-              value={choice}
-              className="h-10 flex-1 rounded-lg"
-            >
-              {EFFORT_LABELS[choice]}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      </Field>
-
-      <Field>
-        <FieldLabel className={fieldLabelClass}>
-          <OctagonAlertIcon className="size-3.5 text-destructive" />
-          What slowed you down?
-        </FieldLabel>
-        <Select
-          value={blocker}
-          onValueChange={(value) => setBlocker(value as AttemptBlocker)}
-        >
-          <SelectTrigger className="h-10 w-full rounded-lg">
-            <SelectValue>
-              {(value: AttemptBlocker) => BLOCKER_LABELS[value]}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {blockerChoices.map((choice) => (
-              <SelectItem key={choice} value={choice}>
-                {BLOCKER_LABELS[choice]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </Field>
-
-      <Field>
-        <FieldLabel className={fieldLabelClass}>
-          <FileTextIcon className="size-3.5 text-violet-600 dark:text-violet-400" />
-          Notes
-        </FieldLabel>
-        <NotesEditor value={notes} onChange={setNotes} />
-      </Field>
-
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-2 border-t border-border bg-muted/40 px-6 py-4">
         <Button
           type="button"
           variant="ghost"
-          className="rounded-lg text-muted-foreground"
+          className="rounded-lg"
           onClick={onCancel}
         >
-          Discard
+          Cancel
         </Button>
-        <Button
-          type="submit"
-          className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90"
-        >
+        <Button type="submit" className="rounded-lg">
           Log attempt
         </Button>
       </div>
