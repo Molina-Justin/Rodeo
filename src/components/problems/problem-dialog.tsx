@@ -5,6 +5,7 @@ import {
   DIFFICULTY_STYLES,
   STATUS_META,
 } from "@/components/problems/problem-meta"
+import { AttemptHistory } from "@/components/problems/attempt-history"
 import { ProblemTimer } from "@/components/problems/problem-timer"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -15,41 +16,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
-import {
-  OUTCOME_LABELS,
-  deriveStatus,
-  formatDuration,
-  formatElapsed,
-} from "@/lib/attempts"
+import { deriveStatus } from "@/lib/attempts"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/use-app-store"
-import type { Attempt, Problem, ProblemStatus } from "@/types"
-
-const dotStyles: Record<ProblemStatus, string> = {
-  "not-started": "bg-muted-foreground/40",
-  solved: "bg-emerald-500",
-  review: "bg-amber-500",
-  struggling: "bg-destructive",
-}
-
-function AttemptRow({ attempt }: { attempt: Attempt }) {
-  const status = deriveStatus(attempt)
-
-  return (
-    <li className="flex items-center gap-4 rounded-lg bg-muted/50 px-4 py-3 text-sm">
-      <span className={cn("size-2 shrink-0 rounded-full", dotStyles[status])} />
-      <span className="w-16 font-mono text-xs text-muted-foreground">
-        {formatElapsed(attempt.completedAt)}
-      </span>
-      <span className="w-12 tabular-nums">
-        {formatDuration(attempt.durationMinutes)}
-      </span>
-      <span className="text-muted-foreground">
-        {OUTCOME_LABELS[attempt.outcome]}
-      </span>
-    </li>
-  )
-}
+import type { Problem } from "@/types"
 
 interface ProblemDialogProps {
   problem: Problem | null
@@ -127,17 +97,7 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
               {problemAttempts.length === 1 ? "attempt" : "attempts"}
             </span>
           </div>
-          {problemAttempts.length === 0 ? (
-            <p className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-              No attempts logged yet.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {problemAttempts.map((attempt) => (
-                <AttemptRow key={attempt.completedAt} attempt={attempt} />
-              ))}
-            </ul>
-          )}
+          <AttemptHistory attempts={problemAttempts} />
         </div>
       </DialogContent>
     </Dialog>

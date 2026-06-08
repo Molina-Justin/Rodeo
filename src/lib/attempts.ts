@@ -76,6 +76,26 @@ export function formatDuration(minutes: number): string {
   return `${hours}h ${remainder}m`
 }
 
+export function bestDuration(attempts: Attempt[]): number | undefined {
+  if (attempts.length === 0) {
+    return undefined
+  }
+
+  return Math.min(...attempts.map((attempt) => attempt.durationMinutes))
+}
+
+/** Minutes saved (negative) or lost (positive) against the previous attempt. */
+export function durationDelta(
+  attempt: Attempt,
+  previous: Attempt | undefined
+): number | undefined {
+  if (!previous) {
+    return undefined
+  }
+
+  return attempt.durationMinutes - previous.durationMinutes
+}
+
 /** "3d ago · 28m · Optimal" */
 export function formatLastAttempt(attempt: Attempt, now: Date = new Date()) {
   return [
