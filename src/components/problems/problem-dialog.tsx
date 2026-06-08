@@ -1,3 +1,4 @@
+import * as React from "react"
 import { LockIcon } from "lucide-react"
 
 import {
@@ -5,7 +6,9 @@ import {
   DIFFICULTY_STYLES,
   STATUS_META,
 } from "@/components/problems/problem-meta"
+import { AttemptForm } from "@/components/problems/attempt-form"
 import { AttemptHistory } from "@/components/problems/attempt-history"
+import { AttemptReport } from "@/components/problems/attempt-report"
 import { ProblemTimer } from "@/components/problems/problem-timer"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -19,15 +22,26 @@ import { Separator } from "@/components/ui/separator"
 import { deriveStatus } from "@/lib/attempts"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/use-app-store"
-import type { Problem } from "@/types"
+import type { Attempt, AttemptDraft, Problem } from "@/types"
 
 interface ProblemDialogProps {
   problem: Problem | null
   onOpenChange: (open: boolean) => void
 }
 
+type View =
+  | { kind: "overview" }
+  | { kind: "report"; attemptId: string }
+  | { kind: "edit"; attemptId: string }
+
 export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
   const attempts = useAppStore((state) => state.attempts)
+  const updateAttempt = useAppStore((state) => state.updateAttempt)
+  const [view, setView] = React.useState<View>({ kind: "overview" })
+
+  React.useEffect(() => {
+    setView({ kind: "overview" })
+  }, [problem?.id])
 
   if (!problem) {
     return null
@@ -36,6 +50,15 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
   const problemAttempts = attempts
     .filter((attempt) => attempt.problemId === problem.id)
     .sort((a, b) => b.completedAt.localeCompare(a.completedAt))
+
+  const selectedIndex =
+    view.kind === "overview"
+      ? -1
+      : problemAttempts.findIndex((attempt) => attempt.id === view.attemptId)
+  const selectedAttempt =
+    selectedIndex === -1 ? undefined : problemAttempts[selectedIndex]
+  const previousAttempt =
+    selectedIndex === -1 ? undefined : problemAttempts[selectedIndex + 1]
 
   const status = deriveStatus(problemAttempts[0])
   const { label: statusLabel, icon: StatusIcon, className: statusClass } =
@@ -58,10 +81,7 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
               >
                 {DIFFICULTY_LABELS[problem.difficulty]}
               </Badge>
-              <Badge
-                variant="secondary"
-                className="rounded-md font-normal"
-              >
+              <Badge variant="secondary" className="rounded-md font-normal">
                 {problemAttempts.length}{" "}
                 {problemAttempts.length === 1 ? "attempt" : "attempts"}
               </Badge>
@@ -84,21 +104,59 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
             </DialogDescription>
           </div>
 
-          <ProblemTimer problem={problem} />
+          {view.kind === "overview" ? <ProblemTimer problem={problem} /> : null}
+
+          {selectedAttempt && view.kind === "report" ? (
+            <AttemptReport
+              attempt={selectedAttempt}
+              previous={previousAttempt}
+              onBack={() => setView({ kind: "overview" })}
+              onEdit={() => setView({ kind: "edit", attemptId: selectedAttempt.id })}
+            />
+          ) : null}
+
+          {selectedAttempt && view.kind === "edit" ? (
+            <div className="-mx-5 -mb-1 flex flex-col border-y border-border">
+              <div className="flex items-baseline justify-between gap-3 px-6 pt-4">
+                <span className="text-sm font-medium">Edit attempt</span>
+              </div>
+              <AttemptForm
+                problemId={problem.id}
+                elapsedMinutes={selectedAttempt.durationMinutes}
+                attempt={selectedAttempt}
+                submitLabel="Save changes"
+                onSave={(draft: AttemptDraft) => {
+                  updateAttempt(selectedAttempt.id, draft)
+                  setView({ kind: "report", attemptId: selectedAttempt.id })
+                }}
+                onCancel={() =>
+                  setView({ kind: "report", attemptId: selectedAttempt.id })
+                }
+              />
+            </div>
+          ) : null}
         </DialogHeader>
 
-        <Separator />
-
-        <div className="flex flex-col gap-3 p-5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">Attempt history</h3>
-            <span className="text-xs text-muted-foreground">
-              {problemAttempts.length}{" "}
-              {problemAttempts.length === 1 ? "attempt" : "attempts"}
-            </span>
-          </div>
-          <AttemptHistory attempts={problemAttempts} />
-        </div>
+        {view.kind === "overview" ? (
+          <>
+            <Separator />
+            <div className="flex flex-col gap-3 p-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">Attempt history</h3>
+                <span className="text-xs text-muted-foreground">
+                  {problemAttempts.length}{" "}
+                  {problemAttempts.length === 1 ? "attempt" : "attempts"}
+                </span>
+              </div>
+              <AttemptHistory
+                attempts={problemAttempts}
+                onOpenReport={(attempt: Attempt) =>
+                  setView({ kind: "report", attemptId: attempt.id })
+                }
+              />
+            </div>
+          </>
+        ) : null}
       </DialogContent>
     </Dialog>
   )

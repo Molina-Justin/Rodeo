@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { problemUrl } from "@/lib/problems"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/use-app-store"
-import type { Attempt, Problem } from "@/types"
+import type { AttemptDraft, Problem } from "@/types"
 
 function format(elapsedMs: number) {
   const totalSeconds = Math.floor(elapsedMs / 1000)
@@ -57,8 +57,8 @@ export function ProblemTimer({ problem }: { problem: Problem }) {
     setElapsed(0)
   }
 
-  const save = (attempt: Attempt) => {
-    logAttempt(attempt)
+  const save = (draft: AttemptDraft) => {
+    logAttempt(draft)
     reset()
   }
 

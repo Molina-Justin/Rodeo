@@ -1,15 +1,7 @@
-import * as React from "react"
-import {
-  ChevronDownIcon,
-  FileTextIcon,
-  TrendingDownIcon,
-  TrendingUpIcon,
-} from "lucide-react"
+import { ChevronRightIcon, FileTextIcon, TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { renderMarkdown } from "@/lib/markdown"
 import {
-  BLOCKER_LABELS,
   EFFORT_LABELS,
   OUTCOME_LABELS,
   bestDuration,
@@ -71,7 +63,13 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 /** Attempts arrive newest first. */
-export function AttemptHistory({ attempts }: { attempts: Attempt[] }) {
+export function AttemptHistory({
+  attempts,
+  onOpenReport,
+}: {
+  attempts: Attempt[]
+  onOpenReport: (attempt: Attempt) => void
+}) {
   if (attempts.length === 0) {
     return (
       <p className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
@@ -97,9 +95,10 @@ export function AttemptHistory({ attempts }: { attempts: Attempt[] }) {
       <ul className="flex flex-col gap-2">
         {attempts.map((attempt, index) => (
           <AttemptRow
-            key={attempt.completedAt}
+            key={attempt.id}
             attempt={attempt}
             delta={durationDelta(attempt, attempts[index + 1])}
+            onOpenReport={() => onOpenReport(attempt)}
           />
         ))}
       </ul>
@@ -110,32 +109,35 @@ export function AttemptHistory({ attempts }: { attempts: Attempt[] }) {
 function AttemptRow({
   attempt,
   delta,
+  onOpenReport,
 }: {
   attempt: Attempt
   delta: number | undefined
+  onOpenReport: () => void
 }) {
-  const [expanded, setExpanded] = React.useState(false)
   const status = deriveStatus(attempt)
   const hasNotes = attempt.notes.trim() !== ""
 
   return (
-    <li className="rounded-lg border border-border">
-      <div className="flex items-center gap-3 px-4 py-2.5 text-sm">
-        <span
-          className={cn("size-2 shrink-0 rounded-full", dotStyles[status])}
-        />
+    <li>
+      <button
+        type="button"
+        onClick={onOpenReport}
+        className="flex w-full items-center gap-3 rounded-lg border border-border px-4 py-2.5 text-left text-sm transition-colors hover:bg-muted/50"
+      >
+        <span className={cn("size-2 shrink-0 rounded-full", dotStyles[status])} />
         <span className="w-16 font-mono text-xs text-muted-foreground">
           {formatElapsed(attempt.completedAt)}
         </span>
         <Badge
-          className={cn(
-            "rounded-md font-medium",
-            outcomeStyles[attempt.outcome]
-          )}
+          className={cn("rounded-md font-medium", outcomeStyles[attempt.outcome])}
         >
           {OUTCOME_LABELS[attempt.outcome]}
         </Badge>
         <span className={detailClass}>{EFFORT_LABELS[attempt.effort]}</span>
+        {hasNotes ? (
+          <FileTextIcon className="size-3.5 text-muted-foreground" />
+        ) : null}
         <span className="ml-auto tabular-nums">
           {formatDuration(attempt.durationMinutes)}
         </span>
@@ -146,38 +148,8 @@ function AttemptRow({
             <Delta minutes={delta} />
           )}
         </span>
-        {hasNotes || attempt.blocker !== "none" ? (
-          <button
-            type="button"
-            onClick={() => setExpanded((current) => !current)}
-            aria-label={expanded ? "Hide details" : "Show details"}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            {hasNotes ? (
-              <FileTextIcon className="size-4" />
-            ) : (
-              <ChevronDownIcon
-                className={cn("size-4 transition-transform", expanded && "rotate-180")}
-              />
-            )}
-          </button>
-        ) : null}
-      </div>
-
-      {expanded ? (
-        <div className="flex flex-col gap-2 border-t border-border px-4 py-3">
-          {attempt.blocker === "none" ? null : (
-            <span className={detailClass}>
-              Slowed by: {BLOCKER_LABELS[attempt.blocker]}
-            </span>
-          )}
-          {hasNotes ? (
-            <div className="flex flex-col gap-2 text-sm">
-              {renderMarkdown(attempt.notes)}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+        <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
+      </button>
     </li>
   )
 }

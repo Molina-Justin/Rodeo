@@ -58,6 +58,7 @@ export type AttemptBlocker =
   | "time"
 
 export interface Attempt {
+  id: string
   problemId: number
   completedAt: string
   durationMinutes: number
@@ -66,6 +67,8 @@ export interface Attempt {
   blocker: AttemptBlocker
   notes: string
 }
+
+export type AttemptDraft = Omit<Attempt, "id">
 
 export type ProblemStatus = "not-started" | "solved" | "review" | "struggling"
 

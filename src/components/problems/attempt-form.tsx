@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils"
 import type {
   Attempt,
   AttemptBlocker,
+  AttemptDraft,
   AttemptEffort,
   AttemptOutcome,
 } from "@/types"
@@ -113,22 +114,37 @@ function formatDate(date: Date) {
 interface AttemptFormProps {
   problemId: number
   elapsedMinutes: number
-  onSave: (attempt: Attempt) => void
+  /** Present when editing an existing attempt. */
+  attempt?: Attempt
+  submitLabel?: string
+  onSave: (draft: AttemptDraft) => void
   onCancel: () => void
 }
 
 export function AttemptForm({
   problemId,
   elapsedMinutes,
+  attempt,
+  submitLabel = "Log attempt",
   onSave,
   onCancel,
 }: AttemptFormProps) {
-  const [duration, setDuration] = React.useState(String(elapsedMinutes))
-  const [date, setDate] = React.useState<Date>(new Date())
-  const [outcome, setOutcome] = React.useState<AttemptOutcome>("optimal")
-  const [effort, setEffort] = React.useState<AttemptEffort>("moderate")
-  const [blocker, setBlocker] = React.useState<AttemptBlocker>("none")
-  const [notes, setNotes] = React.useState("")
+  const [duration, setDuration] = React.useState(
+    String(attempt?.durationMinutes ?? elapsedMinutes)
+  )
+  const [date, setDate] = React.useState<Date>(
+    attempt ? new Date(attempt.completedAt) : new Date()
+  )
+  const [outcome, setOutcome] = React.useState<AttemptOutcome>(
+    attempt?.outcome ?? "optimal"
+  )
+  const [effort, setEffort] = React.useState<AttemptEffort>(
+    attempt?.effort ?? "moderate"
+  )
+  const [blocker, setBlocker] = React.useState<AttemptBlocker>(
+    attempt?.blocker ?? "none"
+  )
+  const [notes, setNotes] = React.useState(attempt?.notes ?? "")
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault()
@@ -148,7 +164,7 @@ export function AttemptForm({
     <form onSubmit={submit} className="flex flex-col">
       <div className="flex flex-col gap-5 px-6 py-5">
         <div className="grid grid-cols-2 gap-4">
-          <Row label="Time spent" hint="from timer">
+          <Row label="Time spent" hint={attempt ? undefined : "from timer"}>
             <InputGroup className="h-9 rounded-lg">
               <InputGroupInput
                 value={duration}
@@ -278,7 +294,7 @@ export function AttemptForm({
           Cancel
         </Button>
         <Button type="submit" className="rounded-lg">
-          Log attempt
+          {submitLabel}
         </Button>
       </div>
     </form>
