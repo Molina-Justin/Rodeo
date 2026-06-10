@@ -2,9 +2,9 @@
 Rodeo is a self-hosted technical interview preparation app: a time tracker, spaced-repetition engine, and progress dashboard. It ships as a single open-source Docker image that a person runs on their own machine. One deployment serves one person. The aesthetic is modern, minimalist, and structural.
 
 # Repository Layout
-- `web/` — the React frontend (Vite). Renders; holds no durable state.
-- `api/` — the FastAPI service. Owns the database, the recordings, transcription, and any AI calls.
-- `Dockerfile` — multi-stage: Node builds `web/`, the Python image serves the API and the built assets from one origin.
+- `frontend/` — the React frontend (Vite). Renders; holds no durable state.
+- `backend/` — the FastAPI service. Owns the database, the recordings, transcription, and any AI calls.
+- `Dockerfile` — multi-stage: Node builds `frontend/`, the Python image serves the API and the built assets from one origin.
 - `compose.yml` — convenience wrapper around the same image.
 
 # Tech Stack
@@ -31,7 +31,7 @@ Rodeo is a self-hosted technical interview preparation app: a time tracker, spac
 # Architectural Constraints
 1. **Self-hosted, single user.** The service binds to localhost and has no accounts, no login, no sessions, no JWTs. Do not introduce multi-user patterns, tenancy, or per-user rows. Access control is the port binding plus an `Origin` check.
 2. **The server owns all state.** The browser stores nothing durable — no catalog JSON shipped to the client, no attempt history in local storage. If the UI needs data, it asks the API.
-3. **Deterministic engine.** Mastery scoring, spaced repetition, and the roadmap are pure mathematical functions in `api/rodeo/services/scheduling.py`. No LLM, no randomness, no I/O inside them. Derived state in `review_state` is a cache stamped with an `engine_version`, recomputable from attempt history at any time.
+3. **Deterministic engine.** Mastery scoring, spaced repetition, and the roadmap are pure mathematical functions in `backend/rodeo/services/scheduling.py`. No LLM, no randomness, no I/O inside them. Derived state in `review_state` is a cache stamped with an `engine_version`, recomputable from attempt history at any time.
 4. **AI is optional and quarantined.** The app must be fully usable with `ANTHROPIC_API_KEY` unset — those endpoints return 501 and the UI hides the actions. Model output is written to `ai_artifact` and never feeds mastery, scheduling, or the roadmap.
 5. **Data flow.** Every attempt write recomputes derived state (streak, mastery, next-up queue) inside the same transaction; the frontend invalidates the affected queries.
 6. **Offline by default.** No runtime dependency on third-party services except an explicit catalog refresh and opt-in AI calls. Audio never leaves the machine; only transcript text may, and only on an explicit action.
@@ -59,7 +59,7 @@ Rodeo is a self-hosted technical interview preparation app: a time tracker, spac
    - Table, Tabs, Textarea, Toast, Toggle, ToggleGroup, Tooltip
 
 # Backend Rules
-1. **Thin routers, real services.** Routers validate and delegate; logic lives in `api/rodeo/services/`. Anything worth testing should be callable without an HTTP request.
+1. **Thin routers, real services.** Routers validate and delegate; logic lives in `backend/rodeo/services/`. Anything worth testing should be callable without an HTTP request.
 2. **Pydantic is the contract.** Request and response models are Pydantic v2. The generated OpenAPI document is the source of the frontend's types — never hand-write a TypeScript interface that mirrors a Python model.
 3. **Typed Python.** Full type hints, no bare `Any`, no untyped `dict` passed between layers.
 4. **SQLAlchemy 2.0 style.** `select()` over legacy `Query`, one session per request, explicit `selectinload`/`join` in list endpoints — no lazy-load N+1s.
@@ -80,4 +80,4 @@ Rodeo is a self-hosted technical interview preparation app: a time tracker, spac
 4. **Types:** Enforce strict typing on both sides — TypeScript without `any`, Python with full annotations.
 5. **Imports:** Organize systematically. TypeScript: built-ins, third-party, shadcn components, local utils/types. Python: standard library, third-party, first-party `rodeo.*`.
 6. **Project Structure & Clean Organization:** Maintain a clean, highly organized repository. Group related items logically by feature or by type. Do not dump files into root directories.
-7. **Verification:** `npm run build` and `npx tsc -b` for the frontend, `pytest` for the backend. Never report work as done on a typecheck that did not actually run.
+7. **Verification:** Run `npm run build` and `npx tsc -b` from `frontend/` for the frontend, and `pytest` for the backend. Never report work as done on a typecheck that did not actually run.

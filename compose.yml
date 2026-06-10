@@ -1,0 +1,17 @@
+services:
+  rodeo:
+    build:
+      context: .
+      args:
+        WHISPER_MODEL: base.en
+    environment:
+      RODEO_ALLOWED_HOSTS: '["127.0.0.1", "localhost"]'
+      RODEO_TIMEZONE: America/New_York
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    volumes:
+      - rodeo-data:/data
+
+volumes:
+  rodeo-data:
