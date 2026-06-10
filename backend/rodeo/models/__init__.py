@@ -11,7 +11,7 @@ from rodeo.models.enums import (
     ProblemStatus,
     TranscriptionStatus,
 )
-from rodeo.models.operations import AIArtifact, AppSetting, CatalogSync, Job
+from rodeo.models.operations import AppSetting, CatalogSync, Job
 from rodeo.models.practice import (
     Attempt,
     PracticeSession,
@@ -21,7 +21,6 @@ from rodeo.models.practice import (
 )
 
 __all__ = [
-    "AIArtifact",
     "AppSetting",
     "Attempt",
     "AttemptBlocker",

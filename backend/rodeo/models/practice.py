@@ -30,7 +30,6 @@ from rodeo.models.json_types import JSONValue
 
 if TYPE_CHECKING:
     from rodeo.models.catalog import Problem
-    from rodeo.models.operations import AIArtifact
 
 
 class PracticeSession(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -142,12 +141,6 @@ class Attempt(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     recording: Mapped[Recording | None] = relationship(
         back_populates="attempt",
         uselist=False,
-        lazy="raise",
-    )
-    ai_artifacts: Mapped[list[AIArtifact]] = relationship(
-        back_populates="attempt",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
         lazy="raise",
     )
 

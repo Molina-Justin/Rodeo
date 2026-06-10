@@ -21,7 +21,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-ai = ["anthropic>=0.64,<1"]
 transcription = []
 dev = [
   "mypy>=1.17,<2",
@@ -47,7 +46,7 @@ strict = true
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
 
 [[tool.mypy.overrides]]
-module = ["anthropic", "av", "faster_whisper"]
+module = ["av", "faster_whisper"]
 ignore_missing_imports = true
 
 [tool.ruff]

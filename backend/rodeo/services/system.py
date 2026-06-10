@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from rodeo.config import Settings
 from rodeo.db import get_engine
 from rodeo.models.catalog import Problem
-from rodeo.models.operations import AIArtifact, AppSetting, Job
+from rodeo.models.operations import AppSetting, Job
 from rodeo.models.practice import (
     Attempt,
     PracticeSession,
@@ -19,7 +19,6 @@ from rodeo.models.practice import (
     Transcription,
 )
 from rodeo.schemas.system import (
-    AICapability,
     CapabilitiesResponse,
     ExportAttempt,
     ExportResponse,
@@ -133,7 +132,6 @@ def get_capabilities(settings: Settings) -> CapabilitiesResponse:
             available=settings.transcription_enabled and model_path is not None,
             model=settings.transcription_model,
         ),
-        ai=AICapability(available=settings.anthropic_api_key is not None),
     )
 
 
@@ -214,7 +212,6 @@ def clear_workspace_data(session: Session) -> ClearWorkspaceResult:
     settings_deleted = session.scalar(select(func.count()).select_from(AppSetting)) or 0
     storage_keys = list(session.scalars(select(Recording.storage_key)))
 
-    session.execute(delete(AIArtifact))
     session.execute(delete(Transcription))
     session.execute(delete(Recording))
     session.execute(delete(ReviewState))

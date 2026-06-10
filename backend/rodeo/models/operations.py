@@ -7,19 +7,18 @@ from sqlalchemy import (
     JSON,
     CheckConstraint,
     DateTime,
-    ForeignKey,
     Integer,
     String,
     Text,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from rodeo.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from rodeo.models.enums import CatalogSyncStatus, JobStatus, enum_type
 from rodeo.models.json_types import JSONValue
 
 if TYPE_CHECKING:
-    from rodeo.models.practice import Attempt
+    pass
 
 
 class Job(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -68,26 +67,6 @@ class Job(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     error_code: Mapped[str | None] = mapped_column(String(100))
     error_message: Mapped[str | None] = mapped_column(Text)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-
-
-class AIArtifact(UUIDPrimaryKeyMixin, TimestampMixin, Base):
-    __tablename__ = "ai_artifact"
-
-    attempt_id: Mapped[str] = mapped_column(
-        ForeignKey("attempt.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    kind: Mapped[str] = mapped_column(String(64), nullable=False)
-    provider: Mapped[str] = mapped_column(String(32), nullable=False)
-    model: Mapped[str] = mapped_column(String(100), nullable=False)
-    prompt_version: Mapped[str] = mapped_column(String(32), nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-
-    attempt: Mapped[Attempt] = relationship(
-        back_populates="ai_artifacts",
-        lazy="raise",
-    )
 
 
 class CatalogSync(UUIDPrimaryKeyMixin, Base):

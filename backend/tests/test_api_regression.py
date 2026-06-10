@@ -396,31 +396,6 @@ def test_dashboard_rejects_a_range_outside_the_selector(client: TestClient) -> N
     assert client.get(f"{API}/dashboard", params={"range_days": 45}).status_code == 422
 
 
-def test_ai_endpoints_are_disabled_without_a_key_but_still_readable(
-    client: TestClient,
-) -> None:
-    assert client.get(f"{API}/capabilities").json()["ai"]["available"] is False
-
-    attempt = log_attempt(
-        client,
-        TWO_SUM,
-        idempotency_key="ai-attempt",
-        completed_at=datetime.now(UTC),
-    )
-
-    listed = client.get(f"{API}/attempts/{attempt['id']}/ai-artifacts")
-    assert listed.status_code == 200
-    assert listed.json() == []
-
-    created = client.post(
-        f"{API}/attempts/{attempt['id']}/ai-artifacts",
-        json={"kind": "review", "include_notes": True, "include_transcript": False},
-        headers=ORIGIN_HEADERS,
-    )
-    assert created.status_code == 501
-    assert created.json() == {"detail": "Anthropic is not configured"}
-
-
 def test_unknown_ids_return_404_rather_than_a_server_error(
     client: TestClient,
 ) -> None:

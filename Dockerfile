@@ -26,7 +26,7 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY backend/ ./
-RUN pip install --no-cache-dir '.[ai,transcription]' \
+RUN pip install --no-cache-dir '.[transcription]' \
     && python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='Systran/faster-whisper-${WHISPER_MODEL}', local_dir='/opt/rodeo-models/${WHISPER_MODEL}')"
 
 COPY --from=web-build /build/frontend/dist/ /app/static/

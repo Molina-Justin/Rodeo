@@ -30,14 +30,8 @@ class TranscriptionCapability(APIModel):
     model: str
 
 
-class AICapability(APIModel):
-    provider: Literal["anthropic"] = "anthropic"
-    available: bool
-
-
 class CapabilitiesResponse(APIModel):
     transcription: TranscriptionCapability
-    ai: AICapability
 
 
 class PromptTemplatesResponse(APIModel):

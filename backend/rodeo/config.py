@@ -4,7 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -43,7 +43,6 @@ class Settings(BaseSettings):
     bundled_models_dir: Path = Path("/opt/rodeo-models")
     worker_poll_interval_seconds: float = 1.0
     worker_lease_seconds: int = 300
-    anthropic_api_key: SecretStr | None = None
 
     @property
     def resolved_database_url(self) -> str:

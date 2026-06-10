@@ -1,5 +1,4 @@
 from rodeo.schemas.system import (
-    AICapability,
     CapabilitiesResponse,
     HealthResponse,
     ReadinessResponse,
@@ -7,7 +6,6 @@ from rodeo.schemas.system import (
 )
 
 __all__ = [
-    "AICapability",
     "CapabilitiesResponse",
     "HealthResponse",
     "ReadinessResponse",

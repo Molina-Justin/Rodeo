@@ -1,6 +1,5 @@
 from fastapi import APIRouter
 
-from rodeo.routers.ai import router as ai_router
 from rodeo.routers.attempts import router as attempts_router
 from rodeo.routers.catalog import router as catalog_router
 from rodeo.routers.dashboard import router as dashboard_router
@@ -13,7 +12,6 @@ from rodeo.routers.transcriptions import router as transcriptions_router
 
 api_router = APIRouter()
 api_router.include_router(system_router)
-api_router.include_router(ai_router)
 api_router.include_router(problems_router)
 api_router.include_router(attempts_router)
 api_router.include_router(catalog_router)
