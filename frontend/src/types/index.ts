@@ -2,7 +2,6 @@ export type NavView =
   | "focus"
   | "dashboard"
   | "problems"
-  | "schedule"
   | "review-queue"
   | "tracks"
   | "library"
@@ -66,6 +65,9 @@ export interface Attempt {
   problemId: number
   completedAt: string
   durationMinutes: number
+  durationSeconds?: number
+  difficultyAtAttempt?: Difficulty
+  targetMinutesAtAttempt?: number
   outcome: AttemptOutcome
   effort: AttemptEffort
   blocker: AttemptBlocker

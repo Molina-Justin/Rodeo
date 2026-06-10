@@ -256,7 +256,11 @@ def finalize_session(
     completed_at = practice_session.stopped_at or _aware(now)
     attempt_payload = AttemptCreate(
         completed_at=_aware(completed_at),
-        duration_seconds=max(1, ceil(practice_session.accumulated_active_ms / 1_000)),
+        duration_seconds=(
+            payload.duration_seconds
+            if payload.duration_seconds is not None
+            else max(1, ceil(practice_session.accumulated_active_ms / 1_000))
+        ),
         outcome=payload.outcome,
         effort=payload.effort,
         blocker=payload.blocker,

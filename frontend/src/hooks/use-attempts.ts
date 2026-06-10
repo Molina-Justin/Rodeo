@@ -118,6 +118,10 @@ export function useFinalizeSession() {
             header: { "Idempotency-Key": `practice-session:${sessionId}` },
           },
           body: {
+            duration_seconds: Math.max(
+              1,
+              Math.round(draft.durationMinutes * 60)
+            ),
             outcome: draft.outcome,
             effort: draft.effort,
             blocker: draft.blocker,
@@ -131,6 +135,25 @@ export function useFinalizeSession() {
       return toAttempt(data.attempt)
     },
     onSuccess: () => invalidateAttempts(queryClient),
+  })
+}
+
+export function useDeleteAttemptRecording() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (attemptId: string) => {
+      const { error, response } = await api.DELETE(
+        "/api/v1/attempts/{attempt_id}/recording",
+        { params: { path: { attempt_id: attemptId } } }
+      )
+      if (error && response.status !== 204) {
+        throw new Error("The recording could not be deleted")
+      }
+    },
+    onSuccess: (_data, attemptId) => {
+      queryClient.removeQueries({ queryKey: ["transcription", attemptId] })
+      return invalidateAttempts(queryClient)
+    },
   })
 }
 

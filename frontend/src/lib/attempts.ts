@@ -21,7 +21,7 @@ const OUTCOME_STATUS: Record<AttemptOutcome, ProblemStatus> = {
 }
 
 export const OUTCOME_LABELS: Record<AttemptOutcome, string> = {
-  optimal: "Solo",
+  optimal: "Independent",
   hint: "Hint",
   solution: "Solution",
   failed: "Failed",

@@ -69,6 +69,7 @@ def test_server_clock_excludes_paused_time_and_finalizes_idempotently(
     stop_session(practice_session, now=started_at + timedelta(hours=2, seconds=10))
 
     payload = PracticeSessionFinalize(
+        duration_seconds=26 * 60,
         outcome=AttemptOutcome.OPTIMAL,
         effort=AttemptEffort.MODERATE,
         blocker=AttemptBlocker.NONE,
@@ -94,7 +95,7 @@ def test_server_clock_excludes_paused_time_and_finalizes_idempotently(
     assert first.created is True
     assert second.created is False
     assert first.attempt.id == second.attempt.id
-    assert first.attempt.duration_seconds == 25
+    assert first.attempt.duration_seconds == 26 * 60
     assert first.session.status == "finalized"
 
 

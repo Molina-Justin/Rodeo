@@ -34,3 +34,10 @@ backend/openapi.json
 *.njsproj
 *.sln
 *.sw?
+
+# Test artifacts
+backend/.e2e-data/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/.playwright/

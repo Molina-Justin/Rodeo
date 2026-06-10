@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     JSON,
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
@@ -110,6 +111,8 @@ class Attempt(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         index=True,
     )
     duration_seconds: Mapped[int] = mapped_column(Integer, nullable=False)
+    problem_difficulty_at_attempt: Mapped[str | None] = mapped_column(String(16))
+    target_minutes_at_attempt: Mapped[int | None] = mapped_column(Integer)
     outcome: Mapped[AttemptOutcome] = mapped_column(
         enum_type(AttemptOutcome, length=16),
         nullable=False,
@@ -289,6 +292,14 @@ class ReviewState(TimestampMixin, Base):
     due_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         index=True,
+    )
+    next_due_on: Mapped[date | None] = mapped_column(Date, index=True)
+    graduated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    clean_quick_streak: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
     )
     has_notes: Mapped[bool] = mapped_column(
         Boolean,

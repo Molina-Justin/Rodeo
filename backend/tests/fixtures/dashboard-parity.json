@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "timezone": "America/New_York",
   "locale": "en-US",
   "now": "2026-03-10T16:00:00.000Z",
@@ -1786,6 +1786,9 @@
           "problemId": 1,
           "completedAt": "2026-03-01T15:00:00.000Z",
           "durationMinutes": 55,
+          "durationSeconds": 3300,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
           "outcome": "failed",
           "effort": "moderate",
           "blocker": "none",
@@ -1796,6 +1799,9 @@
           "problemId": 1,
           "completedAt": "2026-03-04T15:00:00.000Z",
           "durationMinutes": 48,
+          "durationSeconds": 2880,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
           "outcome": "failed",
           "effort": "moderate",
           "blocker": "none",
@@ -1806,6 +1812,9 @@
           "problemId": 2,
           "completedAt": "2026-03-08T16:00:00.000Z",
           "durationMinutes": 61,
+          "durationSeconds": 3660,
+          "difficultyAtAttempt": "medium",
+          "targetMinutesAtAttempt": 30,
           "outcome": "failed",
           "effort": "moderate",
           "blocker": "none",
@@ -1821,6 +1830,9 @@
               "problemId": 1,
               "completedAt": "2026-03-04T15:00:00.000Z",
               "durationMinutes": 48,
+              "durationSeconds": 2880,
+              "difficultyAtAttempt": "easy",
+              "targetMinutesAtAttempt": 20,
               "outcome": "failed",
               "effort": "moderate",
               "blocker": "none",
@@ -1831,7 +1843,10 @@
             "lapses": 2,
             "confidence": 0,
             "dueInDays": -5,
-            "status": "struggling"
+            "status": "struggling",
+            "nextDueOn": "2026-03-05",
+            "graduatedAt": null,
+            "cleanQuickStreak": 0
           },
           {
             "problemId": 2,
@@ -1840,6 +1855,9 @@
               "problemId": 2,
               "completedAt": "2026-03-08T16:00:00.000Z",
               "durationMinutes": 61,
+              "durationSeconds": 3660,
+              "difficultyAtAttempt": "medium",
+              "targetMinutesAtAttempt": 30,
               "outcome": "failed",
               "effort": "moderate",
               "blocker": "none",
@@ -1850,7 +1868,10 @@
             "lapses": 1,
             "confidence": 0,
             "dueInDays": -1,
-            "status": "struggling"
+            "status": "struggling",
+            "nextDueOn": "2026-03-09",
+            "graduatedAt": null,
+            "cleanQuickStreak": 0
           }
         ],
         "dueReviewCount": 2,
@@ -1862,7 +1883,7 @@
           "focuses": [
             {
               "topic": "Array",
-              "score": 25,
+              "score": 13,
               "solved": 0,
               "attempted": 1,
               "problemCount": 2,
@@ -3500,6 +3521,9 @@
                 "problemId": 1,
                 "completedAt": "2026-03-04T15:00:00.000Z",
                 "durationMinutes": 48,
+                "durationSeconds": 2880,
+                "difficultyAtAttempt": "easy",
+                "targetMinutesAtAttempt": 20,
                 "outcome": "failed",
                 "effort": "moderate",
                 "blocker": "none",
@@ -3511,6 +3535,9 @@
               "confidence": 0,
               "dueInDays": -5,
               "status": "struggling",
+              "nextDueOn": "2026-03-05",
+              "graduatedAt": null,
+              "cleanQuickStreak": 0,
               "title": "Two Sum",
               "tag": "AR",
               "topic": "Array",
@@ -3523,6 +3550,9 @@
                 "problemId": 2,
                 "completedAt": "2026-03-08T16:00:00.000Z",
                 "durationMinutes": 61,
+                "durationSeconds": 3660,
+                "difficultyAtAttempt": "medium",
+                "targetMinutesAtAttempt": 30,
                 "outcome": "failed",
                 "effort": "moderate",
                 "blocker": "none",
@@ -3534,6 +3564,9 @@
               "confidence": 0,
               "dueInDays": -1,
               "status": "struggling",
+              "nextDueOn": "2026-03-09",
+              "graduatedAt": null,
+              "cleanQuickStreak": 0,
               "title": "Add Two Numbers",
               "tag": "LL",
               "topic": "Linked List",
@@ -3544,7 +3577,7 @@
           "mastery": [
             {
               "topic": "Array",
-              "score": 25,
+              "score": 13,
               "attempted": 1,
               "problemCount": 2
             },
@@ -3573,9 +3606,9 @@
               "problemCount": 1
             }
           ],
-          "masteryScore": 25,
+          "masteryScore": 17,
           "readiness": {
-            "score": 17,
+            "score": 5,
             "solved": 0,
             "totalProblems": 3,
             "averageDuration": 55,
@@ -3603,7 +3636,7 @@
               },
               {
                 "name": "Mar",
-                "score": 17
+                "score": 5
               }
             ]
           },
@@ -3640,6 +3673,9 @@
           "problemId": 1,
           "completedAt": "2026-03-09T14:00:00.000Z",
           "durationMinutes": 28,
+          "durationSeconds": 1680,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
           "outcome": "hint",
           "effort": "moderate",
           "blocker": "none",
@@ -3650,6 +3686,9 @@
           "problemId": 1,
           "completedAt": "2026-03-09T20:00:00.000Z",
           "durationMinutes": 21,
+          "durationSeconds": 1260,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
           "outcome": "optimal",
           "effort": "moderate",
           "blocker": "none",
@@ -3660,6 +3699,9 @@
           "problemId": 2,
           "completedAt": "2026-03-09T22:00:00.000Z",
           "durationMinutes": 44,
+          "durationSeconds": 2640,
+          "difficultyAtAttempt": "medium",
+          "targetMinutesAtAttempt": 30,
           "outcome": "solution",
           "effort": "moderate",
           "blocker": "none",
@@ -3675,6 +3717,9 @@
               "problemId": 2,
               "completedAt": "2026-03-09T22:00:00.000Z",
               "durationMinutes": 44,
+              "durationSeconds": 2640,
+              "difficultyAtAttempt": "medium",
+              "targetMinutesAtAttempt": 30,
               "outcome": "solution",
               "effort": "moderate",
               "blocker": "none",
@@ -3685,7 +3730,10 @@
             "lapses": 1,
             "confidence": 1,
             "dueInDays": 0,
-            "status": "struggling"
+            "status": "struggling",
+            "nextDueOn": "2026-03-10",
+            "graduatedAt": null,
+            "cleanQuickStreak": 0
           },
           {
             "problemId": 1,
@@ -3694,17 +3742,23 @@
               "problemId": 1,
               "completedAt": "2026-03-09T20:00:00.000Z",
               "durationMinutes": 21,
+              "durationSeconds": 1260,
+              "difficultyAtAttempt": "easy",
+              "targetMinutesAtAttempt": 20,
               "outcome": "optimal",
               "effort": "moderate",
               "blocker": "none",
               "notes": ""
             },
             "attemptCount": 2,
-            "intervalDays": 5,
+            "intervalDays": 2,
             "lapses": 0,
             "confidence": 4,
-            "dueInDays": 4,
-            "status": "solved"
+            "dueInDays": 1,
+            "status": "solved",
+            "nextDueOn": "2026-03-11",
+            "graduatedAt": null,
+            "cleanQuickStreak": 0
           }
         ],
         "dueReviewCount": 1,
@@ -3810,7 +3864,7 @@
             },
             {
               "topic": "Array",
-              "score": 100,
+              "score": 50,
               "solved": 1,
               "attempted": 1,
               "problemCount": 2,
@@ -3846,8 +3900,8 @@
                   "lastDurationMinutes": 21,
                   "bestDurationMinutes": 21,
                   "lapses": 0,
-                  "intervalDays": 5,
-                  "dueInDays": 4,
+                  "intervalDays": 2,
+                  "dueInDays": 1,
                   "blocker": "none",
                   "effort": "moderate",
                   "notes": ""
@@ -3911,8 +3965,8 @@
                   "lastDurationMinutes": 21,
                   "bestDurationMinutes": 21,
                   "lapses": 0,
-                  "intervalDays": 5,
-                  "dueInDays": 4,
+                  "intervalDays": 2,
+                  "dueInDays": 1,
                   "blocker": "none",
                   "effort": "moderate",
                   "notes": ""
@@ -5354,6 +5408,9 @@
                 "problemId": 2,
                 "completedAt": "2026-03-09T22:00:00.000Z",
                 "durationMinutes": 44,
+                "durationSeconds": 2640,
+                "difficultyAtAttempt": "medium",
+                "targetMinutesAtAttempt": 30,
                 "outcome": "solution",
                 "effort": "moderate",
                 "blocker": "none",
@@ -5365,6 +5422,9 @@
               "confidence": 1,
               "dueInDays": 0,
               "status": "struggling",
+              "nextDueOn": "2026-03-10",
+              "graduatedAt": null,
+              "cleanQuickStreak": 0,
               "title": "Add Two Numbers",
               "tag": "LL",
               "topic": "Linked List",
@@ -5377,28 +5437,34 @@
                 "problemId": 1,
                 "completedAt": "2026-03-09T20:00:00.000Z",
                 "durationMinutes": 21,
+                "durationSeconds": 1260,
+                "difficultyAtAttempt": "easy",
+                "targetMinutesAtAttempt": 20,
                 "outcome": "optimal",
                 "effort": "moderate",
                 "blocker": "none",
                 "notes": ""
               },
               "attemptCount": 2,
-              "intervalDays": 5,
+              "intervalDays": 2,
               "lapses": 0,
               "confidence": 4,
-              "dueInDays": 4,
+              "dueInDays": 1,
               "status": "solved",
+              "nextDueOn": "2026-03-11",
+              "graduatedAt": null,
+              "cleanQuickStreak": 0,
               "title": "Two Sum",
               "tag": "AR",
               "topic": "Array",
-              "when": "In 4d"
+              "when": "Tomorrow"
             }
           ],
           "dueCount": 1,
           "mastery": [
             {
               "topic": "Array",
-              "score": 100,
+              "score": 50,
               "attempted": 1,
               "problemCount": 2
             },
@@ -5427,9 +5493,9 @@
               "problemCount": 1
             }
           ],
-          "masteryScore": 63,
+          "masteryScore": 42,
           "readiness": {
-            "score": 46,
+            "score": 29,
             "solved": 1,
             "totalProblems": 3,
             "averageDuration": 31,
@@ -5457,7 +5523,7 @@
               },
               {
                 "name": "Mar",
-                "score": 46
+                "score": 29
               }
             ]
           },
@@ -5494,6 +5560,9 @@
           "problemId": 1,
           "completedAt": "2026-03-07T06:30:00.000Z",
           "durationMinutes": 24,
+          "durationSeconds": 1440,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
           "outcome": "optimal",
           "effort": "moderate",
           "blocker": "none",
@@ -5504,6 +5573,9 @@
           "problemId": 1,
           "completedAt": "2026-03-08T06:30:00.000Z",
           "durationMinutes": 26,
+          "durationSeconds": 1560,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
           "outcome": "hint",
           "effort": "moderate",
           "blocker": "none",
@@ -5514,6 +5586,9 @@
           "problemId": 2,
           "completedAt": "2026-03-09T05:30:00.000Z",
           "durationMinutes": 32,
+          "durationSeconds": 1920,
+          "difficultyAtAttempt": "medium",
+          "targetMinutesAtAttempt": 30,
           "outcome": "optimal",
           "effort": "moderate",
           "blocker": "none",
@@ -5523,12 +5598,40 @@
       "expected": {
         "reviewStates": [
           {
+            "problemId": 1,
+            "lastAttempt": {
+              "id": "dst-2",
+              "problemId": 1,
+              "completedAt": "2026-03-08T06:30:00.000Z",
+              "durationMinutes": 26,
+              "durationSeconds": 1560,
+              "difficultyAtAttempt": "easy",
+              "targetMinutesAtAttempt": 20,
+              "outcome": "hint",
+              "effort": "moderate",
+              "blocker": "none",
+              "notes": ""
+            },
+            "attemptCount": 2,
+            "intervalDays": 2,
+            "lapses": 0,
+            "confidence": 2,
+            "dueInDays": 0,
+            "status": "review",
+            "nextDueOn": "2026-03-10",
+            "graduatedAt": null,
+            "cleanQuickStreak": 0
+          },
+          {
             "problemId": 2,
             "lastAttempt": {
               "id": "dst-3",
               "problemId": 2,
               "completedAt": "2026-03-09T05:30:00.000Z",
               "durationMinutes": 32,
+              "durationSeconds": 1920,
+              "difficultyAtAttempt": "medium",
+              "targetMinutesAtAttempt": 30,
               "outcome": "optimal",
               "effort": "moderate",
               "blocker": "none",
@@ -5539,29 +5642,13 @@
             "lapses": 0,
             "confidence": 4,
             "dueInDays": 2,
-            "status": "solved"
-          },
-          {
-            "problemId": 1,
-            "lastAttempt": {
-              "id": "dst-2",
-              "problemId": 1,
-              "completedAt": "2026-03-08T06:30:00.000Z",
-              "durationMinutes": 26,
-              "outcome": "hint",
-              "effort": "moderate",
-              "blocker": "none",
-              "notes": ""
-            },
-            "attemptCount": 2,
-            "intervalDays": 5,
-            "lapses": 0,
-            "confidence": 2,
-            "dueInDays": 3,
-            "status": "review"
+            "status": "solved",
+            "nextDueOn": "2026-03-12",
+            "graduatedAt": null,
+            "cleanQuickStreak": 0
           }
         ],
-        "dueReviewCount": 0,
+        "dueReviewCount": 1,
         "masteryScore": 80,
         "dashboard": {
           "attemptCount": 3,
@@ -5570,11 +5657,11 @@
           "focuses": [
             {
               "topic": "Array",
-              "score": 60,
+              "score": 30,
               "solved": 0,
               "attempted": 1,
               "problemCount": 2,
-              "dueCount": 0,
+              "dueCount": 1,
               "averageMinutes": 25,
               "difficulty": [
                 {
@@ -5606,8 +5693,8 @@
                   "lastDurationMinutes": 26,
                   "bestDurationMinutes": 24,
                   "lapses": 0,
-                  "intervalDays": 5,
-                  "dueInDays": 3,
+                  "intervalDays": 2,
+                  "dueInDays": 0,
                   "blocker": "none",
                   "effort": "moderate",
                   "notes": ""
@@ -5639,7 +5726,7 @@
               "solved": 0,
               "attempted": 1,
               "problemCount": 1,
-              "dueCount": 0,
+              "dueCount": 1,
               "averageMinutes": 25,
               "difficulty": [
                 {
@@ -5671,8 +5758,8 @@
                   "lastDurationMinutes": 26,
                   "bestDurationMinutes": 24,
                   "lapses": 0,
-                  "intervalDays": 5,
-                  "dueInDays": 3,
+                  "intervalDays": 2,
+                  "dueInDays": 0,
                   "blocker": "none",
                   "effort": "moderate",
                   "notes": ""
@@ -7202,12 +7289,44 @@
           },
           "queue": [
             {
+              "problemId": 1,
+              "lastAttempt": {
+                "id": "dst-2",
+                "problemId": 1,
+                "completedAt": "2026-03-08T06:30:00.000Z",
+                "durationMinutes": 26,
+                "durationSeconds": 1560,
+                "difficultyAtAttempt": "easy",
+                "targetMinutesAtAttempt": 20,
+                "outcome": "hint",
+                "effort": "moderate",
+                "blocker": "none",
+                "notes": ""
+              },
+              "attemptCount": 2,
+              "intervalDays": 2,
+              "lapses": 0,
+              "confidence": 2,
+              "dueInDays": 0,
+              "status": "review",
+              "nextDueOn": "2026-03-10",
+              "graduatedAt": null,
+              "cleanQuickStreak": 0,
+              "title": "Two Sum",
+              "tag": "AR",
+              "topic": "Array",
+              "when": "Today"
+            },
+            {
               "problemId": 2,
               "lastAttempt": {
                 "id": "dst-3",
                 "problemId": 2,
                 "completedAt": "2026-03-09T05:30:00.000Z",
                 "durationMinutes": 32,
+                "durationSeconds": 1920,
+                "difficultyAtAttempt": "medium",
+                "targetMinutesAtAttempt": 30,
                 "outcome": "optimal",
                 "effort": "moderate",
                 "blocker": "none",
@@ -7219,40 +7338,20 @@
               "confidence": 4,
               "dueInDays": 2,
               "status": "solved",
+              "nextDueOn": "2026-03-12",
+              "graduatedAt": null,
+              "cleanQuickStreak": 0,
               "title": "Add Two Numbers",
               "tag": "LL",
               "topic": "Linked List",
               "when": "In 2d"
-            },
-            {
-              "problemId": 1,
-              "lastAttempt": {
-                "id": "dst-2",
-                "problemId": 1,
-                "completedAt": "2026-03-08T06:30:00.000Z",
-                "durationMinutes": 26,
-                "outcome": "hint",
-                "effort": "moderate",
-                "blocker": "none",
-                "notes": ""
-              },
-              "attemptCount": 2,
-              "intervalDays": 5,
-              "lapses": 0,
-              "confidence": 2,
-              "dueInDays": 3,
-              "status": "review",
-              "title": "Two Sum",
-              "tag": "AR",
-              "topic": "Array",
-              "when": "In 3d"
             }
           ],
-          "dueCount": 0,
+          "dueCount": 1,
           "mastery": [
             {
               "topic": "Array",
-              "score": 60,
+              "score": 30,
               "attempted": 1,
               "problemCount": 2
             },
@@ -7281,9 +7380,9 @@
               "problemCount": 1
             }
           ],
-          "masteryScore": 80,
+          "masteryScore": 53,
           "readiness": {
-            "score": 52,
+            "score": 37,
             "solved": 1,
             "totalProblems": 3,
             "averageDuration": 27,
@@ -7311,7 +7410,7 @@
               },
               {
                 "name": "Mar",
-                "score": 52
+                "score": 37
               }
             ]
           },
@@ -7341,6 +7440,1813 @@
         }
       }
     },
+    "pace_boundary": {
+      "attempts": [
+        {
+          "id": "pace-1",
+          "problemId": 1,
+          "completedAt": "2026-03-09T14:00:00.000Z",
+          "durationMinutes": 20,
+          "durationSeconds": 1201,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
+          "outcome": "optimal",
+          "effort": "moderate",
+          "blocker": "none",
+          "notes": ""
+        }
+      ],
+      "expected": {
+        "reviewStates": [
+          {
+            "problemId": 1,
+            "lastAttempt": {
+              "id": "pace-1",
+              "problemId": 1,
+              "completedAt": "2026-03-09T14:00:00.000Z",
+              "durationMinutes": 20,
+              "durationSeconds": 1201,
+              "difficultyAtAttempt": "easy",
+              "targetMinutesAtAttempt": 20,
+              "outcome": "optimal",
+              "effort": "moderate",
+              "blocker": "none",
+              "notes": ""
+            },
+            "attemptCount": 1,
+            "intervalDays": 3,
+            "lapses": 0,
+            "confidence": 4,
+            "dueInDays": 2,
+            "status": "solved",
+            "nextDueOn": "2026-03-12",
+            "graduatedAt": null,
+            "cleanQuickStreak": 0
+          }
+        ],
+        "dueReviewCount": 0,
+        "masteryScore": 100,
+        "dashboard": {
+          "attemptCount": 1,
+          "solvedCount": 1,
+          "loggedToday": 0,
+          "focuses": [
+            {
+              "topic": "Array",
+              "score": 50,
+              "solved": 1,
+              "attempted": 1,
+              "problemCount": 2,
+              "dueCount": 0,
+              "averageMinutes": 20,
+              "difficulty": [
+                {
+                  "difficulty": "easy",
+                  "solved": 1,
+                  "attempted": 1
+                },
+                {
+                  "difficulty": "medium",
+                  "solved": 0,
+                  "attempted": 0
+                },
+                {
+                  "difficulty": "hard",
+                  "solved": 0,
+                  "attempted": 0
+                }
+              ],
+              "topBlocker": null,
+              "attemptedProblems": [
+                {
+                  "id": 1,
+                  "title": "Two Sum",
+                  "slug": "two-sum",
+                  "difficulty": "easy",
+                  "acceptance": 55.1,
+                  "attempts": 1,
+                  "lastOutcome": "optimal",
+                  "lastDurationMinutes": 20,
+                  "bestDurationMinutes": 20,
+                  "lapses": 0,
+                  "intervalDays": 3,
+                  "dueInDays": 2,
+                  "blocker": "none",
+                  "effort": "moderate",
+                  "notes": ""
+                }
+              ],
+              "unattemptedProblems": [
+                {
+                  "id": 4,
+                  "title": "Median of Two Sorted Arrays",
+                  "slug": "median-of-two-sorted-arrays",
+                  "difficulty": "hard",
+                  "acceptance": 44.9,
+                  "attempts": 0,
+                  "lastOutcome": null,
+                  "lastDurationMinutes": null,
+                  "bestDurationMinutes": null,
+                  "lapses": 0,
+                  "intervalDays": null,
+                  "dueInDays": null,
+                  "blocker": null,
+                  "effort": null,
+                  "notes": ""
+                }
+              ]
+            },
+            {
+              "topic": "Hash Table",
+              "score": 100,
+              "solved": 1,
+              "attempted": 1,
+              "problemCount": 1,
+              "dueCount": 0,
+              "averageMinutes": 20,
+              "difficulty": [
+                {
+                  "difficulty": "easy",
+                  "solved": 1,
+                  "attempted": 1
+                },
+                {
+                  "difficulty": "medium",
+                  "solved": 0,
+                  "attempted": 0
+                },
+                {
+                  "difficulty": "hard",
+                  "solved": 0,
+                  "attempted": 0
+                }
+              ],
+              "topBlocker": null,
+              "attemptedProblems": [
+                {
+                  "id": 1,
+                  "title": "Two Sum",
+                  "slug": "two-sum",
+                  "difficulty": "easy",
+                  "acceptance": 55.1,
+                  "attempts": 1,
+                  "lastOutcome": "optimal",
+                  "lastDurationMinutes": 20,
+                  "bestDurationMinutes": 20,
+                  "lapses": 0,
+                  "intervalDays": 3,
+                  "dueInDays": 2,
+                  "blocker": "none",
+                  "effort": "moderate",
+                  "notes": ""
+                }
+              ],
+              "unattemptedProblems": []
+            },
+            {
+              "topic": "Binary Search",
+              "score": 0,
+              "solved": 0,
+              "attempted": 0,
+              "problemCount": 1,
+              "dueCount": 0,
+              "averageMinutes": 0,
+              "difficulty": [
+                {
+                  "difficulty": "easy",
+                  "solved": 0,
+                  "attempted": 0
+                },
+                {
+                  "difficulty": "medium",
+                  "solved": 0,
+                  "attempted": 0
+                },
+                {
+                  "difficulty": "hard",
+                  "solved": 0,
+                  "attempted": 0
+                }
+              ],
+              "topBlocker": null,
+              "attemptedProblems": [],
+              "unattemptedProblems": [
+                {
+                  "id": 4,
+                  "title": "Median of Two Sorted Arrays",
+                  "slug": "median-of-two-sorted-arrays",
+                  "difficulty": "hard",
+                  "acceptance": 44.9,
+                  "attempts": 0,
+                  "lastOutcome": null,
+                  "lastDurationMinutes": null,
+                  "bestDurationMinutes": null,
+                  "lapses": 0,
+                  "intervalDays": null,
+                  "dueInDays": null,
+                  "blocker": null,
+                  "effort": null,
+                  "notes": ""
+                }
+              ]
+            },
+            {
+              "topic": "Linked List",
+              "score": 0,
+              "solved": 0,
+              "attempted": 0,
+              "problemCount": 1,
+              "dueCount": 0,
+              "averageMinutes": 0,
+              "difficulty": [
+                {
+                  "difficulty": "easy",
+                  "solved": 0,
+                  "attempted": 0
+                },
+                {
+                  "difficulty": "medium",
+                  "solved": 0,
+                  "attempted": 0
+                },
+                {
+                  "difficulty": "hard",
+                  "solved": 0,
+                  "attempted": 0
+                }
+              ],
+              "topBlocker": null,
+              "attemptedProblems": [],
+              "unattemptedProblems": [
+                {
+                  "id": 2,
+                  "title": "Add Two Numbers",
+                  "slug": "add-two-numbers",
+                  "difficulty": "medium",
+                  "acceptance": 46.2,
+                  "attempts": 0,
+                  "lastOutcome": null,
+                  "lastDurationMinutes": null,
+                  "bestDurationMinutes": null,
+                  "lapses": 0,
+                  "intervalDays": null,
+                  "dueInDays": null,
+                  "blocker": null,
+                  "effort": null,
+                  "notes": ""
+                }
+              ]
+            },
+            {
+              "topic": "Math",
+              "score": 0,
+              "solved": 0,
+              "attempted": 0,
+              "problemCount": 1,
+              "dueCount": 0,
+              "averageMinutes": 0,
+              "difficulty": [
+                {
+                  "difficulty": "easy",
+                  "solved": 0,
+                  "attempted": 0
+                },
+                {
+                  "difficulty": "medium",
+                  "solved": 0,
+                  "attempted": 0
+                },
+                {
+                  "difficulty": "hard",
+                  "solved": 0,
+                  "attempted": 0
+                }
+              ],
+              "topBlocker": null,
+              "attemptedProblems": [],
+              "unattemptedProblems": [
+                {
+                  "id": 2,
+                  "title": "Add Two Numbers",
+                  "slug": "add-two-numbers",
+                  "difficulty": "medium",
+                  "acceptance": 46.2,
+                  "attempts": 0,
+                  "lastOutcome": null,
+                  "lastDurationMinutes": null,
+                  "bestDurationMinutes": null,
+                  "lapses": 0,
+                  "intervalDays": null,
+                  "dueInDays": null,
+                  "blocker": null,
+                  "effort": null,
+                  "notes": ""
+                }
+              ]
+            }
+          ],
+          "summary": [
+            {
+              "id": "streak",
+              "label": "Current streak",
+              "value": "1d",
+              "delta": "best 1d",
+              "tone": "emerald"
+            },
+            {
+              "id": "active",
+              "label": "Active days",
+              "value": "1 / 90",
+              "delta": "1% coverage",
+              "tone": "amber"
+            },
+            {
+              "id": "average",
+              "label": "Average time per day",
+              "value": "0m",
+              "delta": "20m on active days",
+              "tone": "indigo"
+            },
+            {
+              "id": "total",
+              "label": "Total time logged",
+              "value": "0.3h",
+              "delta": "0.0h / week avg",
+              "tone": "violet"
+            }
+          ],
+          "consistency": {
+            "days": [
+              {
+                "key": "2025-12-11",
+                "label": "Thu, Dec 11",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-12",
+                "label": "Fri, Dec 12",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-13",
+                "label": "Sat, Dec 13",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-14",
+                "label": "Sun, Dec 14",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-15",
+                "label": "Mon, Dec 15",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-16",
+                "label": "Tue, Dec 16",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-17",
+                "label": "Wed, Dec 17",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-18",
+                "label": "Thu, Dec 18",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-19",
+                "label": "Fri, Dec 19",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-20",
+                "label": "Sat, Dec 20",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-21",
+                "label": "Sun, Dec 21",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-22",
+                "label": "Mon, Dec 22",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-23",
+                "label": "Tue, Dec 23",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-24",
+                "label": "Wed, Dec 24",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-25",
+                "label": "Thu, Dec 25",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-26",
+                "label": "Fri, Dec 26",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-27",
+                "label": "Sat, Dec 27",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-28",
+                "label": "Sun, Dec 28",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-29",
+                "label": "Mon, Dec 29",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-30",
+                "label": "Tue, Dec 30",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2025-12-31",
+                "label": "Wed, Dec 31",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-01",
+                "label": "Thu, Jan 1",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-02",
+                "label": "Fri, Jan 2",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-03",
+                "label": "Sat, Jan 3",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-04",
+                "label": "Sun, Jan 4",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-05",
+                "label": "Mon, Jan 5",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-06",
+                "label": "Tue, Jan 6",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-07",
+                "label": "Wed, Jan 7",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-08",
+                "label": "Thu, Jan 8",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-09",
+                "label": "Fri, Jan 9",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-10",
+                "label": "Sat, Jan 10",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-11",
+                "label": "Sun, Jan 11",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-12",
+                "label": "Mon, Jan 12",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-13",
+                "label": "Tue, Jan 13",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-14",
+                "label": "Wed, Jan 14",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-15",
+                "label": "Thu, Jan 15",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-16",
+                "label": "Fri, Jan 16",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-17",
+                "label": "Sat, Jan 17",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-18",
+                "label": "Sun, Jan 18",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-19",
+                "label": "Mon, Jan 19",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-20",
+                "label": "Tue, Jan 20",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-21",
+                "label": "Wed, Jan 21",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-22",
+                "label": "Thu, Jan 22",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-23",
+                "label": "Fri, Jan 23",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-24",
+                "label": "Sat, Jan 24",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-25",
+                "label": "Sun, Jan 25",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-26",
+                "label": "Mon, Jan 26",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-27",
+                "label": "Tue, Jan 27",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-28",
+                "label": "Wed, Jan 28",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-29",
+                "label": "Thu, Jan 29",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-30",
+                "label": "Fri, Jan 30",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-01-31",
+                "label": "Sat, Jan 31",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-01",
+                "label": "Sun, Feb 1",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-02",
+                "label": "Mon, Feb 2",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-03",
+                "label": "Tue, Feb 3",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-04",
+                "label": "Wed, Feb 4",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-05",
+                "label": "Thu, Feb 5",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-06",
+                "label": "Fri, Feb 6",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-07",
+                "label": "Sat, Feb 7",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-08",
+                "label": "Sun, Feb 8",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-09",
+                "label": "Mon, Feb 9",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-10",
+                "label": "Tue, Feb 10",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-11",
+                "label": "Wed, Feb 11",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-12",
+                "label": "Thu, Feb 12",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-13",
+                "label": "Fri, Feb 13",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-14",
+                "label": "Sat, Feb 14",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-15",
+                "label": "Sun, Feb 15",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-16",
+                "label": "Mon, Feb 16",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-17",
+                "label": "Tue, Feb 17",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-18",
+                "label": "Wed, Feb 18",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-19",
+                "label": "Thu, Feb 19",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-20",
+                "label": "Fri, Feb 20",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-21",
+                "label": "Sat, Feb 21",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-22",
+                "label": "Sun, Feb 22",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-23",
+                "label": "Mon, Feb 23",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-24",
+                "label": "Tue, Feb 24",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-25",
+                "label": "Wed, Feb 25",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-26",
+                "label": "Thu, Feb 26",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-27",
+                "label": "Fri, Feb 27",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-02-28",
+                "label": "Sat, Feb 28",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-03-01",
+                "label": "Sun, Mar 1",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-03-02",
+                "label": "Mon, Mar 2",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-03-03",
+                "label": "Tue, Mar 3",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-03-04",
+                "label": "Wed, Mar 4",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-03-05",
+                "label": "Thu, Mar 5",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-03-06",
+                "label": "Fri, Mar 6",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-03-07",
+                "label": "Sat, Mar 7",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-03-08",
+                "label": "Sun, Mar 8",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              },
+              {
+                "key": "2026-03-09",
+                "label": "Mon, Mar 9",
+                "minutes": 20,
+                "problemCount": 1,
+                "level": 1
+              },
+              {
+                "key": "2026-03-10",
+                "label": "Tue, Mar 10",
+                "minutes": 0,
+                "problemCount": 0,
+                "level": 0
+              }
+            ],
+            "weeks": [
+              {
+                "key": "week-0",
+                "days": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "key": "2025-12-11",
+                    "label": "Thu, Dec 11",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-12",
+                    "label": "Fri, Dec 12",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-13",
+                    "label": "Sat, Dec 13",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-14",
+                    "label": "Sun, Dec 14",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-1",
+                "days": [
+                  {
+                    "key": "2025-12-15",
+                    "label": "Mon, Dec 15",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-16",
+                    "label": "Tue, Dec 16",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-17",
+                    "label": "Wed, Dec 17",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-18",
+                    "label": "Thu, Dec 18",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-19",
+                    "label": "Fri, Dec 19",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-20",
+                    "label": "Sat, Dec 20",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-21",
+                    "label": "Sun, Dec 21",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-2",
+                "days": [
+                  {
+                    "key": "2025-12-22",
+                    "label": "Mon, Dec 22",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-23",
+                    "label": "Tue, Dec 23",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-24",
+                    "label": "Wed, Dec 24",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-25",
+                    "label": "Thu, Dec 25",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-26",
+                    "label": "Fri, Dec 26",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-27",
+                    "label": "Sat, Dec 27",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-28",
+                    "label": "Sun, Dec 28",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-3",
+                "days": [
+                  {
+                    "key": "2025-12-29",
+                    "label": "Mon, Dec 29",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-30",
+                    "label": "Tue, Dec 30",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2025-12-31",
+                    "label": "Wed, Dec 31",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-01",
+                    "label": "Thu, Jan 1",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-02",
+                    "label": "Fri, Jan 2",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-03",
+                    "label": "Sat, Jan 3",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-04",
+                    "label": "Sun, Jan 4",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-4",
+                "days": [
+                  {
+                    "key": "2026-01-05",
+                    "label": "Mon, Jan 5",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-06",
+                    "label": "Tue, Jan 6",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-07",
+                    "label": "Wed, Jan 7",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-08",
+                    "label": "Thu, Jan 8",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-09",
+                    "label": "Fri, Jan 9",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-10",
+                    "label": "Sat, Jan 10",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-11",
+                    "label": "Sun, Jan 11",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-5",
+                "days": [
+                  {
+                    "key": "2026-01-12",
+                    "label": "Mon, Jan 12",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-13",
+                    "label": "Tue, Jan 13",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-14",
+                    "label": "Wed, Jan 14",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-15",
+                    "label": "Thu, Jan 15",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-16",
+                    "label": "Fri, Jan 16",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-17",
+                    "label": "Sat, Jan 17",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-18",
+                    "label": "Sun, Jan 18",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-6",
+                "days": [
+                  {
+                    "key": "2026-01-19",
+                    "label": "Mon, Jan 19",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-20",
+                    "label": "Tue, Jan 20",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-21",
+                    "label": "Wed, Jan 21",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-22",
+                    "label": "Thu, Jan 22",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-23",
+                    "label": "Fri, Jan 23",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-24",
+                    "label": "Sat, Jan 24",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-25",
+                    "label": "Sun, Jan 25",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-7",
+                "days": [
+                  {
+                    "key": "2026-01-26",
+                    "label": "Mon, Jan 26",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-27",
+                    "label": "Tue, Jan 27",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-28",
+                    "label": "Wed, Jan 28",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-29",
+                    "label": "Thu, Jan 29",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-30",
+                    "label": "Fri, Jan 30",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-01-31",
+                    "label": "Sat, Jan 31",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-01",
+                    "label": "Sun, Feb 1",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-8",
+                "days": [
+                  {
+                    "key": "2026-02-02",
+                    "label": "Mon, Feb 2",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-03",
+                    "label": "Tue, Feb 3",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-04",
+                    "label": "Wed, Feb 4",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-05",
+                    "label": "Thu, Feb 5",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-06",
+                    "label": "Fri, Feb 6",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-07",
+                    "label": "Sat, Feb 7",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-08",
+                    "label": "Sun, Feb 8",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-9",
+                "days": [
+                  {
+                    "key": "2026-02-09",
+                    "label": "Mon, Feb 9",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-10",
+                    "label": "Tue, Feb 10",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-11",
+                    "label": "Wed, Feb 11",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-12",
+                    "label": "Thu, Feb 12",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-13",
+                    "label": "Fri, Feb 13",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-14",
+                    "label": "Sat, Feb 14",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-15",
+                    "label": "Sun, Feb 15",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-10",
+                "days": [
+                  {
+                    "key": "2026-02-16",
+                    "label": "Mon, Feb 16",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-17",
+                    "label": "Tue, Feb 17",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-18",
+                    "label": "Wed, Feb 18",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-19",
+                    "label": "Thu, Feb 19",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-20",
+                    "label": "Fri, Feb 20",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-21",
+                    "label": "Sat, Feb 21",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-22",
+                    "label": "Sun, Feb 22",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-11",
+                "days": [
+                  {
+                    "key": "2026-02-23",
+                    "label": "Mon, Feb 23",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-24",
+                    "label": "Tue, Feb 24",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-25",
+                    "label": "Wed, Feb 25",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-26",
+                    "label": "Thu, Feb 26",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-27",
+                    "label": "Fri, Feb 27",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-02-28",
+                    "label": "Sat, Feb 28",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-03-01",
+                    "label": "Sun, Mar 1",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-12",
+                "days": [
+                  {
+                    "key": "2026-03-02",
+                    "label": "Mon, Mar 2",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-03-03",
+                    "label": "Tue, Mar 3",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-03-04",
+                    "label": "Wed, Mar 4",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-03-05",
+                    "label": "Thu, Mar 5",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-03-06",
+                    "label": "Fri, Mar 6",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-03-07",
+                    "label": "Sat, Mar 7",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  {
+                    "key": "2026-03-08",
+                    "label": "Sun, Mar 8",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  }
+                ]
+              },
+              {
+                "key": "week-13",
+                "days": [
+                  {
+                    "key": "2026-03-09",
+                    "label": "Mon, Mar 9",
+                    "minutes": 20,
+                    "problemCount": 1,
+                    "level": 1
+                  },
+                  {
+                    "key": "2026-03-10",
+                    "label": "Tue, Mar 10",
+                    "minutes": 0,
+                    "problemCount": 0,
+                    "level": 0
+                  },
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              }
+            ],
+            "totalMinutes": 20,
+            "activeDays": 1,
+            "streak": 1,
+            "bestStreak": 1
+          },
+          "queue": [
+            {
+              "problemId": 1,
+              "lastAttempt": {
+                "id": "pace-1",
+                "problemId": 1,
+                "completedAt": "2026-03-09T14:00:00.000Z",
+                "durationMinutes": 20,
+                "durationSeconds": 1201,
+                "difficultyAtAttempt": "easy",
+                "targetMinutesAtAttempt": 20,
+                "outcome": "optimal",
+                "effort": "moderate",
+                "blocker": "none",
+                "notes": ""
+              },
+              "attemptCount": 1,
+              "intervalDays": 3,
+              "lapses": 0,
+              "confidence": 4,
+              "dueInDays": 2,
+              "status": "solved",
+              "nextDueOn": "2026-03-12",
+              "graduatedAt": null,
+              "cleanQuickStreak": 0,
+              "title": "Two Sum",
+              "tag": "AR",
+              "topic": "Array",
+              "when": "In 2d"
+            }
+          ],
+          "dueCount": 0,
+          "mastery": [
+            {
+              "topic": "Array",
+              "score": 50,
+              "attempted": 1,
+              "problemCount": 2
+            },
+            {
+              "topic": "Hash Table",
+              "score": 100,
+              "attempted": 1,
+              "problemCount": 1
+            },
+            {
+              "topic": "Binary Search",
+              "score": 0,
+              "attempted": 0,
+              "problemCount": 1
+            },
+            {
+              "topic": "Linked List",
+              "score": 0,
+              "attempted": 0,
+              "problemCount": 1
+            },
+            {
+              "topic": "Math",
+              "score": 0,
+              "attempted": 0,
+              "problemCount": 1
+            }
+          ],
+          "masteryScore": 33,
+          "readiness": {
+            "score": 25,
+            "solved": 1,
+            "totalProblems": 3,
+            "averageDuration": 20,
+            "activeDays": 1,
+            "history": [
+              {
+                "name": "Oct",
+                "score": 0
+              },
+              {
+                "name": "Nov",
+                "score": 0
+              },
+              {
+                "name": "Dec",
+                "score": 0
+              },
+              {
+                "name": "Jan",
+                "score": 0
+              },
+              {
+                "name": "Feb",
+                "score": 0
+              },
+              {
+                "name": "Mar",
+                "score": 25
+              }
+            ]
+          },
+          "mix": [
+            {
+              "difficulty": "easy",
+              "solved": 1,
+              "attempted": 1,
+              "total": 1,
+              "percent": 100
+            },
+            {
+              "difficulty": "medium",
+              "solved": 0,
+              "attempted": 0,
+              "total": 1,
+              "percent": 0
+            },
+            {
+              "difficulty": "hard",
+              "solved": 0,
+              "attempted": 0,
+              "total": 1,
+              "percent": 0
+            }
+          ]
+        }
+      }
+    },
     "unknown_problem": {
       "attempts": [
         {
@@ -7348,6 +9254,9 @@
           "problemId": 1,
           "completedAt": "2026-03-02T15:00:00.000Z",
           "durationMinutes": 20,
+          "durationSeconds": 1200,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
           "outcome": "optimal",
           "effort": "moderate",
           "blocker": "none",
@@ -7358,6 +9267,9 @@
           "problemId": 999999,
           "completedAt": "2026-03-03T15:00:00.000Z",
           "durationMinutes": 90,
+          "durationSeconds": 5400,
+          "difficultyAtAttempt": "medium",
+          "targetMinutesAtAttempt": 30,
           "outcome": "failed",
           "effort": "moderate",
           "blocker": "none",
@@ -7373,6 +9285,9 @@
               "problemId": 999999,
               "completedAt": "2026-03-03T15:00:00.000Z",
               "durationMinutes": 90,
+              "durationSeconds": 5400,
+              "difficultyAtAttempt": "medium",
+              "targetMinutesAtAttempt": 30,
               "outcome": "failed",
               "effort": "moderate",
               "blocker": "none",
@@ -7383,7 +9298,10 @@
             "lapses": 1,
             "confidence": 0,
             "dueInDays": -6,
-            "status": "struggling"
+            "status": "struggling",
+            "nextDueOn": "2026-03-04",
+            "graduatedAt": null,
+            "cleanQuickStreak": 0
           },
           {
             "problemId": 1,
@@ -7392,6 +9310,9 @@
               "problemId": 1,
               "completedAt": "2026-03-02T15:00:00.000Z",
               "durationMinutes": 20,
+              "durationSeconds": 1200,
+              "difficultyAtAttempt": "easy",
+              "targetMinutesAtAttempt": 20,
               "outcome": "optimal",
               "effort": "moderate",
               "blocker": "none",
@@ -7402,7 +9323,10 @@
             "lapses": 0,
             "confidence": 4,
             "dueInDays": -5,
-            "status": "solved"
+            "status": "solved",
+            "nextDueOn": "2026-03-05",
+            "graduatedAt": null,
+            "cleanQuickStreak": 1
           }
         ],
         "dueReviewCount": 2,
@@ -7414,7 +9338,7 @@
           "focuses": [
             {
               "topic": "Array",
-              "score": 100,
+              "score": 50,
               "solved": 1,
               "attempted": 1,
               "problemCount": 2,
@@ -9052,6 +10976,9 @@
                 "problemId": 1,
                 "completedAt": "2026-03-02T15:00:00.000Z",
                 "durationMinutes": 20,
+                "durationSeconds": 1200,
+                "difficultyAtAttempt": "easy",
+                "targetMinutesAtAttempt": 20,
                 "outcome": "optimal",
                 "effort": "moderate",
                 "blocker": "none",
@@ -9063,6 +10990,9 @@
               "confidence": 4,
               "dueInDays": -5,
               "status": "solved",
+              "nextDueOn": "2026-03-05",
+              "graduatedAt": null,
+              "cleanQuickStreak": 1,
               "title": "Two Sum",
               "tag": "AR",
               "topic": "Array",
@@ -9073,7 +11003,7 @@
           "mastery": [
             {
               "topic": "Array",
-              "score": 100,
+              "score": 50,
               "attempted": 1,
               "problemCount": 2
             },
@@ -9102,9 +11032,9 @@
               "problemCount": 1
             }
           ],
-          "masteryScore": 63,
+          "masteryScore": 42,
           "readiness": {
-            "score": 44,
+            "score": 21,
             "solved": 1,
             "totalProblems": 3,
             "averageDuration": 55,
@@ -9132,7 +11062,7 @@
               },
               {
                 "name": "Mar",
-                "score": 44
+                "score": 21
               }
             ]
           },
@@ -9169,6 +11099,9 @@
           "problemId": 1,
           "completedAt": "2026-02-25T15:00:00.000Z",
           "durationMinutes": 47,
+          "durationSeconds": 2820,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
           "outcome": "failed",
           "effort": "moderate",
           "blocker": "none",
@@ -9179,6 +11112,9 @@
           "problemId": 1,
           "completedAt": "2026-03-01T15:00:00.000Z",
           "durationMinutes": 31,
+          "durationSeconds": 1860,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
           "outcome": "hint",
           "effort": "moderate",
           "blocker": "none",
@@ -9189,6 +11125,9 @@
           "problemId": 1,
           "completedAt": "2026-03-06T15:00:00.000Z",
           "durationMinutes": 19,
+          "durationSeconds": 1140,
+          "difficultyAtAttempt": "easy",
+          "targetMinutesAtAttempt": 20,
           "outcome": "optimal",
           "effort": "moderate",
           "blocker": "none",
@@ -9199,6 +11138,9 @@
           "problemId": 2,
           "completedAt": "2026-02-27T16:00:00.000Z",
           "durationMinutes": 52,
+          "durationSeconds": 3120,
+          "difficultyAtAttempt": "medium",
+          "targetMinutesAtAttempt": 30,
           "outcome": "solution",
           "effort": "moderate",
           "blocker": "none",
@@ -9209,6 +11151,9 @@
           "problemId": 2,
           "completedAt": "2026-03-08T16:00:00.000Z",
           "durationMinutes": 35,
+          "durationSeconds": 2100,
+          "difficultyAtAttempt": "medium",
+          "targetMinutesAtAttempt": 30,
           "outcome": "optimal",
           "effort": "moderate",
           "blocker": "none",
@@ -9219,6 +11164,9 @@
           "problemId": 4,
           "completedAt": "2026-03-09T17:00:00.000Z",
           "durationMinutes": 58,
+          "durationSeconds": 3480,
+          "difficultyAtAttempt": "hard",
+          "targetMinutesAtAttempt": 45,
           "outcome": "optimal",
           "effort": "moderate",
           "blocker": "none",
@@ -9234,6 +11182,9 @@
               "problemId": 1,
               "completedAt": "2026-03-06T15:00:00.000Z",
               "durationMinutes": 19,
+              "durationSeconds": 1140,
+              "difficultyAtAttempt": "easy",
+              "targetMinutesAtAttempt": 20,
               "outcome": "optimal",
               "effort": "moderate",
               "blocker": "none",
@@ -9244,7 +11195,10 @@
             "lapses": 1,
             "confidence": 4,
             "dueInDays": 1,
-            "status": "solved"
+            "status": "solved",
+            "nextDueOn": "2026-03-11",
+            "graduatedAt": null,
+            "cleanQuickStreak": 1
           },
           {
             "problemId": 2,
@@ -9253,6 +11207,9 @@
               "problemId": 2,
               "completedAt": "2026-03-08T16:00:00.000Z",
               "durationMinutes": 35,
+              "durationSeconds": 2100,
+              "difficultyAtAttempt": "medium",
+              "targetMinutesAtAttempt": 30,
               "outcome": "optimal",
               "effort": "moderate",
               "blocker": "none",
@@ -9263,7 +11220,10 @@
             "lapses": 1,
             "confidence": 4,
             "dueInDays": 1,
-            "status": "solved"
+            "status": "solved",
+            "nextDueOn": "2026-03-11",
+            "graduatedAt": null,
+            "cleanQuickStreak": 0
           },
           {
             "problemId": 4,
@@ -9272,6 +11232,9 @@
               "problemId": 4,
               "completedAt": "2026-03-09T17:00:00.000Z",
               "durationMinutes": 58,
+              "durationSeconds": 3480,
+              "difficultyAtAttempt": "hard",
+              "targetMinutesAtAttempt": 45,
               "outcome": "optimal",
               "effort": "moderate",
               "blocker": "none",
@@ -9282,7 +11245,10 @@
             "lapses": 0,
             "confidence": 4,
             "dueInDays": 2,
-            "status": "solved"
+            "status": "solved",
+            "nextDueOn": "2026-03-12",
+            "graduatedAt": null,
+            "cleanQuickStreak": 0
           }
         ],
         "dueReviewCount": 0,
@@ -10931,6 +12897,9 @@
                 "problemId": 1,
                 "completedAt": "2026-03-06T15:00:00.000Z",
                 "durationMinutes": 19,
+                "durationSeconds": 1140,
+                "difficultyAtAttempt": "easy",
+                "targetMinutesAtAttempt": 20,
                 "outcome": "optimal",
                 "effort": "moderate",
                 "blocker": "none",
@@ -10942,6 +12911,9 @@
               "confidence": 4,
               "dueInDays": 1,
               "status": "solved",
+              "nextDueOn": "2026-03-11",
+              "graduatedAt": null,
+              "cleanQuickStreak": 1,
               "title": "Two Sum",
               "tag": "AR",
               "topic": "Array",
@@ -10954,6 +12926,9 @@
                 "problemId": 2,
                 "completedAt": "2026-03-08T16:00:00.000Z",
                 "durationMinutes": 35,
+                "durationSeconds": 2100,
+                "difficultyAtAttempt": "medium",
+                "targetMinutesAtAttempt": 30,
                 "outcome": "optimal",
                 "effort": "moderate",
                 "blocker": "none",
@@ -10965,6 +12940,9 @@
               "confidence": 4,
               "dueInDays": 1,
               "status": "solved",
+              "nextDueOn": "2026-03-11",
+              "graduatedAt": null,
+              "cleanQuickStreak": 0,
               "title": "Add Two Numbers",
               "tag": "LL",
               "topic": "Linked List",
@@ -10977,6 +12955,9 @@
                 "problemId": 4,
                 "completedAt": "2026-03-09T17:00:00.000Z",
                 "durationMinutes": 58,
+                "durationSeconds": 3480,
+                "difficultyAtAttempt": "hard",
+                "targetMinutesAtAttempt": 45,
                 "outcome": "optimal",
                 "effort": "moderate",
                 "blocker": "none",
@@ -10988,6 +12969,9 @@
               "confidence": 4,
               "dueInDays": 2,
               "status": "solved",
+              "nextDueOn": "2026-03-12",
+              "graduatedAt": null,
+              "cleanQuickStreak": 0,
               "title": "Median of Two Sorted Arrays",
               "tag": "AR",
               "topic": "Array",
@@ -11029,7 +13013,7 @@
           ],
           "masteryScore": 100,
           "readiness": {
-            "score": 86,
+            "score": 81,
             "solved": 3,
             "totalProblems": 3,
             "averageDuration": 40,
@@ -11053,11 +13037,11 @@
               },
               {
                 "name": "Feb",
-                "score": 18
+                "score": 6
               },
               {
                 "name": "Mar",
-                "score": 86
+                "score": 81
               }
             ]
           },

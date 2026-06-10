@@ -8,6 +8,7 @@ from rodeo.models.enums import (
     AttemptBlocker,
     AttemptEffort,
     AttemptOutcome,
+    Difficulty,
     TranscriptionStatus,
 )
 
@@ -75,6 +76,8 @@ class AttemptResponse(AttemptAPIModel):
     practice_session_id: str | None
     completed_at: datetime
     duration_seconds: int
+    problem_difficulty_at_attempt: Difficulty | None
+    target_minutes_at_attempt: int | None = Field(default=None, gt=0)
     outcome: AttemptOutcome
     effort: AttemptEffort
     blocker: AttemptBlocker

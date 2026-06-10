@@ -79,6 +79,9 @@ export const RANGE_OPTIONS = [
   { value: "60", label: "60d", days: 60 },
   { value: "90", label: "90d", days: 90 },
   { value: "180", label: "6m", days: 180 },
+  { value: "365", label: "1 Year", days: 365 },
+  // A heatmap wider than one year is not useful, so All shares the 1 Year window.
+  { value: "all", label: "All", days: 365 },
 ] as const
 
 export type RangeOptionValue = (typeof RANGE_OPTIONS)[number]["value"]

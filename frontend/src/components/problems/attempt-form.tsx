@@ -1,12 +1,7 @@
 import * as React from "react"
-import {
-  CalendarIcon,
-  CircleAlertIcon,
-  CircleCheckIcon,
-  CircleDotIcon,
-  CircleXIcon,
-} from "lucide-react"
+import { CalendarIcon, CheckIcon } from "lucide-react"
 
+import { AudioTranscriptPanel } from "@/components/problems/audio-transcript-panel"
 import { NotesEditor } from "@/components/problems/notes-editor"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -28,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { BLOCKER_LABELS, EFFORT_LABELS, OUTCOME_LABELS } from "@/lib/attempts"
+import { BLOCKER_LABELS } from "@/lib/attempts"
 import { cn } from "@/lib/utils"
 import type {
   Attempt,
@@ -40,34 +35,32 @@ import type {
 
 const outcomeChoices: {
   value: AttemptOutcome
-  icon: typeof CircleCheckIcon
-  selectedClass: string
+  label: string
 }[] = [
   {
     value: "optimal",
-    icon: CircleCheckIcon,
-    selectedClass:
-      "data-pressed:text-emerald-700 dark:data-pressed:text-emerald-400",
+    label: "Independent",
   },
   {
     value: "hint",
-    icon: CircleDotIcon,
-    selectedClass:
-      "data-pressed:text-amber-700 dark:data-pressed:text-amber-400",
+    label: "Used a hint",
   },
   {
     value: "solution",
-    icon: CircleAlertIcon,
-    selectedClass: "data-pressed:text-sky-700 dark:data-pressed:text-sky-400",
+    label: "Reviewed solution",
   },
   {
     value: "failed",
-    icon: CircleXIcon,
-    selectedClass: "data-pressed:text-destructive",
+    label: "Didn't finish",
   },
 ]
 
-const effortChoices: AttemptEffort[] = ["light", "moderate", "heavy", "brutal"]
+const effortChoices: { value: AttemptEffort; label: string }[] = [
+  { value: "light", label: "Easy" },
+  { value: "moderate", label: "Manageable" },
+  { value: "heavy", label: "Challenging" },
+  { value: "brutal", label: "Very hard" },
+]
 
 const blockerChoices: AttemptBlocker[] = [
   "none",
@@ -79,7 +72,8 @@ const blockerChoices: AttemptBlocker[] = [
   "time",
 ]
 
-const segmentClass = "h-9 flex-1 text-sm font-normal data-pressed:font-medium"
+const segmentClass =
+  "h-9 flex-1 px-2 text-[13px] font-normal text-muted-foreground data-pressed:bg-muted data-pressed:font-medium data-pressed:text-foreground"
 
 function Row({
   label,
@@ -140,11 +134,11 @@ export function AttemptForm({
   const [date, setDate] = React.useState<Date>(
     attempt ? new Date(attempt.completedAt) : new Date()
   )
-  const [outcome, setOutcome] = React.useState<AttemptOutcome>(
-    attempt?.outcome ?? "optimal"
+  const [outcome, setOutcome] = React.useState<AttemptOutcome | undefined>(
+    attempt?.outcome
   )
-  const [effort, setEffort] = React.useState<AttemptEffort>(
-    attempt?.effort ?? "moderate"
+  const [effort, setEffort] = React.useState<AttemptEffort | undefined>(
+    attempt?.effort
   )
   const [blocker, setBlocker] = React.useState<AttemptBlocker>(
     attempt?.blocker ?? "none"
@@ -154,6 +148,10 @@ export function AttemptForm({
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault()
+
+    if (!outcome || !effort) {
+      return
+    }
 
     onSave({
       problemId,
@@ -214,11 +212,11 @@ export function AttemptForm({
           </Row>
         </div>
 
-        <Row label="Help needed">
+        <Row label="Highest level of help used">
           <ToggleGroup
             spacing={0}
             variant="outline"
-            value={[outcome]}
+            value={outcome ? [outcome] : []}
             onValueChange={(values) => {
               const next = values[0] as AttemptOutcome | undefined
               if (next) {
@@ -231,20 +229,19 @@ export function AttemptForm({
               <ToggleGroupItem
                 key={choice.value}
                 value={choice.value}
-                className={cn(segmentClass, choice.selectedClass)}
+                className={segmentClass}
               >
-                <choice.icon className="size-3.5" />
-                {OUTCOME_LABELS[choice.value]}
+                {choice.label}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
         </Row>
 
-        <Row label="Effort">
+        <Row label="How difficult did this feel?">
           <ToggleGroup
             spacing={0}
             variant="outline"
-            value={[effort]}
+            value={effort ? [effort] : []}
             onValueChange={(values) => {
               const next = values[0] as AttemptEffort | undefined
               if (next) {
@@ -255,24 +252,32 @@ export function AttemptForm({
           >
             {effortChoices.map((choice) => (
               <ToggleGroupItem
-                key={choice}
-                value={choice}
-                className={segmentClass}
+                key={choice.value}
+                value={choice.value}
+                className={cn(
+                  segmentClass,
+                  "data-pressed:border-emerald-500/45 data-pressed:bg-emerald-500/10 data-pressed:text-emerald-700 dark:data-pressed:text-emerald-400"
+                )}
               >
-                {EFFORT_LABELS[choice]}
+                {effort === choice.value ? (
+                  <CheckIcon className="size-3.5" />
+                ) : null}
+                {choice.label}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
         </Row>
 
-        <Row label="Sticking point">
+        <Row label="What was the main blocker?" hint="Optional">
           <Select
             value={blocker}
             onValueChange={(value) => setBlocker(value as AttemptBlocker)}
           >
             <SelectTrigger className="h-9 w-full rounded-lg font-normal">
               <SelectValue>
-                {(value: AttemptBlocker) => BLOCKER_LABELS[value]}
+                {(value: AttemptBlocker) =>
+                  value === "none" ? "Select a blocker" : BLOCKER_LABELS[value]
+                }
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -285,36 +290,65 @@ export function AttemptForm({
           </Select>
         </Row>
 
-        <Row label="Notes" hint="Markdown">
-          <NotesEditor value={notes} onChange={setNotes} />
+        <Row label="Notes" hint="Markdown · optional">
+          <NotesEditor
+            value={notes}
+            onChange={setNotes}
+            placeholder={
+              "Pattern / key insight:\nWhat blocked me:\nOne rule for next time:"
+            }
+          />
         </Row>
 
         {playableAudioUrl ? (
           <Row label="Audio recording">
-            <audio
-              controls
-              preload="metadata"
-              className="w-full"
-              src={playableAudioUrl}
-            >
-              Your browser does not support audio playback.
-            </audio>
+            {attempt ? (
+              <AudioTranscriptPanel
+                attemptId={attempt.id}
+                audioUrl={playableAudioUrl}
+              />
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                <audio
+                  controls
+                  preload="metadata"
+                  className="w-full"
+                  src={playableAudioUrl}
+                >
+                  Your browser does not support audio playback.
+                </audio>
+                <span className="text-xs text-muted-foreground">
+                  The transcript will appear here once this attempt is logged.
+                </span>
+              </div>
+            )}
           </Row>
         ) : null}
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-border bg-muted/40 px-6 py-4">
-        <Button
-          type="button"
-          variant="ghost"
-          className="rounded-lg"
-          onClick={onCancel}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" className="rounded-lg">
-          {submitLabel}
-        </Button>
+      <div className="flex items-center justify-between gap-2 border-t border-border bg-muted/40 px-5 py-4">
+        <span className="text-xs text-muted-foreground">
+          {!outcome || !effort
+            ? "Pick an outcome and difficulty to log."
+            : null}
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="rounded-lg"
+            onClick={onCancel}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className="rounded-lg"
+            disabled={!outcome || !effort}
+          >
+            {submitLabel}
+          </Button>
+        </div>
       </div>
     </form>
   )

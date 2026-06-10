@@ -1,8 +1,4 @@
-import {
-  PauseIcon,
-  PlayIcon,
-  SkipForwardIcon,
-} from "lucide-react"
+import { PauseIcon, PlayIcon, SkipForwardIcon } from "lucide-react"
 
 import {
   DIFFICULTY_LABELS,
@@ -18,11 +14,10 @@ import { TARGET_MINUTES, type ReviewState } from "@/lib/dashboard"
 import { cn } from "@/lib/utils"
 import type { Problem } from "@/types"
 
-const MICRO =
-  "font-mono text-2xs tracking-widest text-background/50 uppercase"
+const MICRO = "font-mono text-2xs tracking-widest text-background/50 uppercase"
 
 interface ReviewLeadCardProps {
-  state: ReviewState
+  state: ReviewState & { dueInDays: number }
   problem: Problem
   lateCount: number
   todayCount: number
@@ -94,7 +89,10 @@ export function ReviewLeadCard({
   return (
     <Card className="gap-0 overflow-hidden rounded-2xl bg-foreground p-0 text-background shadow-lg ring-0">
       <div className="flex flex-wrap gap-8 p-7 sm:p-8">
-        <div className="flex min-w-0 flex-1 flex-col gap-5" style={{ flexBasis: "430px" }}>
+        <div
+          className="flex min-w-0 flex-1 flex-col gap-5"
+          style={{ flexBasis: "430px" }}
+        >
           <div className="flex flex-wrap items-center gap-2.5">
             <Badge
               className={cn(
@@ -161,7 +159,10 @@ export function ReviewLeadCard({
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col justify-center gap-2.5" style={{ flexBasis: "300px" }}>
+        <div
+          className="flex shrink-0 flex-col justify-center gap-2.5"
+          style={{ flexBasis: "300px" }}
+        >
           <div className="flex items-center gap-2.5">
             <Button
               onClick={onStartToggle}
@@ -172,7 +173,9 @@ export function ReviewLeadCard({
               ) : (
                 <PlayIcon className="size-4" />
               )}
-              {started ? "Session running · 00:00" : `Start review · ${dueCount}`}
+              {started
+                ? "Session running · 00:00"
+                : `Start review · ${dueCount}`}
             </Button>
             <Button
               variant="outline"

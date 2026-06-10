@@ -12,25 +12,15 @@ import type {
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 const QUEUE_LIMIT = 6
 const TOPIC_AXIS_LIMIT = 12
+export const TOPIC_MASTERY_SAMPLE_TARGET = 50
 export const TARGET_MINUTES = 45
 export const TARGET_SCORE = 75
 /** Suggestions are capped so a broad topic does not emit a thousand rows. */
 const UNATTEMPTED_LIMIT = 25
 const READINESS_MONTHS = 6
+const MAX_INTERVAL_DAYS = 365
 
 export const MAX_CONFIDENCE = 5
-
-/**
- * Interval multipliers applied per attempt outcome. A zero collapses the
- * interval back to a single day and counts as a lapse. These mirror the
- * deterministic engine the API will own — no randomness, no I/O.
- */
-const INTERVAL_GROWTH: Record<AttemptOutcome, number> = {
-  optimal: 2.5,
-  hint: 1.5,
-  solution: 0,
-  failed: 0,
-}
 
 const CONFIDENCE_BASE: Record<AttemptOutcome, number> = {
   optimal: 4,
@@ -46,12 +36,41 @@ const STATUS_WEIGHT: Record<ProblemStatus, number> = {
   struggling: 0.25,
 }
 
-/** Readiness is a weighted blend of four signals; the weights sum to 1. */
+/**
+ * Readiness-only weighting: how much a single attempt's quality should move
+ * for its difficulty and pace, and how much a problem's quality should decay
+ * once it sits overdue for review. Kept separate from STATUS_WEIGHT, which
+ * mastery owns and which readiness still starts from.
+ */
+const READINESS_DIFFICULTY_WEIGHT: Record<Difficulty, number> = {
+  easy: 0.8,
+  medium: 1,
+  hard: 1.2,
+}
+
+/** Per-difficulty pace target, mirroring the backend engine's target minutes. */
+const READINESS_TARGET_MINUTES: Record<Difficulty, number> = {
+  easy: 20,
+  medium: 30,
+  hard: 45,
+}
+
+type AttemptClassification =
+  "lapse" | "assisted-recall" | "independent-not-quick" | "clean-and-quick"
+
+const READINESS_MIN_TIME_FACTOR = 0.5
+const READINESS_MIN_OVERDUE_FACTOR = 0.4
+const READINESS_OVERDUE_GRACE_DAYS = 14
+
+/**
+ * Readiness blends three signals; the weights sum to 1. Discounted mastery
+ * dominates on purpose — see readinessAt for why coverage and mastery can no
+ * longer split the weight near-evenly between them.
+ */
 const READINESS_WEIGHTS = {
-  coverage: 0.4,
-  mastery: 0.35,
-  activity: 0.15,
-  pace: 0.1,
+  mastery: 0.7,
+  coverage: 0.2,
+  cadence: 0.1,
 } as const
 
 const DIFFICULTY_ORDER: Difficulty[] = ["easy", "medium", "hard"]
@@ -88,11 +107,15 @@ export interface ReviewState {
   intervalDays: number
   lapses: number
   confidence: number
-  dueInDays: number
+  dueInDays: number | null
   status: ProblemStatus
+  nextDueOn: string | null
+  graduatedAt: string | null
+  cleanQuickStreak: number
 }
 
-export interface ReviewItem extends ReviewState {
+export interface ReviewItem extends Omit<ReviewState, "dueInDays"> {
+  dueInDays: number
   title: string
   tag: string
   topic: string
@@ -289,10 +312,40 @@ function totalMinutes(attempts: Attempt[]): number {
   return attempts.reduce((total, attempt) => total + attempt.durationMinutes, 0)
 }
 
-/**
- * Folds each problem's attempt history into its scheduling state. Replaying the
- * whole history keeps the result recomputable from attempts alone.
- */
+function classifyAttempt(attempt: Attempt): AttemptClassification {
+  if (attempt.outcome === "solution" || attempt.outcome === "failed") {
+    return "lapse"
+  }
+  if (attempt.outcome === "hint") {
+    return "assisted-recall"
+  }
+  const targetMinutes =
+    attempt.targetMinutesAtAttempt ??
+    READINESS_TARGET_MINUTES[attempt.difficultyAtAttempt ?? "medium"]
+  const durationSeconds =
+    attempt.durationSeconds ?? Math.round(attempt.durationMinutes * 60)
+  return durationSeconds <= targetMinutes * 60
+    ? "clean-and-quick"
+    : "independent-not-quick"
+}
+
+function nextIntervalDays(
+  classification: AttemptClassification,
+  previousIntervalDays: number
+): number {
+  if (classification === "lapse") return 1
+
+  const candidate =
+    classification === "assisted-recall"
+      ? Math.max(2, Math.round(previousIntervalDays * 0.7))
+      : classification === "independent-not-quick"
+        ? Math.max(3, Math.round(previousIntervalDays * 1.5))
+        : Math.max(3, Math.round(previousIntervalDays * 2.5))
+
+  return Math.min(MAX_INTERVAL_DAYS, candidate)
+}
+
+/** Policy-v2 replay, kept byte-for-byte in parity with the Python engine. */
 export function buildReviewStates(
   attempts: Attempt[],
   now: Date = new Date()
@@ -306,24 +359,73 @@ export function buildReviewStates(
 
     let intervalDays = 1
     let lapses = 0
-    let streak = 0
+    let successfulStreak = 0
+    let cleanQuickStreak = 0
+    let recentCleanReviews: boolean[] = []
+    let nextDueOn: Date | null = null
+    let graduatedAt: string | null = null
 
     for (const attempt of ordered) {
-      const growth = INTERVAL_GROWTH[attempt.outcome]
+      const completedOn = startOfDay(new Date(attempt.completedAt))
+      const classification = classifyAttempt(attempt)
+      const wasEarlyPractice =
+        nextDueOn !== null &&
+        completedOn.getTime() < addDays(nextDueOn, -1).getTime()
 
-      if (growth === 0) {
+      if (graduatedAt !== null) {
+        if (classification === "clean-and-quick") {
+          cleanQuickStreak += 1
+          continue
+        }
         intervalDays = 1
-        lapses += 1
-        streak = 0
+        nextDueOn = null
+        graduatedAt = null
+        cleanQuickStreak = 0
+        recentCleanReviews = []
+      }
+
+      const candidateInterval = nextIntervalDays(classification, intervalDays)
+      const candidateDueOn = addDays(completedOn, candidateInterval)
+
+      if (
+        wasEarlyPractice &&
+        (classification === "clean-and-quick" ||
+          classification === "independent-not-quick")
+      ) {
         continue
       }
 
-      intervalDays = Math.max(1, Math.round(intervalDays * growth))
-      streak += 1
+      intervalDays = candidateInterval
+      nextDueOn = candidateDueOn
+      if (classification === "lapse") {
+        lapses += 1
+        successfulStreak = 0
+        cleanQuickStreak = 0
+        recentCleanReviews = []
+        continue
+      }
+
+      successfulStreak += 1
+      if (classification !== "clean-and-quick") {
+        cleanQuickStreak = 0
+        recentCleanReviews = []
+        continue
+      }
+
+      cleanQuickStreak += 1
+      recentCleanReviews = [...recentCleanReviews.slice(-2), !wasEarlyPractice]
+      if (
+        cleanQuickStreak >= 4 &&
+        recentCleanReviews.length === 3 &&
+        recentCleanReviews.every(Boolean) &&
+        intervalDays >= 20
+      ) {
+        nextDueOn = null
+        graduatedAt = attempt.completedAt
+      }
     }
 
     const lastAttempt = ordered[ordered.length - 1]
-    const dueOn = addDays(new Date(lastAttempt.completedAt), intervalDays)
 
     states.push({
       problemId,
@@ -333,14 +435,21 @@ export function buildReviewStates(
       lapses,
       confidence: Math.min(
         MAX_CONFIDENCE,
-        CONFIDENCE_BASE[lastAttempt.outcome] + (streak >= 3 ? 1 : 0)
+        CONFIDENCE_BASE[lastAttempt.outcome] + (successfulStreak >= 3 ? 1 : 0)
       ),
-      dueInDays: dayDistance(now, dueOn),
+      dueInDays: nextDueOn === null ? null : dayDistance(now, nextDueOn),
       status: deriveStatus(lastAttempt),
+      nextDueOn: nextDueOn === null ? null : dayKey(nextDueOn),
+      graduatedAt,
+      cleanQuickStreak,
     })
   }
 
-  return states.sort((a, b) => a.dueInDays - b.dueInDays)
+  return states.sort((a, b) => {
+    if (a.dueInDays === null) return b.dueInDays === null ? 0 : 1
+    if (b.dueInDays === null) return -1
+    return a.dueInDays - b.dueInDays
+  })
 }
 
 /** Sidebar badge count — attempts are all it needs, so the catalog stays out. */
@@ -349,7 +458,7 @@ export function dueReviewCount(
   now: Date = new Date()
 ): number {
   return buildReviewStates(attempts, now).filter(
-    (state) => state.dueInDays <= 0
+    (state) => state.dueInDays !== null && state.dueInDays <= 0
   ).length
 }
 
@@ -458,11 +567,18 @@ function solvedProblemIds(attempts: Attempt[]): Set<number> {
   return solved
 }
 
-/** Weighted mean of every attempted problem's status, scaled to 0–100. */
-export function masteryScore(attempts: Attempt[]): number {
+/**
+ * Catalog-weighted mastery, scaled to 0–100. When `problemCount` is supplied,
+ * problems without an attempt contribute zero.
+ */
+export function masteryScore(
+  attempts: Attempt[],
+  problemCount?: number
+): number {
   const latest = Object.values(indexAttempts(attempts))
+  const denominator = problemCount ?? latest.length
 
-  if (latest.length === 0) {
+  if (denominator === 0) {
     return 0
   }
 
@@ -471,7 +587,7 @@ export function masteryScore(attempts: Attempt[]): number {
     0
   )
 
-  return Math.round((total / latest.length) * 100)
+  return Math.round((total / denominator) * 100)
 }
 
 /** Distinct days carrying an attempt inside the window ending at `cutoff`. */
@@ -503,10 +619,71 @@ interface ReadinessSnapshot {
   activeDays: number
 }
 
+/** How efficiently an attempt used its difficulty's target time.
+ *
+ * Finishing at or under target earns full credit; running over tapers
+ * credit down to READINESS_MIN_TIME_FACTOR rather than to zero, since a
+ * correct, slow solve is still worth far more than not solving it at all.
+ */
+function readinessTimeFactor(problem: Problem, attempt: Attempt): number {
+  const targetMinutes = READINESS_TARGET_MINUTES[problem.difficulty]
+  const ratio = targetMinutes / attempt.durationMinutes
+  return Math.max(READINESS_MIN_TIME_FACTOR, Math.min(1, ratio))
+}
+
+/** Weighted quality of a single attempt, on the same 0-1 scale as mastery.
+ *
+ * Starts from the outcome weight mastery already uses — the same place hint
+ * and solution usage is captured — then scales it by the problem's
+ * difficulty and by how efficiently the attempt used its target time.
+ */
+function readinessAttemptQuality(problem: Problem, attempt: Attempt): number {
+  const outcomeWeight = STATUS_WEIGHT[deriveStatus(attempt)]
+  return (
+    outcomeWeight *
+    READINESS_DIFFICULTY_WEIGHT[problem.difficulty] *
+    readinessTimeFactor(problem, attempt)
+  )
+}
+
+/** Decay applied to a problem's quality the longer it sits overdue.
+ *
+ * A problem not yet due keeps full credit. One that is overdue decays
+ * smoothly toward READINESS_MIN_OVERDUE_FACTOR — it never drops out, because
+ * the attempt genuinely happened, but stale practice counts for less than
+ * fresh practice when judging interview readiness today.
+ */
+function readinessOverdueFactor(dueInDays: number | null): number {
+  if (dueInDays === null || dueInDays > 0) {
+    return 1
+  }
+
+  const overdueDays = -dueInDays
+  return Math.max(
+    READINESS_MIN_OVERDUE_FACTOR,
+    READINESS_OVERDUE_GRACE_DAYS / (READINESS_OVERDUE_GRACE_DAYS + overdueDays)
+  )
+}
+
 /**
  * Readiness as of a single instant. Every term is measured against the history
  * that existed at `cutoff`, so replaying the function across past cutoffs
  * yields a real trend rather than today's figure smeared backwards.
+ *
+ * Blends three signals, weighted so a single attempt cannot dominate the
+ * result: discounted mastery (70%) — the catalog-weighted average of each
+ * problem's latest-attempt quality, decayed for problems overdue for review;
+ * catalog coverage (20%) — the plain fraction of the catalog ever solved;
+ * and recent practice cadence (10%) — the fraction of `rangeDays` that
+ * carried an attempt.
+ *
+ * Coverage and cadence are intentionally minor terms here. The previous
+ * formula blended four near-equal weights, but two of them — coverage and
+ * mastery — both move in lockstep with "problems solved / catalog size":
+ * solving one new problem nudges both at once, so together they carried
+ * three quarters of the total weight for what was functionally a single
+ * signal counted twice. On a catalog small enough for 1/N to be a large
+ * step, that produced double-digit swings from one attempt.
  */
 function readinessAt(
   problems: Problem[],
@@ -516,25 +693,35 @@ function readinessAt(
 ): ReadinessSnapshot {
   const window = attemptsThrough(attempts, cutoff)
   const solved = solvedProblemIds(window).size
-  const coverage =
-    problems.length > 0 ? Math.min(100, (solved / problems.length) * 100) : 0
-  const mastery = masteryScore(window)
+  const coverage = problems.length > 0 ? solved / problems.length : 0
+  const catalog = new Map(problems.map((problem) => [problem.id, problem]))
+
+  let discountedTotal = 0
+  for (const state of buildReviewStates(window, cutoff)) {
+    const problem = catalog.get(state.problemId)
+
+    if (!problem) {
+      continue
+    }
+
+    const quality = readinessAttemptQuality(problem, state.lastAttempt)
+    discountedTotal += quality * readinessOverdueFactor(state.dueInDays)
+  }
+
+  const discountedMastery =
+    problems.length > 0 ? Math.min(1, discountedTotal / problems.length) : 0
   const activeDays = activeDaysWithin(window, cutoff, rangeDays)
-  const activity = Math.min(100, (activeDays / rangeDays) * 100)
+  const cadence = rangeDays > 0 ? activeDays / rangeDays : 0
   const averageDuration = window.length
     ? totalMinutes(window) / window.length
     : 0
-  const pace =
-    averageDuration > 0
-      ? Math.min(100, (TARGET_MINUTES / averageDuration) * 100)
-      : 0
 
   return {
     score: Math.round(
-      coverage * READINESS_WEIGHTS.coverage +
-        mastery * READINESS_WEIGHTS.mastery +
-        activity * READINESS_WEIGHTS.activity +
-        pace * READINESS_WEIGHTS.pace
+      (discountedMastery * READINESS_WEIGHTS.mastery +
+        coverage * READINESS_WEIGHTS.coverage +
+        cadence * READINESS_WEIGHTS.cadence) *
+        100
     ),
     solved,
     averageDuration,
@@ -557,7 +744,15 @@ export function buildReadiness(
     const cutoff =
       back === 0
         ? now
-        : new Date(now.getFullYear(), now.getMonth() - back + 1, 0, 23, 59, 59, 999)
+        : new Date(
+            now.getFullYear(),
+            now.getMonth() - back + 1,
+            0,
+            23,
+            59,
+            59,
+            999
+          )
 
     history.push({
       name: monthStart.toLocaleDateString(undefined, { month: "short" }),
@@ -579,9 +774,10 @@ export function buildReadiness(
 }
 
 /**
- * Mastery per topic, limited to the axes the catalog leans on hardest. Ranking
- * by catalog frequency keeps the radar's axis set stable as history grows;
- * topics with no attempts stay in at 0% so gaps stay visible.
+ * Mastery per topic, limited to the axes the catalog leans on hardest. Large
+ * topics use a 50-distinct-problem evidence target so mastery stays demanding
+ * but attainable; smaller topics still require breadth across their catalog.
+ * Ranking by frequency keeps the radar axes stable as history grows.
  */
 export function buildTopicMastery(
   problems: Problem[],
@@ -632,8 +828,12 @@ export function buildTopicMastery(
     .map(([topic, entry]) => ({
       topic,
       score:
-        entry.attempted > 0
-          ? Math.round((entry.weight / entry.attempted) * 100)
+        entry.problemCount > 0
+          ? Math.round(
+              (entry.weight /
+                Math.min(entry.problemCount, TOPIC_MASTERY_SAMPLE_TARGET)) *
+                100
+            )
           : 0,
       attempted: entry.attempted,
       problemCount: entry.problemCount,
@@ -752,12 +952,13 @@ function buildQueue(
   for (const state of states) {
     const problem = catalog.get(state.problemId)
 
-    if (!problem) {
+    if (!problem || state.dueInDays === null) {
       continue
     }
 
     items.push({
       ...state,
+      dueInDays: state.dueInDays,
       title: problem.title,
       tag: topicTag(problem.topics[0]),
       topic: problem.topics[0] ?? "General",
@@ -781,8 +982,12 @@ function buildSummary(
   consistency: ConsistencySummary,
   rangeDays: number
 ): SummaryStat[] {
-  const { activeDays, totalMinutes: minutes, streak, bestStreak: best } =
-    consistency
+  const {
+    activeDays,
+    totalMinutes: minutes,
+    streak,
+    bestStreak: best,
+  } = consistency
   const weeks = Math.max(1, rangeDays / 7)
 
   return [
@@ -927,7 +1132,11 @@ export function buildTopicFocuses(
       attemptedProblems.push(row)
       tally.attempted += 1
 
-      if (state && state.dueInDays <= 0) {
+      if (
+        state?.dueInDays !== null &&
+        state?.dueInDays !== undefined &&
+        state.dueInDays <= 0
+      ) {
         dueCount += 1
       }
 
@@ -1028,9 +1237,11 @@ export function buildDashboard(
     summary: buildSummary(consistency, rangeDays),
     consistency,
     queue: buildQueue(states, catalog),
-    dueCount: states.filter((state) => state.dueInDays <= 0).length,
+    dueCount: states.filter(
+      (state) => state.dueInDays !== null && state.dueInDays <= 0
+    ).length,
     mastery: buildTopicMastery(problems, attempts),
-    masteryScore: masteryScore(attempts),
+    masteryScore: masteryScore(attempts, problems.length),
     readiness: buildReadiness(problems, attempts, now, rangeDays),
     mix: buildDifficultyMix(problems, attempts),
   }

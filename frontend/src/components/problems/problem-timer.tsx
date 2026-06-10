@@ -8,11 +8,29 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/api/client"
 import type { PracticeSessionResponse } from "@/api/models"
 import { problemUrl } from "@/lib/problems"
 import { cn } from "@/lib/utils"
 import type { Problem } from "@/types"
+
+const PREFERRED_AUDIO_MIME_TYPES = [
+  "audio/webm;codecs=opus",
+  "audio/webm",
+  "audio/ogg;codecs=opus",
+  "audio/ogg",
+  "audio/mp4",
+]
+
+function pickSupportedMimeType(): string | undefined {
+  if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported) {
+    return undefined
+  }
+  return PREFERRED_AUDIO_MIME_TYPES.find((type) =>
+    MediaRecorder.isTypeSupported(type)
+  )
+}
 
 function format(elapsedMs: number) {
   const totalSeconds = Math.floor(elapsedMs / 1000)
@@ -112,9 +130,6 @@ function RecordingWaveform({
 
   return (
     <div className="flex w-full items-center gap-4 rounded-lg border border-border bg-muted/40 px-4 py-3">
-      <span className="text-destructive-foreground flex size-8 shrink-0 items-center justify-center rounded-full bg-destructive">
-        <SquareIcon className="size-3.5 fill-current" />
-      </span>
       <canvas
         ref={canvasRef}
         className="h-12 min-w-0 flex-1"
@@ -154,6 +169,7 @@ export function ProblemTimer({
     null
   )
   const [busy, setBusy] = React.useState(false)
+  const [stoppingAndLogging, setStoppingAndLogging] = React.useState(false)
   const [analyser, setAnalyser] = React.useState<AnalyserNode | null>(null)
   const analyserRef = React.useRef<AnalyserNode | null>(null)
   const streamRef = React.useRef<MediaStream | null>(null)
@@ -166,6 +182,8 @@ export function ProblemTimer({
   const recordingStopPromiseRef = React.useRef<Promise<
     Blob | undefined
   > | null>(null)
+  /** Retained until upload succeeds, so a failed /stop can be retried without re-recording. */
+  const capturedAudioRef = React.useRef<Blob | undefined>(undefined)
 
   React.useEffect(() => {
     sessionProgressCallbackRef.current = onSessionInProgressChange
@@ -215,6 +233,9 @@ export function ProblemTimer({
                 type: recorder.mimeType || "audio/webm",
               })
             : undefined
+        if (audio) {
+          capturedAudioRef.current = audio
+        }
 
         cleanUp()
         resolveStop(audio)
@@ -253,7 +274,18 @@ export function ProblemTimer({
       analyser.fftSize = 512
       source.connect(analyser)
 
-      const recorder = new MediaRecorder(stream)
+      const mimeType = pickSupportedMimeType()
+      if (!mimeType) {
+        stream.getTracks().forEach((track) => track.stop())
+        void audioContext.close()
+        recordingRequestRef.current = false
+        setRecordingError(
+          "This browser cannot record audio in a supported format."
+        )
+        return
+      }
+
+      const recorder = new MediaRecorder(stream, { mimeType })
       audioChunksRef.current = []
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -415,14 +447,17 @@ export function ProblemTimer({
     if (!session) return
     setRunning(false)
     setBusy(true)
-    const audio = await stopRecording(true)
+    setStoppingAndLogging(true)
+    const freshlyStopped = await stopRecording(true)
+    const audio = freshlyStopped ?? capturedAudioRef.current
     const form = new FormData()
     if (audio) {
-      form.append(
-        "audio",
-        audio,
-        `attempt.${audio.type.includes("ogg") ? "ogg" : "webm"}`
-      )
+      const extension = audio.type.includes("ogg")
+        ? "ogg"
+        : audio.type.includes("mp4")
+          ? "m4a"
+          : "webm"
+      form.append("audio", audio, `attempt.${extension}`)
     }
     try {
       const response = await fetch(
@@ -430,8 +465,13 @@ export function ProblemTimer({
         { method: "POST", body: form }
       )
       if (!response.ok) {
-        throw new Error("The practice session could not be stopped")
+        const detail = await response
+          .json()
+          .then((body: { detail?: string }) => body.detail)
+          .catch(() => undefined)
+        throw new Error(detail ?? "The practice session could not be stopped")
       }
+      capturedAudioRef.current = undefined
       const stopped = (await response.json()) as PracticeSessionResponse
       setSession(stopped)
       setElapsed(stopped.active_duration_ms)
@@ -448,6 +488,7 @@ export function ProblemTimer({
       )
     } finally {
       setBusy(false)
+      setStoppingAndLogging(false)
     }
   }
 
@@ -469,8 +510,8 @@ export function ProblemTimer({
             disabled={busy}
             onClick={() => void stopAndLog()}
           >
-            <SquareIcon />
-            Stop & log
+            {stoppingAndLogging ? <Spinner /> : <SquareIcon />}
+            {stoppingAndLogging ? "Saving…" : "Stop & log"}
           </Button>
           <Button
             variant="outline"
@@ -485,22 +526,22 @@ export function ProblemTimer({
       ) : (
         <div className="flex items-center gap-3">
           <Button
-            className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90"
+            className="rounded-lg"
             disabled={busy}
-            onClick={() => void start(idle, idle || recordingRequested)}
+            onClick={() => void start(idle, idle ? true : recordingRequested)}
           >
-            <PlayIcon />
-            {idle ? "Start problem" : "Resume"}
+            {idle ? <MicIcon /> : <PlayIcon />}
+            {idle ? "Start with Audio" : "Resume"}
           </Button>
           {idle ? (
             <Button
-              variant="outline"
+              variant="secondary"
               className="rounded-lg"
               disabled={busy}
-              onClick={() => void start(false, false)}
+              onClick={() => void start(true, false)}
             >
-              <MicIcon />
-              Timer only
+              <PlayIcon />
+              Start without Audio
             </Button>
           ) : (
             <>

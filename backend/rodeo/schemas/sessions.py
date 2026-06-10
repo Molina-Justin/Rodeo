@@ -20,6 +20,7 @@ class PracticeSessionCreate(APIModel):
 
 
 class PracticeSessionFinalize(APIModel):
+    duration_seconds: int | None = Field(default=None, gt=0)
     outcome: AttemptOutcome
     effort: AttemptEffort
     blocker: AttemptBlocker = AttemptBlocker.NONE

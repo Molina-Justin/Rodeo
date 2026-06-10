@@ -154,6 +154,7 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
 
             {selectedAttempt && view.kind === "report" ? (
               <AttemptReport
+                problem={problem}
                 attempt={selectedAttempt}
                 previous={previousAttempt}
                 onBack={() => setView({ kind: "overview" })}
@@ -226,11 +227,39 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
         }}
       >
         <DialogContent className="max-h-svh gap-0 overflow-y-auto p-0 sm:max-w-xl">
-          <DialogHeader className="gap-1.5 p-5 pb-4">
-            <DialogTitle>Log this attempt</DialogTitle>
-            <DialogDescription>
-              Record how the problem went while the details are fresh.
-            </DialogDescription>
+          <DialogHeader className="gap-3 p-5 pb-4">
+            <div className="flex flex-col gap-1.5">
+              <DialogTitle>Log attempt</DialogTitle>
+              <DialogDescription>
+                Capture what happened while it’s fresh.
+              </DialogDescription>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                variant="secondary"
+                className="gap-1.5 rounded-md font-medium"
+              >
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  #{problem.id}
+                </span>
+                {problem.title}
+              </Badge>
+              <Badge
+                className={cn(
+                  "rounded-md font-medium",
+                  DIFFICULTY_STYLES[problem.difficulty]
+                )}
+              >
+                {DIFFICULTY_LABELS[problem.difficulty]}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={cn("gap-1.5 rounded-md font-normal", statusClass)}
+              >
+                <StatusIcon className="size-3.5" />
+                {statusLabel}
+              </Badge>
+            </div>
           </DialogHeader>
           <AttemptForm
             problemId={problem.id}
@@ -241,12 +270,15 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
               finalizeSession.mutate(
                 { sessionId: pendingSessionId, draft },
                 {
-                  onSuccess: () => {
+                  onSuccess: (savedAttempt) => {
                     setLogDurationMinutes(null)
                     setPendingAudioUrl(undefined)
                     setPendingSessionId(undefined)
                     setSessionInProgress(false)
                     setTimerKey((current) => current + 1)
+                    if (savedAttempt.audioUrl) {
+                      setView({ kind: "report", attemptId: savedAttempt.id })
+                    }
                   },
                 }
               )

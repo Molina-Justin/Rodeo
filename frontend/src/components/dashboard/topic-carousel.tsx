@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/carousel"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { usePromptTemplates } from "@/hooks/use-prompt-templates"
 import { BLOCKER_LABELS } from "@/lib/attempts"
 import {
   TARGET_SCORE,
@@ -27,7 +28,7 @@ import {
 import {
   DEFAULT_SESSION_OPTIONS,
   buildSessionPayload,
-  toXml,
+  toJson,
   type SessionContext,
 } from "@/lib/session-prompt"
 import { cn } from "@/lib/utils"
@@ -192,6 +193,7 @@ function CopyAction({
   includeNotes: boolean
   onIncludeNotesChange: (next: boolean) => void
 }) {
+  const { data: promptTemplates } = usePromptTemplates()
   const [copied, setCopied] = React.useState(false)
   const [failed, setFailed] = React.useState(false)
 
@@ -217,7 +219,9 @@ function CopyAction({
     })
 
     try {
-      await navigator.clipboard.writeText(toXml(payload))
+      await navigator.clipboard.writeText(
+        toJson(payload, promptTemplates?.session_template)
+      )
       setFailed(false)
       setCopied(true)
     } catch {
@@ -260,7 +264,7 @@ function CopyAction({
       <span className="text-center font-mono text-2xs text-background/50">
         {failed
           ? "Clipboard unavailable in this browser"
-          : `${problemCount} problems · ${minutes} min · ${focus.attemptedProblems.length + focus.unattemptedProblems.length} rows`}
+          : `${problemCount} problems · ${minutes} min · ${focus.attemptedProblems.length} completed rows`}
       </span>
     </div>
   )

@@ -52,6 +52,11 @@ const problems: Problem[] = [
   },
 ]
 
+const difficultyByProblem = new Map(
+  problems.map((problem) => [problem.id, problem.difficulty])
+)
+const targetMinutes = { easy: 20, medium: 30, hard: 45 } as const
+
 function attempt(
   id: string,
   problemId: number,
@@ -61,11 +66,15 @@ function attempt(
   effort: AttemptEffort = "moderate",
   blocker: AttemptBlocker = "none"
 ): Attempt {
+  const difficultyAtAttempt = difficultyByProblem.get(problemId) ?? "medium"
   return {
     id,
     problemId,
     completedAt,
     durationMinutes,
+    durationSeconds: durationMinutes * 60,
+    difficultyAtAttempt,
+    targetMinutesAtAttempt: targetMinutes[difficultyAtAttempt],
     outcome,
     effort,
     blocker,
@@ -90,6 +99,12 @@ const cases: Record<string, Attempt[]> = {
     attempt("dst-2", 1, "2026-03-08T06:30:00.000Z", "hint", 26),
     attempt("dst-3", 2, "2026-03-09T05:30:00.000Z", "optimal", 32),
   ],
+  pace_boundary: [
+    {
+      ...attempt("pace-1", 1, "2026-03-09T14:00:00.000Z", "optimal", 20),
+      durationSeconds: 20 * 60 + 1,
+    },
+  ],
   unknown_problem: [
     attempt("known", 1, "2026-03-02T15:00:00.000Z", "optimal", 20),
     attempt("unknown", 999999, "2026-03-03T15:00:00.000Z", "failed", 90),
@@ -105,7 +120,7 @@ const cases: Record<string, Attempt[]> = {
 }
 
 const fixture = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   timezone: TIMEZONE,
   locale: "en-US",
   now: NOW.toISOString(),
@@ -127,10 +142,7 @@ const fixture = {
   ),
 }
 
-const outputDirectory = path.resolve(
-  process.cwd(),
-  "../api/tests/fixtures"
-)
+const outputDirectory = path.resolve(process.cwd(), "../backend/tests/fixtures")
 await mkdir(outputDirectory, { recursive: true })
 await writeFile(
   path.join(outputDirectory, "dashboard-parity.json"),

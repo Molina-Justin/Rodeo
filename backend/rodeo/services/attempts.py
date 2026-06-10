@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import UTC, datetime, time, timedelta
+from datetime import UTC, date, datetime, time
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import Select, func, select
@@ -31,9 +31,13 @@ from rodeo.services.scheduling import (
     ENGINE_VERSION,
     SchedulingAttempt,
     build_review_states,
+    target_minutes_for_difficulty,
 )
 from rodeo.services.scheduling import (
     AttemptOutcome as SchedulingOutcome,
+)
+from rodeo.services.scheduling import (
+    Difficulty as SchedulingDifficulty,
 )
 from rodeo.services.scheduling import (
     ProblemStatus as SchedulingStatus,
@@ -136,6 +140,8 @@ def _to_response(
         practice_session_id=attempt.practice_session_id,
         completed_at=_as_aware_utc(attempt.completed_at),
         duration_seconds=attempt.duration_seconds,
+        problem_difficulty_at_attempt=attempt.problem_difficulty_at_attempt,
+        target_minutes_at_attempt=attempt.target_minutes_at_attempt,
         outcome=attempt.outcome,
         effort=attempt.effort,
         blocker=attempt.blocker,
@@ -252,6 +258,10 @@ def create_attempt(
         idempotency_payload_hash=payload_hash,
         completed_at=_as_aware_utc(payload.completed_at),
         duration_seconds=payload.duration_seconds,
+        problem_difficulty_at_attempt=problem.difficulty.value,
+        target_minutes_at_attempt=target_minutes_for_difficulty(
+            SchedulingDifficulty(problem.difficulty.value)
+        ),
         outcome=payload.outcome,
         effort=payload.effort,
         blocker=payload.blocker,
@@ -403,16 +413,9 @@ def _history_rows(
     return [row._tuple() for row in rows]
 
 
-def _due_at(
-    completed_at: datetime,
-    interval_days: int,
-    timezone_name: str,
-) -> datetime:
+def _due_at(due_on: date, timezone_name: str) -> datetime:
     app_timezone = ZoneInfo(timezone_name)
-    due_date = _as_aware_utc(completed_at).astimezone(app_timezone).date() + timedelta(
-        days=interval_days
-    )
-    return datetime.combine(due_date, time.min, tzinfo=app_timezone).astimezone(UTC)
+    return datetime.combine(due_on, time.min, tzinfo=app_timezone).astimezone(UTC)
 
 
 def recompute_problem_review_state(
@@ -442,6 +445,9 @@ def recompute_problem_review_state(
         review_state.lapses = 0
         review_state.confidence = 0
         review_state.due_at = None
+        review_state.next_due_on = None
+        review_state.graduated_at = None
+        review_state.clean_quick_streak = 0
         review_state.has_notes = False
         review_state.has_audio = False
         review_state.has_transcript = False
@@ -449,12 +455,20 @@ def recompute_problem_review_state(
         session.flush()
         return review_state
 
+    problem = session.get(Problem, problem_id)
+    if problem is None:
+        raise ProblemNotFoundError(problem_id)
     scheduling_attempts = [
         SchedulingAttempt(
             problem_id=attempt.problem_id,
             completed_at=_as_aware_utc(attempt.completed_at),
             outcome=SchedulingOutcome(attempt.outcome.value),
             attempt_id=attempt.id,
+            duration_seconds=attempt.duration_seconds,
+            difficulty=SchedulingDifficulty(
+                attempt.problem_difficulty_at_attempt or problem.difficulty.value
+            ),
+            target_minutes=attempt.target_minutes_at_attempt,
         )
         for attempt, _, _ in history
     ]
@@ -474,11 +488,14 @@ def recompute_problem_review_state(
     review_state.interval_days = derived.interval_days
     review_state.lapses = derived.lapses
     review_state.confidence = derived.confidence
-    review_state.due_at = _due_at(
-        latest_attempt.completed_at,
-        derived.interval_days,
-        timezone_name,
+    review_state.due_at = (
+        _due_at(derived.next_due_on, timezone_name)
+        if derived.next_due_on is not None
+        else None
     )
+    review_state.next_due_on = derived.next_due_on
+    review_state.graduated_at = derived.graduated_at
+    review_state.clean_quick_streak = derived.clean_quick_streak
     review_state.has_notes = any(
         bool(attempt.notes.strip()) for attempt, _, _ in history
     )

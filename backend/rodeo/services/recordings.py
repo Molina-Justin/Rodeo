@@ -17,7 +17,7 @@ from fastapi import UploadFile
 from rodeo.config import Settings
 
 CHUNK_SIZE = 1024 * 1024
-SUPPORTED_MEDIA_TYPES = frozenset({"audio/webm", "audio/ogg"})
+SUPPORTED_MEDIA_TYPES = frozenset({"audio/webm", "audio/ogg", "audio/mp4"})
 
 
 class RecordingUploadError(ValueError):
@@ -32,20 +32,39 @@ def normal_media_type(value: str | None) -> str:
     return media_type
 
 
+_EXTENSION_BY_MEDIA_TYPE = {
+    "audio/webm": ".webm",
+    "audio/ogg": ".ogg",
+    "audio/mp4": ".m4a",
+}
+
+
 def extension_for_media_type(media_type: str) -> str:
-    return ".webm" if media_type == "audio/webm" else ".ogg"
+    return _EXTENSION_BY_MEDIA_TYPE[media_type]
 
 
 def recording_path(settings: Settings, storage_key: str) -> Path:
     candidate = (settings.recordings_dir / storage_key).resolve()
     recordings_root = settings.recordings_dir.resolve()
-    if candidate.parent != recordings_root or candidate.suffix not in {".webm", ".ogg"}:
+    if candidate.parent != recordings_root or candidate.suffix not in {
+        ".webm",
+        ".ogg",
+        ".m4a",
+    }:
         raise RecordingUploadError("invalid recording storage key")
     return candidate
 
 
 def probe_duration_ms(path: Path) -> int:
-    """Read duration with PyAV, which uses the image's FFmpeg runtime."""
+    """Read duration with PyAV, which uses the image's FFmpeg runtime.
+
+    Browser `MediaRecorder` output is a WebM stream assembled from
+    periodically flushed chunks: the container and stream headers rarely
+    carry an overall duration, since the muxer never seeks back to patch
+    one in once recording stops. When that metadata is absent we fall back
+    to walking the decoded audio frames and timing the last one, which is
+    slower but always available.
+    """
     try:
         import av
     except ImportError as error:  # pragma: no cover - image dependency
@@ -55,17 +74,33 @@ def probe_duration_ms(path: Path) -> int:
         with av.open(path) as container:
             if container.duration is not None:
                 return max(0, round(float(container.duration / av.time_base) * 1_000))
+
             durations = [
                 float(stream.duration * stream.time_base) * 1_000
                 for stream in container.streams.audio
                 if stream.duration is not None and stream.time_base is not None
             ]
+            if durations:
+                return max(0, round(max(durations)))
+
+            if not container.streams.audio:
+                raise RecordingUploadError("recording has no audio stream")
+
+            end_seconds = 0.0
+            for frame in container.decode(audio=0):
+                if frame.time is None or frame.sample_rate == 0:
+                    continue
+                end_seconds = max(
+                    end_seconds, frame.time + frame.samples / frame.sample_rate
+                )
+    except RecordingUploadError:
+        raise
     except Exception as error:  # PyAV exposes several FFmpeg-specific errors.
         raise RecordingUploadError("recording could not be decoded") from error
 
-    if not durations:
+    if end_seconds <= 0:
         raise RecordingUploadError("recording duration could not be determined")
-    return max(0, round(max(durations)))
+    return max(0, round(end_seconds * 1_000))
 
 
 async def store_upload(

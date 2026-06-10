@@ -1,0 +1,204 @@
+{
+  "engineVersion": "2",
+  "timezone": "America/New_York",
+  "now": "2026-03-10T16:00:00+00:00",
+  "cases": {
+    "empty_history": {
+      "masteryScore": 0,
+      "dueReviewCount": 0,
+      "reviewStates": []
+    },
+    "all_failed": {
+      "masteryScore": 25,
+      "dueReviewCount": 2,
+      "reviewStates": [
+        {
+          "problemId": 1,
+          "lastAttemptId": "failed-2",
+          "attemptCount": 2,
+          "intervalDays": 1,
+          "lapses": 2,
+          "confidence": 0,
+          "dueInDays": -5,
+          "status": "struggling",
+          "nextDueOn": "2026-03-05",
+          "graduatedAt": null,
+          "cleanQuickStreak": 0
+        },
+        {
+          "problemId": 2,
+          "lastAttemptId": "failed-3",
+          "attemptCount": 1,
+          "intervalDays": 1,
+          "lapses": 1,
+          "confidence": 0,
+          "dueInDays": -1,
+          "status": "struggling",
+          "nextDueOn": "2026-03-09",
+          "graduatedAt": null,
+          "cleanQuickStreak": 0
+        }
+      ]
+    },
+    "same_day": {
+      "masteryScore": 63,
+      "dueReviewCount": 1,
+      "reviewStates": [
+        {
+          "problemId": 2,
+          "lastAttemptId": "same-3",
+          "attemptCount": 1,
+          "intervalDays": 1,
+          "lapses": 1,
+          "confidence": 1,
+          "dueInDays": 0,
+          "status": "struggling",
+          "nextDueOn": "2026-03-10",
+          "graduatedAt": null,
+          "cleanQuickStreak": 0
+        },
+        {
+          "problemId": 1,
+          "lastAttemptId": "same-2",
+          "attemptCount": 2,
+          "intervalDays": 2,
+          "lapses": 0,
+          "confidence": 4,
+          "dueInDays": 1,
+          "status": "solved",
+          "nextDueOn": "2026-03-11",
+          "graduatedAt": null,
+          "cleanQuickStreak": 0
+        }
+      ]
+    },
+    "dst_boundary": {
+      "masteryScore": 80,
+      "dueReviewCount": 1,
+      "reviewStates": [
+        {
+          "problemId": 1,
+          "lastAttemptId": "dst-2",
+          "attemptCount": 2,
+          "intervalDays": 2,
+          "lapses": 0,
+          "confidence": 2,
+          "dueInDays": 0,
+          "status": "review",
+          "nextDueOn": "2026-03-10",
+          "graduatedAt": null,
+          "cleanQuickStreak": 0
+        },
+        {
+          "problemId": 2,
+          "lastAttemptId": "dst-3",
+          "attemptCount": 1,
+          "intervalDays": 3,
+          "lapses": 0,
+          "confidence": 4,
+          "dueInDays": 2,
+          "status": "solved",
+          "nextDueOn": "2026-03-12",
+          "graduatedAt": null,
+          "cleanQuickStreak": 0
+        }
+      ]
+    },
+    "pace_boundary": {
+      "masteryScore": 100,
+      "dueReviewCount": 0,
+      "reviewStates": [
+        {
+          "problemId": 1,
+          "lastAttemptId": "pace-1",
+          "attemptCount": 1,
+          "intervalDays": 3,
+          "lapses": 0,
+          "confidence": 4,
+          "dueInDays": 2,
+          "status": "solved",
+          "nextDueOn": "2026-03-12",
+          "graduatedAt": null,
+          "cleanQuickStreak": 0
+        }
+      ]
+    },
+    "unknown_problem": {
+      "masteryScore": 63,
+      "dueReviewCount": 2,
+      "reviewStates": [
+        {
+          "problemId": 999999,
+          "lastAttemptId": "unknown",
+          "attemptCount": 1,
+          "intervalDays": 1,
+          "lapses": 1,
+          "confidence": 0,
+          "dueInDays": -6,
+          "status": "struggling",
+          "nextDueOn": "2026-03-04",
+          "graduatedAt": null,
+          "cleanQuickStreak": 0
+        },
+        {
+          "problemId": 1,
+          "lastAttemptId": "known",
+          "attemptCount": 1,
+          "intervalDays": 3,
+          "lapses": 0,
+          "confidence": 4,
+          "dueInDays": -5,
+          "status": "solved",
+          "nextDueOn": "2026-03-05",
+          "graduatedAt": null,
+          "cleanQuickStreak": 1
+        }
+      ]
+    },
+    "mixed_history": {
+      "masteryScore": 100,
+      "dueReviewCount": 0,
+      "reviewStates": [
+        {
+          "problemId": 1,
+          "lastAttemptId": "mixed-3",
+          "attemptCount": 3,
+          "intervalDays": 5,
+          "lapses": 1,
+          "confidence": 4,
+          "dueInDays": 1,
+          "status": "solved",
+          "nextDueOn": "2026-03-11",
+          "graduatedAt": null,
+          "cleanQuickStreak": 1
+        },
+        {
+          "problemId": 2,
+          "lastAttemptId": "mixed-5",
+          "attemptCount": 2,
+          "intervalDays": 3,
+          "lapses": 1,
+          "confidence": 4,
+          "dueInDays": 1,
+          "status": "solved",
+          "nextDueOn": "2026-03-11",
+          "graduatedAt": null,
+          "cleanQuickStreak": 0
+        },
+        {
+          "problemId": 4,
+          "lastAttemptId": "mixed-6",
+          "attemptCount": 1,
+          "intervalDays": 3,
+          "lapses": 0,
+          "confidence": 4,
+          "dueInDays": 2,
+          "status": "solved",
+          "nextDueOn": "2026-03-12",
+          "graduatedAt": null,
+          "cleanQuickStreak": 0
+        }
+      ]
+    }
+  }
+}

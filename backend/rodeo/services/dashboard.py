@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import Counter
 from datetime import UTC, datetime, timedelta
+from math import floor
 from typing import TypedDict
 from zoneinfo import ZoneInfo
 
@@ -22,7 +23,12 @@ from rodeo.schemas.dashboard import (
 from rodeo.services.scheduling import (
     AttemptOutcome as SchedulingOutcome,
 )
-from rodeo.services.scheduling import SchedulingAttempt, mastery_score
+from rodeo.services.scheduling import (
+    Difficulty as SchedulingDifficulty,
+)
+from rodeo.services.scheduling import SchedulingAttempt, mastery_score, readiness_score
+
+TOPIC_MASTERY_SAMPLE_TARGET = 50
 
 QUEUE_LIMIT = 6
 
@@ -48,6 +54,8 @@ def _aware(value: datetime) -> datetime:
 
 
 def _due_in_days(review: ReviewState, now: datetime, timezone: ZoneInfo) -> int | None:
+    if review.next_due_on is not None:
+        return (review.next_due_on - now.astimezone(timezone).date()).days
     if review.due_at is None:
         return None
     return (
@@ -77,6 +85,7 @@ def dashboard(
         .options(selectinload(Problem.topics))
     ).all()
     ids = {problem.id for problem in problems}
+    problems_by_id = {problem.id: problem for problem in problems}
     attempts = (
         database.scalars(
             select(Attempt)
@@ -105,10 +114,23 @@ def dashboard(
             completed_at=_aware(item.completed_at),
             outcome=SchedulingOutcome(item.outcome.value),
             attempt_id=item.id,
+            duration_seconds=item.duration_seconds,
+            difficulty=SchedulingDifficulty(
+                item.problem_difficulty_at_attempt
+                or problems_by_id[item.problem_id].difficulty.value
+            ),
+            target_minutes=item.target_minutes_at_attempt,
         )
         for item in attempts
     ]
     mastery = mastery_score(scheduling_attempts, known_problem_ids=ids)
+    readiness = readiness_score(
+        scheduling_attempts,
+        now=now,
+        timezone_name=timezone_name,
+        known_problem_ids=ids,
+        cadence_window_days=range_days,
+    )
     solved = {
         problem_id
         for problem_id, attempt in latest.items()
@@ -153,7 +175,6 @@ def dashboard(
         current_streak += 1
         cursor -= timedelta(days=1)
 
-    problems_by_id = {problem.id: problem for problem in problems}
     queue: list[ReviewQueueItem] = []
     for problem_id, state in sorted(
         states.items(), key=lambda pair: _due_in_days(pair[1], now, timezone) or 0
@@ -204,8 +225,14 @@ def dashboard(
                     item["due_count"] += 1
     focuses: list[TopicFocusResponse] = []
     for item in topic_rows.values():
+        # Large catalog topics need enough breadth to be meaningful without
+        # making the 75% target require hundreds of problems. Small topics
+        # still use every problem in their catalog as the denominator.
+        mastery_denominator = min(item["problem_count"], TOPIC_MASTERY_SAMPLE_TARGET)
         item["score"] = (
-            round(item["weight"] / item["attempted"] * 100) if item["attempted"] else 0
+            floor(item["weight"] / mastery_denominator * 100 + 0.5)
+            if item["problem_count"]
+            else 0
         )
         focuses.append(
             TopicFocusResponse(
@@ -229,6 +256,7 @@ def dashboard(
         solved_count=len(solved),
         logged_today=count_by_day[today.isoformat()],
         mastery_score=mastery,
+        readiness_score=readiness,
         due_count=sum(
             1
             for state in states.values()

@@ -31,6 +31,7 @@ export function toProblem(problem: ProblemListItem): Problem {
             1,
             Math.round(problem.last_attempt.duration_seconds / 60)
           ),
+          durationSeconds: problem.last_attempt.duration_seconds,
           outcome: problem.last_attempt.outcome,
           effort: problem.last_attempt.effort,
           blocker: problem.last_attempt.blocker,
@@ -46,6 +47,9 @@ export function toAttempt(attempt: AttemptResponse): Attempt {
     problemId: attempt.problem_id,
     completedAt: attempt.completed_at,
     durationMinutes: Math.max(1, Math.round(attempt.duration_seconds / 60)),
+    durationSeconds: attempt.duration_seconds,
+    difficultyAtAttempt: attempt.problem_difficulty_at_attempt ?? undefined,
+    targetMinutesAtAttempt: attempt.target_minutes_at_attempt ?? undefined,
     outcome: attempt.outcome,
     effort: attempt.effort,
     blocker: attempt.blocker,

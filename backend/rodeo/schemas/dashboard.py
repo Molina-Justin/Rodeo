@@ -1,9 +1,25 @@
 from __future__ import annotations
 
+from enum import IntEnum
+
 from pydantic import Field
 
 from rodeo.models.enums import ProblemStatus
 from rodeo.schemas.system import APIModel
+
+
+class DashboardRange(IntEnum):
+    """Windows the range selector offers, in days.
+
+    An IntEnum rather than a Literal: FastAPI hands query parameters to
+    Pydantic as strings, and a Literal of ints refuses to coerce them, which
+    made every explicit ?range_days= value fail validation.
+    """
+
+    MONTH = 30
+    TWO_MONTHS = 60
+    QUARTER = 90
+    HALF_YEAR = 180
 
 
 class ActivityDay(APIModel):
@@ -42,6 +58,7 @@ class DashboardResponse(APIModel):
     solved_count: int = Field(ge=0)
     logged_today: int = Field(ge=0)
     mastery_score: int = Field(ge=0, le=100)
+    readiness_score: int = Field(ge=0, le=100)
     due_count: int = Field(ge=0)
     consistency: ConsistencyResponse
     focuses: tuple[TopicFocusResponse, ...]

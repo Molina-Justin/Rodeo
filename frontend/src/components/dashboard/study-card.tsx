@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { usePromptTemplates } from "@/hooks/use-prompt-templates"
 import {
   Tooltip,
   TooltipContent,
@@ -33,7 +34,7 @@ import {
 import {
   DEFAULT_SESSION_OPTIONS,
   buildSessionPayload,
-  toXml,
+  toJson,
   type SessionContext,
 } from "@/lib/session-prompt"
 import { cn } from "@/lib/utils"
@@ -246,6 +247,7 @@ function CopyAction({
   includeNotes: boolean
   onIncludeNotesChange: (next: boolean) => void
 }) {
+  const { data: promptTemplates } = usePromptTemplates()
   const [copied, setCopied] = React.useState(false)
   const [failed, setFailed] = React.useState(false)
   const notesId = React.useId()
@@ -272,7 +274,9 @@ function CopyAction({
     })
 
     try {
-      await navigator.clipboard.writeText(toXml(payload))
+      await navigator.clipboard.writeText(
+        toJson(payload, promptTemplates?.session_template)
+      )
       setFailed(false)
       setCopied(true)
     } catch {
@@ -365,8 +369,8 @@ export function StudyCard({ focuses, context }: StudyCardProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <Card className="gap-0 overflow-hidden rounded-2xl bg-foreground p-0 text-background shadow-lg ring-0">
-        <div className="flex flex-col gap-8 p-7 sm:p-8 lg:flex-row">
+      <Card className="h-[min(40rem,calc(100dvh-2rem))] gap-0 overflow-hidden rounded-2xl bg-foreground p-0 text-background shadow-lg ring-0 sm:h-[min(32rem,calc(100dvh-2rem))] lg:h-[28rem]">
+        <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto p-5 sm:p-8 lg:flex-row">
           <div className="flex min-w-0 flex-1 flex-col gap-5">
             <div className="flex flex-wrap items-center gap-2.5">
               <Badge
@@ -470,7 +474,7 @@ export function StudyCard({ focuses, context }: StudyCardProps) {
           />
         </div>
 
-        <div className="flex items-center gap-4 border-t border-background/15 px-7 py-3.5 sm:px-8">
+        <div className="flex shrink-0 items-center gap-3 border-t border-background/15 px-5 py-3.5 sm:gap-4 sm:px-8">
           <span className={cn(MICRO, "shrink-0")}>Ranked</span>
           <div
             ref={railRef}

@@ -1,4 +1,5 @@
 import type { TopicFocus, TopicProblem } from "@/lib/dashboard"
+import { interpolatePromptTemplate } from "@/lib/prompt-templates"
 
 /**
  * Builds the clipboard payload for a study session. The AI that consumes this
@@ -37,8 +38,8 @@ export interface SessionPayload {
   readinessScore: number
   streakDays: number
   request: { minutes: number; problemCount: number }
-  attempted: TopicProblem[]
-  unattempted: TopicProblem[]
+  /** Completed problem history for the selected topic only. */
+  completedProblems: TopicProblem[]
 }
 
 export function buildSessionPayload(
@@ -67,93 +68,45 @@ export function buildSessionPayload(
       minutes: options.minutes,
       problemCount: options.problemCount,
     },
-    attempted: focus.attempted > 0 ? focus.attemptedProblems.map(strip) : [],
-    unattempted: focus.unattemptedProblems.map(strip),
+    completedProblems:
+      focus.attempted > 0 ? focus.attemptedProblems.map(strip) : [],
   }
 }
 
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-}
-
-function tag(name: string, value: string | number | null): string {
-  if (value === null || value === "") {
-    return ""
-  }
-
-  return `<${name}>${escapeXml(String(value))}</${name}>`
-}
-
-function problemXml(problem: TopicProblem, indent: string): string {
-  const fields = [
-    tag("id", problem.id),
-    tag("title", problem.title),
-    tag("difficulty", problem.difficulty),
-    tag("acceptance", `${problem.acceptance.toFixed(1)}%`),
-    tag("attempts", problem.attempts || null),
-    tag("last_outcome", problem.lastOutcome),
-    tag("last_minutes", problem.lastDurationMinutes),
-    tag("best_minutes", problem.bestDurationMinutes),
-    tag("lapses", problem.lapses || null),
-    tag("interval_days", problem.intervalDays),
-    tag("due_in_days", problem.dueInDays),
-    tag("blocker", problem.blocker === "none" ? null : problem.blocker),
-    tag("effort", problem.effort),
-    tag("notes", problem.notes),
-  ].filter(Boolean)
-
-  return `${indent}<problem>${fields.join("")}</problem>`
+/** Task text used only before the prompt-templates request has resolved. */
+function defaultSessionTask(payload: SessionPayload) {
+  return [
+    `Pick ${payload.request.problemCount} problems for a ${payload.request.minutes}-minute session on ${payload.topic}.`,
+    payload.completedProblems.length > 0
+      ? "Weigh overdue reviews against new coverage."
+      : "Build a sensible entry point and increase the difficulty gradually.",
+    payload.topBlocker ? "Account for the recurring blocker above." : "",
+    "For each pick, give one sentence on why it earns the slot and what to",
+    "watch for. Order them for the session.",
+  ]
+    .filter(Boolean)
+    .join(" ")
 }
 
 /**
- * XML rather than JSON: tagged structure is what the models read most reliably,
- * and it survives being pasted into a chat box without a code fence.
+ * JSON keeps the selected topic context and its completed problem rows. It
+ * intentionally excludes unanswered catalog rows, which are not user history.
+ * The interpolated Settings template is included as `task`.
  */
-export function toXml(payload: SessionPayload): string {
-  const blocker = payload.topBlocker
-    ? `<recurring_blocker count="${payload.topBlocker.count}" of="${payload.topBlocker.total}">${escapeXml(payload.topBlocker.blocker)}</recurring_blocker>`
-    : ""
+export function toJson(payload: SessionPayload, template?: string): string {
+  const instructions = template
+    ? interpolatePromptTemplate(template, {
+        topic: payload.topic,
+        minutes: payload.request.minutes,
+        problem_count: payload.request.problemCount,
+        blocker: payload.topBlocker?.blocker ?? "No recurring blocker",
+        readiness: `${payload.readinessScore}%`,
+      })
+    : defaultSessionTask(payload)
+  const task =
+    payload.completedProblems.length === 0
+      ? `I have no completed problems in ${payload.topic} yet. Do not infer any prior performance from unanswered catalog problems. ${instructions}`
+      : instructions
 
-  const lines = [
-    "<study_session_request>",
-    "  <context>",
-    `    ${tag("topic", payload.topic)}`,
-    `    <mastery score="${payload.mastery.score}" target="${payload.mastery.target}" />`,
-    `    <coverage solved="${payload.coverage.solved}" attempted="${payload.coverage.attempted}" catalog_total="${payload.coverage.total}" />`,
-    `    ${tag("reviews_due", payload.reviewsDue)}`,
-    `    <pace average_minutes="${payload.averageMinutes}" target_minutes="${payload.targetMinutes}" />`,
-    blocker ? `    ${blocker}` : "",
-    `    ${tag("overall_readiness", `${payload.readinessScore}%`)}`,
-    `    ${tag("current_streak_days", payload.streakDays)}`,
-    "  </context>",
-    "",
-    `  <attempted count="${payload.attempted.length}">`,
-    ...payload.attempted.map((problem) => problemXml(problem, "    ")),
-    "  </attempted>",
-    "",
-    `  <not_yet_attempted count="${payload.unattempted.length}">`,
-    ...payload.unattempted.map((problem) => problemXml(problem, "    ")),
-    "  </not_yet_attempted>",
-    "",
-    "  <task>",
-    `    Pick ${payload.request.problemCount} problems for a ${payload.request.minutes}-minute session on ${payload.topic}.`,
-    payload.attempted.length > 0
-      ? "    Weigh overdue reviews against new coverage."
-      : "    I have no history in this topic — pick a sane entry point and build up.",
-    blocker ? "    Account for the recurring blocker above." : "",
-    "    For each pick, give one sentence on why it earns the slot and what to",
-    "    watch for. Order them for the session.",
-    "  </task>",
-    "</study_session_request>",
-  ]
-
-  return lines.filter((line) => line !== "").join("\n")
-}
-
-export function toJson(payload: SessionPayload): string {
-  return JSON.stringify(payload, null, 2)
+  return JSON.stringify({ ...payload, task }, null, 2)
 }

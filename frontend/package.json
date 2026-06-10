@@ -10,7 +10,11 @@
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "generate:api": "../backend/.venv/bin/python ../backend/scripts/export_openapi.py ../backend/openapi.json && openapi-typescript ../backend/openapi.json -o src/api/schema.d.ts",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "generate:fixtures": "TZ=America/New_York vite-node scripts/dump-dashboard-fixtures.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -48,19 +52,28 @@
   },
   "devDependencies": {
     "@eslint/js": "^10",
+    "@playwright/test": "^1.62.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.6",
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6",
+    "@vitest/ui": "^4.1.11",
     "eslint": "^10",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17",
+    "jsdom": "^30.0.1",
+    "msw": "^2.15.0",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8",
-    "vite": "^8"
+    "vite": "^8",
+    "vite-node": "^6.0.0",
+    "vitest": "^4.1.11"
   }
 }

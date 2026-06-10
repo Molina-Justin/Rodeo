@@ -24,7 +24,8 @@ import type { ReviewState } from "@/lib/dashboard"
 import { cn } from "@/lib/utils"
 import type { Problem } from "@/types"
 
-interface QueueItem extends ReviewState {
+export interface QueueItem extends Omit<ReviewState, "dueInDays"> {
+  dueInDays: number
   problem: Problem
 }
 
@@ -122,7 +123,7 @@ export function ReviewQueueList({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex h-10 w-full min-w-56 max-w-96 flex-1 items-center gap-2 rounded-lg border border-input bg-transparent px-3">
+        <div className="flex h-10 w-full max-w-96 min-w-56 flex-1 items-center gap-2 rounded-lg border border-input bg-transparent px-3">
           <SearchIcon className="size-4 shrink-0 text-sky-600 dark:text-sky-400" />
           <input
             type="text"
@@ -142,7 +143,7 @@ export function ReviewQueueList({
           <FilterIcon className="size-4 text-indigo-500" />
           {topicLabel}
           {topicFiltered ? (
-            <span className="inline-flex size-5 items-center justify-center rounded-full bg-foreground text-xs tabular-nums text-background">
+            <span className="inline-flex size-5 items-center justify-center rounded-full bg-foreground text-xs text-background tabular-nums">
               1
             </span>
           ) : null}
@@ -169,10 +170,7 @@ export function ReviewQueueList({
           <div key={group.tone} className="flex flex-col gap-2.5 pt-1.5">
             <div className="flex items-center gap-2.5">
               <span
-                className={cn(
-                  "size-1.5 shrink-0 rounded-full",
-                  tone.dot
-                )}
+                className={cn("size-1.5 shrink-0 rounded-full", tone.dot)}
               />
               <span
                 className={cn(
@@ -238,7 +236,9 @@ export function ReviewQueueList({
                     <span
                       className={cn(
                         "w-20 shrink-0 text-right font-mono text-xs font-medium tabular-nums",
-                        item.dueInDays <= 0 ? itemColors.text : "text-muted-foreground"
+                        item.dueInDays <= 0
+                          ? itemColors.text
+                          : "text-muted-foreground"
                       )}
                     >
                       {dueLabel(item.dueInDays)}
@@ -275,5 +275,3 @@ export function ReviewQueueList({
     </section>
   )
 }
-
-export type { QueueItem }

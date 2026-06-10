@@ -23,7 +23,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useAllProblems } from "@/hooks/use-problems"
 import { useAttempts } from "@/hooks/use-attempts"
-import { TARGET_MINUTES, TARGET_SCORE, buildDashboard } from "@/lib/dashboard"
+import {
+  TARGET_MINUTES,
+  TARGET_SCORE,
+  buildConsistency,
+  buildDashboard,
+} from "@/lib/dashboard"
 import type { SessionContext } from "@/lib/session-prompt"
 import type { Problem } from "@/types"
 
@@ -42,14 +47,31 @@ export function DashboardOverview() {
   const [selectedProblem, setSelectedProblem] = React.useState<Problem | null>(
     null
   )
+  const [dashboardNow, setDashboardNow] = React.useState(() => new Date())
 
-  const rangeDays =
-    RANGE_OPTIONS.find((option) => option.value === rangeKey)?.days ?? 90
+  React.useEffect(() => {
+    const nextDay = new Date()
+    nextDay.setHours(24, 0, 0, 50)
+    const timeoutId = window.setTimeout(
+      () => setDashboardNow(new Date()),
+      nextDay.getTime() - Date.now()
+    )
+    return () => window.clearTimeout(timeoutId)
+  }, [dashboardNow])
+
+  const selectedRange = RANGE_OPTIONS.find(
+    (option) => option.value === rangeKey
+  )
+  const rangeDays = selectedRange?.days ?? 365
 
   // Every card reads from this one pass; nothing recomputes the same window twice.
   const dashboard = React.useMemo(
-    () => buildDashboard(problems, attempts, new Date(), rangeDays),
-    [problems, attempts, rangeDays]
+    () => buildDashboard(problems, attempts, dashboardNow, rangeDays),
+    [problems, attempts, dashboardNow, rangeDays]
+  )
+  const heatmapConsistency = React.useMemo(
+    () => buildConsistency(attempts, rangeDays, dashboardNow),
+    [attempts, rangeDays, dashboardNow]
   )
 
   const sessionContext: SessionContext = {
@@ -136,10 +158,10 @@ export function DashboardOverview() {
           </ToggleGroup>
         </div>
 
-        {/* The range control drives both halves, so they share one row. */}
+        {/* All is intentionally capped at the same one-year window as the heat map. */}
         <div className="grid gap-3.5 xl:grid-cols-5">
           <ConsistencyCard
-            consistency={dashboard.consistency}
+            consistency={heatmapConsistency}
             rangeDays={rangeDays}
             className="xl:col-span-3"
           />

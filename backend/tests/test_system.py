@@ -1,11 +1,27 @@
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, select, text
+from sqlalchemy.orm import Session
 
 from rodeo.config import Settings
 from rodeo.db import get_engine
+from rodeo.models import (
+    AppSetting,
+    Attempt,
+    Job,
+    PracticeSession,
+    Problem,
+    Recording,
+    ReviewState,
+)
+from rodeo.schemas.attempts import AttemptCreate
+from rodeo.services.attempts import create_attempt
 from rodeo.services.migrations import upgrade_database
+from rodeo.services.recordings import recording_path
+
+ORIGIN_HEADERS = {"Origin": "http://testserver"}
 
 
 def test_liveness(client: TestClient) -> None:
@@ -116,3 +132,132 @@ def test_migration_creates_schema_and_sqlite_pragmas(
             connection.execute(text("PRAGMA busy_timeout")).scalar_one()
             == settings.sqlite_busy_timeout_ms
         )
+
+
+def _seed_attempt_with_recording(
+    db_session: Session,
+    settings: Settings,
+) -> tuple[Attempt, Recording]:
+    problem = db_session.scalars(select(Problem)).first()
+    assert problem is not None
+
+    result = create_attempt(
+        db_session,
+        problem_id=problem.id,
+        payload=AttemptCreate(
+            completed_at=datetime(2026, 8, 20, 14, tzinfo=UTC),
+            duration_seconds=600,
+            outcome="optimal",
+            effort="moderate",
+            notes="Used a monotonic stack.",
+        ),
+        idempotency_key="system-test-1",
+        now=datetime(2026, 8, 20, 14, tzinfo=UTC),
+        timezone_name="America/New_York",
+    )
+    attempt = result.attempt
+
+    storage_key = "system-test-recording.webm"
+    recording_path(settings, storage_key).write_bytes(b"durable-audio")
+    db_session.add(
+        Recording(
+            attempt_id=attempt.id,
+            storage_key=storage_key,
+            media_type="audio/webm",
+            byte_size=13,
+            duration_ms=1_000,
+            checksum_sha256="0" * 64,
+        )
+    )
+    db_session.commit()
+    recording = db_session.scalar(
+        select(Recording).where(Recording.storage_key == storage_key)
+    )
+    assert recording is not None
+    stored_attempt = db_session.get(Attempt, attempt.id)
+    assert stored_attempt is not None
+    return stored_attempt, recording
+
+
+def test_export_includes_attempts_with_transcript_and_review_state(
+    client: TestClient,
+    db_session: Session,
+    settings: Settings,
+) -> None:
+    _seed_attempt_with_recording(db_session, settings)
+
+    response = client.get("/api/v1/system/export")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["attempts"]) == 1
+    exported = body["attempts"][0]
+    assert exported["notes"] == "Used a monotonic stack."
+    assert exported["duration_seconds"] == 600
+    assert len(body["review_state"]) == 1
+    assert body["review_state"][0]["attempt_count"] == 1
+    assert (
+        "Pick {{problem_count}} problems"
+        in body["prompt_templates"]["session_template"]
+    )
+
+
+def test_prompt_templates_can_be_saved_and_reset(client: TestClient) -> None:
+    initial = client.get("/api/v1/settings/prompt-templates")
+
+    assert initial.status_code == 200
+    assert "{{topic}}" in initial.json()["session_template"]
+
+    saved = client.put(
+        "/api/v1/settings/prompt-templates/session",
+        headers=ORIGIN_HEADERS,
+        json={"template": "Plan {{minutes}} minutes for {{topic}}."},
+    )
+
+    assert saved.status_code == 200
+    assert saved.json()["session_template"] == "Plan {{minutes}} minutes for {{topic}}."
+
+    reset = client.delete(
+        "/api/v1/settings/prompt-templates/session", headers=ORIGIN_HEADERS
+    )
+
+    assert reset.status_code == 200
+    assert "Pick {{problem_count}} problems" in reset.json()["session_template"]
+
+
+def test_clear_deletes_user_data_and_recording_files_but_keeps_catalog(
+    client: TestClient,
+    db_session: Session,
+    settings: Settings,
+) -> None:
+    _seed_attempt_with_recording(db_session, settings)
+    db_session.add(
+        AppSetting(
+            key="prompt_template.session",
+            value="Custom template",
+            updated_at=datetime(2026, 8, 20, 14, tzinfo=UTC),
+        )
+    )
+    db_session.commit()
+    storage_path = recording_path(settings, "system-test-recording.webm")
+    assert storage_path.exists()
+    catalog_size_before = len(db_session.scalars(select(Problem)).all())
+
+    response = client.post("/api/v1/system/clear", headers=ORIGIN_HEADERS)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["attempts_deleted"] == 1
+    assert body["practice_sessions_deleted"] == 0
+    assert body["recordings_deleted"] == 1
+    assert body["settings_deleted"] == 1
+    assert not storage_path.exists()
+
+    db_session.expire_all()
+    assert db_session.scalars(select(Attempt)).all() == []
+    assert db_session.scalars(select(Recording)).all() == []
+    assert db_session.scalars(select(ReviewState)).all() == []
+    assert db_session.scalars(select(PracticeSession)).all() == []
+    assert db_session.scalars(select(Job)).all() == []
+    assert db_session.scalars(select(AppSetting)).all() == []
+    assert len(db_session.scalars(select(Problem)).all()) == catalog_size_before

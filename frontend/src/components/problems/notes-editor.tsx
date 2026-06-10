@@ -117,9 +117,14 @@ function applyAction(
 interface NotesEditorProps {
   value: string
   onChange: (value: string) => void
+  placeholder?: string
 }
 
-export function NotesEditor({ value, onChange }: NotesEditorProps) {
+export function NotesEditor({
+  value,
+  onChange,
+  placeholder = "What tripped you up? What would you do differently next time?",
+}: NotesEditorProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
   const [mode, setMode] = React.useState<"write" | "preview">("write")
 
@@ -207,7 +212,7 @@ export function NotesEditor({ value, onChange }: NotesEditorProps) {
           ref={textareaRef}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="What tripped you up? What would you do differently next time?"
+          placeholder={placeholder}
           className="min-h-28 w-full resize-none bg-transparent px-3 py-2.5 font-mono text-xs outline-none placeholder:text-muted-foreground"
         />
       ) : (

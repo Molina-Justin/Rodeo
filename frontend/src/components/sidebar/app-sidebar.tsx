@@ -1,6 +1,5 @@
 import * as React from "react"
 import {
-  CalendarDaysIcon,
   LayoutGridIcon,
   ListChecksIcon,
   RepeatIcon,
@@ -33,7 +32,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const menuItems: NavItem[] = [
     { title: "Dashboard", view: "dashboard", icon: LayoutGridIcon },
     { title: "Problems", view: "problems", icon: ListChecksIcon },
-    { title: "Schedule", view: "schedule", icon: CalendarDaysIcon },
     {
       title: "Review Queue",
       view: "review-queue",

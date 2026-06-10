@@ -1,5 +1,7 @@
-import { ArrowLeftIcon, PencilIcon } from "lucide-react"
+import { ArrowLeftIcon, ClipboardIcon, PencilIcon } from "lucide-react"
+import { toast } from "sonner"
 
+import { AudioTranscriptPanel } from "@/components/problems/audio-transcript-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,9 +12,12 @@ import {
   formatDuration,
   formatElapsed,
 } from "@/lib/attempts"
+import { buildAiReviewPrompt } from "@/lib/ai-review-export"
 import { renderMarkdown } from "@/lib/markdown"
 import { cn } from "@/lib/utils"
-import type { Attempt, AttemptOutcome } from "@/types"
+import { useTranscription } from "@/hooks/use-transcription"
+import { usePromptTemplates } from "@/hooks/use-prompt-templates"
+import type { Attempt, AttemptOutcome, Problem } from "@/types"
 
 const outcomeStyles: Record<AttemptOutcome, string> = {
   optimal: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
@@ -46,6 +51,7 @@ function Detail({
 }
 
 interface AttemptReportProps {
+  problem: Problem
   attempt: Attempt
   previous: Attempt | undefined
   onBack: () => void
@@ -53,12 +59,36 @@ interface AttemptReportProps {
 }
 
 export function AttemptReport({
+  problem,
   attempt,
   previous,
   onBack,
   onEdit,
 }: AttemptReportProps) {
   const delta = durationDelta(attempt, previous)
+  const { transcription } = useTranscription(
+    attempt.id,
+    Boolean(attempt.audioUrl)
+  )
+  const { data: promptTemplates } = usePromptTemplates()
+  const reviewPrompt = buildAiReviewPrompt({
+    problem,
+    attempt,
+    transcript: transcription?.text,
+    transcriptStatus: transcription?.status,
+    template: promptTemplates?.review_template,
+  })
+
+  const copyReviewPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(reviewPrompt)
+      toast.success(
+        "AI review prompt copied. Attach the audio memo too, if you recorded one."
+      )
+    } catch {
+      toast.error("Could not copy the review prompt. Please try again.")
+    }
+  }
 
   return (
     <div className="-mx-5 -mb-1 flex flex-col border-y border-border">
@@ -113,14 +143,10 @@ export function AttemptReport({
 
         {attempt.audioUrl ? (
           <Detail label="Audio memo">
-            <audio
-              controls
-              preload="metadata"
-              className="w-full"
-              src={attempt.audioUrl}
-            >
-              Your browser does not support audio playback.
-            </audio>
+            <AudioTranscriptPanel
+              attemptId={attempt.id}
+              audioUrl={attempt.audioUrl}
+            />
           </Detail>
         ) : null}
       </div>
@@ -135,10 +161,21 @@ export function AttemptReport({
           <ArrowLeftIcon />
           Back
         </Button>
-        <Button type="button" className="rounded-lg" onClick={onEdit}>
-          <PencilIcon />
-          Edit attempt
-        </Button>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-lg"
+            onClick={() => void copyReviewPrompt()}
+          >
+            <ClipboardIcon />
+            Copy Prompt
+          </Button>
+          <Button type="button" className="rounded-lg" onClick={onEdit}>
+            <PencilIcon />
+            Edit attempt
+          </Button>
+        </div>
       </div>
     </div>
   )

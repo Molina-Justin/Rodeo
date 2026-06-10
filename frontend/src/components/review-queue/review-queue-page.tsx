@@ -66,6 +66,7 @@ export function ReviewQueuePage() {
     const filtered = allStates.filter((state) => {
       const problem = catalog.get(state.problemId)
       if (!problem) return false
+      if (state.dueInDays === null) return false
       if (state.dueInDays > maxDays) return false
       if (topicIndex > 0 && !problem.topics.includes(currentTopic)) {
         return false
@@ -80,10 +81,11 @@ export function ReviewQueuePage() {
       return true
     })
 
-    const items: QueueItem[] = filtered.map((state) => ({
-      ...state,
-      problem: catalog.get(state.problemId)!,
-    }))
+    const items: QueueItem[] = filtered.flatMap((state) => {
+      const problem = catalog.get(state.problemId)
+      if (!problem || state.dueInDays === null) return []
+      return [{ ...state, dueInDays: state.dueInDays, problem }]
+    })
 
     return items.sort((a, b) =>
       sortDue
@@ -92,8 +94,12 @@ export function ReviewQueuePage() {
     )
   }, [allStates, catalog, range, search, topicIndex, currentTopic, sortDue])
 
-  const dueCount = allStates.filter((state) => state.dueInDays <= 0).length
-  const lateCount = allStates.filter((state) => state.dueInDays < 0).length
+  const dueCount = allStates.filter(
+    (state) => state.dueInDays !== null && state.dueInDays <= 0
+  ).length
+  const lateCount = allStates.filter(
+    (state) => state.dueInDays !== null && state.dueInDays < 0
+  ).length
   const todayCount = allStates.filter((state) => state.dueInDays === 0).length
 
   // Auto-select the first item when visible items change and nothing is selected
@@ -103,12 +109,10 @@ export function ReviewQueuePage() {
       ? selectedId
       : (visibleItems[0]?.problemId ?? null)
 
-  const selectedState = allStates.find(
+  const selectedState = visibleItems.find(
     (state) => state.problemId === effectiveSelectedId
   )
-  const selectedProblem = effectiveSelectedId
-    ? catalog.get(effectiveSelectedId)
-    : undefined
+  const selectedProblem = selectedState?.problem
 
   const handleSelect = (problemId: number) => {
     setSelectedId(problemId)
@@ -139,7 +143,7 @@ export function ReviewQueuePage() {
     )
   }
 
-  const isEmpty = allStates.length === 0
+  const isEmpty = allStates.every((state) => state.dueInDays === null)
 
   if (isEmpty) {
     return (

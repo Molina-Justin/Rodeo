@@ -6,6 +6,8 @@ Rodeo is a self-hosted technical interview preparation app: a time tracker, spac
 - `backend/` — the FastAPI service. Owns the database, the recordings, transcription, and any AI calls.
 - `Dockerfile` — multi-stage: Node builds `frontend/`, the Python image serves the API and the built assets from one origin.
 - `compose.yml` — convenience wrapper around the same image.
+- `README.md` — setup and a concise, user-facing summary of what each feature does.
+- `docs/` — deeper design rationale, algorithms, and citations behind backend/engine decisions.
 
 # Tech Stack
 **Frontend**
@@ -66,6 +68,11 @@ Rodeo is a self-hosted technical interview preparation app: a time tracker, spac
 5. **Migrations are forward-only.** Alembic, one revision per change, applied in a transaction at startup. Never edit a shipped migration; write another one.
 6. **Configuration through env vars** via `pydantic-settings`. No secrets in code, no secrets in the image, no secrets sent to the browser.
 7. **Tests with `pytest`,** against an in-memory database with a frozen clock. Migrations and scheduling math must have coverage — they cannot be verified by clicking.
+
+# Documentation Rules
+1. **README reflects current behavior.** When a feature's behavior, a setup step, or an environment variable changes, update `README.md` in the same change — concise and user-facing: what it does, not why.
+2. **Rationale lives in `docs/`.** Design tradeoffs, algorithms, and citations belong in a dedicated file under `docs/` (e.g., `docs/review-queue-rules.md`), linked from the README section it backs.
+3. **No stale sections.** Remove or rewrite README content that describes behavior which no longer exists.
 
 # AI Assistant Role & Tone
 - Act as a senior, principal-level software engineer.

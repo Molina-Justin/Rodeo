@@ -55,6 +55,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settings/prompt-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Prompt Templates */
+        get: operations["prompt_templates_api_v1_settings_prompt_templates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/prompt-templates/{template_key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Prompt Template */
+        put: operations["save_prompt_template_api_v1_settings_prompt_templates__template_key__put"];
+        post?: never;
+        /** Restore Prompt Template */
+        delete: operations["restore_prompt_template_api_v1_settings_prompt_templates__template_key__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Data */
+        get: operations["export_data_api_v1_system_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/clear": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clear Data */
+        post: operations["clear_data_api_v1_system_clear_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/attempts/{attempt_id}/ai-artifacts": {
         parameters: {
             query?: never;
@@ -546,6 +615,9 @@ export interface components {
             completed_at: string;
             /** Duration Seconds */
             duration_seconds: number;
+            problem_difficulty_at_attempt: components["schemas"]["Difficulty"] | null;
+            /** Target Minutes At Attempt */
+            target_minutes_at_attempt?: number | null;
             outcome: components["schemas"]["AttemptOutcome"];
             effort: components["schemas"]["AttemptEffort"];
             blocker: components["schemas"]["AttemptBlocker"];
@@ -623,6 +695,22 @@ export interface components {
          * @enum {string}
          */
         CatalogSyncStatus: "running" | "completed" | "failed";
+        /** ClearResponse */
+        ClearResponse: {
+            /** Attempts Deleted */
+            attempts_deleted: number;
+            /** Practice Sessions Deleted */
+            practice_sessions_deleted: number;
+            /** Recordings Deleted */
+            recordings_deleted: number;
+            /** Settings Deleted */
+            settings_deleted: number;
+            /**
+             * Cleared At
+             * Format: date-time
+             */
+            cleared_at: string;
+        };
         /** ConsistencyResponse */
         ConsistencyResponse: {
             /** Days */
@@ -636,6 +724,16 @@ export interface components {
             /** Best Streak */
             best_streak: number;
         };
+        /**
+         * DashboardRange
+         * @description Windows the range selector offers, in days.
+         *
+         *     An IntEnum rather than a Literal: FastAPI hands query parameters to
+         *     Pydantic as strings, and a Literal of ints refuses to coerce them, which
+         *     made every explicit ?range_days= value fail validation.
+         * @enum {integer}
+         */
+        DashboardRange: 30 | 60 | 90 | 180;
         /** DashboardResponse */
         DashboardResponse: {
             /** Attempt Count */
@@ -646,6 +744,8 @@ export interface components {
             logged_today: number;
             /** Mastery Score */
             mastery_score: number;
+            /** Readiness Score */
+            readiness_score: number;
             /** Due Count */
             due_count: number;
             consistency: components["schemas"]["ConsistencyResponse"];
@@ -659,6 +759,69 @@ export interface components {
          * @enum {string}
          */
         Difficulty: "easy" | "medium" | "hard";
+        /** ExportAttempt */
+        ExportAttempt: {
+            /** Id */
+            id: string;
+            /** Problem Id */
+            problem_id: number;
+            /** Problem Title */
+            problem_title: string;
+            /** Problem Slug */
+            problem_slug: string;
+            /**
+             * Completed At
+             * Format: date-time
+             */
+            completed_at: string;
+            /** Duration Seconds */
+            duration_seconds: number;
+            outcome: components["schemas"]["AttemptOutcome"];
+            effort: components["schemas"]["AttemptEffort"];
+            blocker: components["schemas"]["AttemptBlocker"];
+            /** Notes */
+            notes: string;
+            /** Transcript */
+            transcript: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ExportResponse */
+        ExportResponse: {
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Attempts */
+            attempts: components["schemas"]["ExportAttempt"][];
+            /** Review State */
+            review_state: components["schemas"]["ExportReviewState"][];
+            prompt_templates: components["schemas"]["PromptTemplatesResponse"];
+        };
+        /** ExportReviewState */
+        ExportReviewState: {
+            /** Problem Id */
+            problem_id: number;
+            /** Problem Title */
+            problem_title: string;
+            status: components["schemas"]["ProblemStatus"];
+            /** Attempt Count */
+            attempt_count: number;
+            /** Best Duration Seconds */
+            best_duration_seconds: number | null;
+            /** Interval Days */
+            interval_days: number;
+            /** Lapses */
+            lapses: number;
+            /** Confidence */
+            confidence: number;
+            /** Due At */
+            due_at: string | null;
+        };
         /** FinalizePracticeSessionResponse */
         FinalizePracticeSessionResponse: {
             session: components["schemas"]["PracticeSessionResponse"];
@@ -742,6 +905,8 @@ export interface components {
         };
         /** PracticeSessionFinalize */
         PracticeSessionFinalize: {
+            /** Duration Seconds */
+            duration_seconds?: number | null;
             outcome: components["schemas"]["AttemptOutcome"];
             effort: components["schemas"]["AttemptEffort"];
             /** @default none */
@@ -897,6 +1062,18 @@ export interface components {
          * @enum {string}
          */
         ProblemStatus: "not-started" | "solved" | "review" | "struggling";
+        /** PromptTemplateUpdate */
+        PromptTemplateUpdate: {
+            /** Template */
+            template: string;
+        };
+        /** PromptTemplatesResponse */
+        PromptTemplatesResponse: {
+            /** Session Template */
+            session_template: string;
+            /** Review Template */
+            review_template: string;
+        };
         /** ReadinessResponse */
         ReadinessResponse: {
             /**
@@ -1110,6 +1287,132 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CapabilitiesResponse"];
+                };
+            };
+        };
+    };
+    prompt_templates_api_v1_settings_prompt_templates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptTemplatesResponse"];
+                };
+            };
+        };
+    };
+    save_prompt_template_api_v1_settings_prompt_templates__template_key__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromptTemplateUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptTemplatesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_prompt_template_api_v1_settings_prompt_templates__template_key__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptTemplatesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_data_api_v1_system_export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportResponse"];
+                };
+            };
+        };
+    };
+    clear_data_api_v1_system_clear_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClearResponse"];
                 };
             };
         };
@@ -1501,7 +1804,7 @@ export interface operations {
     read_dashboard_api_v1_dashboard_get: {
         parameters: {
             query?: {
-                range_days?: 30 | 60 | 90 | 180;
+                range_days?: components["schemas"]["DashboardRange"];
             };
             header?: never;
             path?: never;

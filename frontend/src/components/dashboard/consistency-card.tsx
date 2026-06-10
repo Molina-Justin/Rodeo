@@ -74,12 +74,15 @@ export function ConsistencyCard({
       <CardContent className="flex flex-col p-0">
         <TooltipProvider delay={50}>
           <div className="flex flex-col gap-2">
-            <div className="flex w-full overflow-x-auto pb-1">
-              <div className="flex min-w-full justify-end gap-1 sm:gap-1.5">
+            <div
+              data-testid="consistency-heatmap-scroll"
+              className="no-scrollbar w-full overflow-x-auto overscroll-x-contain pb-1"
+            >
+              <div className="flex w-max min-w-full justify-end gap-1 sm:gap-1.5">
                 {consistency.weeks.map((week) => (
                   <div
                     key={week.key}
-                    className="flex flex-col gap-1 sm:gap-1.5"
+                    className="flex shrink-0 flex-col gap-1 sm:gap-1.5"
                   >
                     {week.days.map((day, index) =>
                       day ? (

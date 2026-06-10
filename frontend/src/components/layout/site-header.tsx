@@ -1,28 +1,25 @@
 import * as React from "react"
-import { BellIcon, PlusIcon } from "lucide-react"
+import { PlusIcon } from "lucide-react"
 
 import { ModeToggle } from "@/components/layout/mode-toggle"
-import { LogSessionDialog } from "@/components/problems/log-session-dialog"
-import { ProblemDialog } from "@/components/problems/problem-dialog"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useAppStore } from "@/store/use-app-store"
 import type { NavView, Problem } from "@/types"
 
+const LogSessionDialog = React.lazy(async () => ({
+  default: (await import("@/components/problems/log-session-dialog"))
+    .LogSessionDialog,
+}))
+const ProblemDialog = React.lazy(async () => ({
+  default: (await import("@/components/problems/problem-dialog")).ProblemDialog,
+}))
+
 const viewLabels: Record<NavView, string> = {
   focus: "Focus",
-  dashboard: "Overview",
+  dashboard: "Dashboard",
   problems: "Problems",
-  schedule: "Schedule",
   "review-queue": "Review Queue",
   tracks: "Tracks",
   library: "Library",
@@ -56,31 +53,10 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-1 h-4 data-vertical:self-auto"
         />
-        <Breadcrumb>
-          <BreadcrumbList className="text-sm">
-            <BreadcrumbItem>
-              <BreadcrumbLink href="#">Dashboard</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage className="font-medium">
-                {viewLabels[currentView]}
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <span className="text-sm font-medium">{viewLabels[currentView]}</span>
       </div>
       <div className="flex items-center gap-2">
         <ModeToggle />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative size-9 rounded-lg text-muted-foreground hover:text-foreground"
-          aria-label="Notifications"
-        >
-          <BellIcon />
-          <span className="absolute top-2 right-2 size-2 rounded-full bg-destructive ring-2 ring-background" />
-        </Button>
         <Button
           className="h-9 rounded-lg px-4"
           onClick={() => setLogProblemOpen(true)}
@@ -89,22 +65,26 @@ export function SiteHeader() {
           Log Problem
         </Button>
       </div>
-      <LogSessionDialog
-        open={logProblemOpen}
-        onOpenChange={setLogProblemOpen}
-        onSelectProblem={(problem) => {
-          setPendingProblem(problem)
-          setLogProblemOpen(false)
-        }}
-      />
-      <ProblemDialog
-        problem={selectedProblem}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedProblem(null)
-          }
-        }}
-      />
+      {logProblemOpen || pendingProblem || selectedProblem ? (
+        <React.Suspense fallback={null}>
+          <LogSessionDialog
+            open={logProblemOpen}
+            onOpenChange={setLogProblemOpen}
+            onSelectProblem={(problem) => {
+              setPendingProblem(problem)
+              setLogProblemOpen(false)
+            }}
+          />
+          <ProblemDialog
+            problem={selectedProblem}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedProblem(null)
+              }
+            }}
+          />
+        </React.Suspense>
+      ) : null}
     </header>
   )
 }

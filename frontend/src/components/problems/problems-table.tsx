@@ -21,7 +21,7 @@ import {
   DIFFICULTY_STYLES,
   STATUS_META,
 } from "@/components/problems/problem-meta"
-import { formatLastAttempt } from "@/lib/attempts"
+import { formatElapsed } from "@/lib/attempts"
 import { cn } from "@/lib/utils"
 import type { Attempt, Problem, ProblemColumnId } from "@/types"
 
@@ -41,15 +41,9 @@ function LastAttemptCell({ attempt }: { attempt: Attempt | undefined }) {
     return <span className="text-sm text-muted-foreground">Never</span>
   }
 
-  const [elapsed, duration, outcome] = formatLastAttempt(attempt)
-
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm whitespace-nowrap">
-      <span>{elapsed}</span>
-      <span className="text-muted-foreground">·</span>
-      <span className="text-muted-foreground tabular-nums">{duration}</span>
-      <span className="text-muted-foreground">·</span>
-      <span className="text-muted-foreground">{outcome}</span>
+    <span className="text-sm whitespace-nowrap">
+      {formatElapsed(attempt.completedAt)}
     </span>
   )
 }
@@ -182,11 +176,6 @@ export function ProblemsTable({
                               {topic}
                             </Badge>
                           ))}
-                          {problem.topics.length > 1 ? (
-                            <span className="text-xs text-muted-foreground">
-                              +{problem.topics.length - 1}
-                            </span>
-                          ) : null}
                           {problem.topics.length === 0 ? (
                             <span className="text-sm text-muted-foreground">
                               —
