@@ -162,9 +162,7 @@ def test_mastery_uses_latest_attempt_and_javascript_rounding() -> None:
     # (1.0 + 0.25) / 2 * 100 = 62.5; Math.round returns 63.
     assert mastery_score(attempts) == 63
 
-    attempts.append(
-        attempt(1, datetime(2026, 1, 2, tzinfo=UTC), AttemptOutcome.HINT)
-    )
+    attempts.append(attempt(1, datetime(2026, 1, 2, tzinfo=UTC), AttemptOutcome.HINT))
 
     # (0.6 + 0.25) / 2 * 100 = 42.5; Math.round returns 43.
     assert mastery_score(attempts) == 43

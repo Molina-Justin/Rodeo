@@ -21,22 +21,21 @@ import {
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { useProblems } from "@/hooks/use-problems"
+import { useAllProblems } from "@/hooks/use-problems"
+import { useAttempts } from "@/hooks/use-attempts"
 import { TARGET_MINUTES, TARGET_SCORE, buildDashboard } from "@/lib/dashboard"
 import type { SessionContext } from "@/lib/session-prompt"
-import { useAppStore } from "@/store/use-app-store"
 import type { Problem } from "@/types"
 
 const DEFAULT_RANGE: RangeOptionValue = "90"
 
 export function DashboardOverview() {
-  const { problems, status } = useProblems({
-    filters: { search: "", difficulty: "all", status: "all", access: "all" },
-    page: 0,
-    pageSize: 200,
-    sort: "id-asc",
-  })
-  const attempts = useAppStore((state) => state.attempts)
+  const { problems, status } = useAllProblems()
+  const attemptsQuery = useAttempts()
+  const attempts = React.useMemo(
+    () => attemptsQuery.data ?? [],
+    [attemptsQuery.data]
+  )
 
   const [rangeKey, setRangeKey] =
     React.useState<RangeOptionValue>(DEFAULT_RANGE)
@@ -60,7 +59,7 @@ export function DashboardOverview() {
     targetMinutes: TARGET_MINUTES,
   }
 
-  if (status === "error") {
+  if (status === "error" || attemptsQuery.isError) {
     return (
       <Empty className="min-h-64 border border-dashed border-border">
         <EmptyHeader>
@@ -69,15 +68,14 @@ export function DashboardOverview() {
           </EmptyMedia>
           <EmptyTitle>Catalog unavailable</EmptyTitle>
           <EmptyDescription>
-            The local problem catalog could not be read. Run{" "}
-            <code>node scripts/fetch-problems.mjs</code> to rebuild it.
+            The local dashboard data could not be read from the Rodeo API.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
     )
   }
 
-  if (status === "loading") {
+  if (status === "loading" || attemptsQuery.isPending) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex justify-end">

@@ -9,11 +9,13 @@ from sqlalchemy.orm import Session
 
 from rodeo.models import Attempt, Job, JobStatus, Recording, Transcription
 from rodeo.models.enums import TranscriptionStatus
+from rodeo.models.json_types import JSONValue
 from rodeo.schemas.transcriptions import (
     TranscriptionCorrection,
     TranscriptionResponse,
     TranscriptionSegment,
 )
+from rodeo.services.attempts import recompute_problem_review_state
 
 TRANSCRIBE_JOB_KIND = "transcribe-recording"
 
@@ -30,6 +32,12 @@ def _aware(value: datetime) -> datetime:
     return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
 
 
+def _segment_number(value: JSONValue, field: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TranscriptionError(f"transcription segment {field} must be numeric")
+    return float(value)
+
+
 def to_response(transcription: Transcription) -> TranscriptionResponse:
     return TranscriptionResponse(
         id=transcription.id,
@@ -39,8 +47,10 @@ def to_response(transcription: Transcription) -> TranscriptionResponse:
         corrected_text=transcription.corrected_text,
         segments=tuple(
             TranscriptionSegment(
-                start_seconds=float(segment["start_seconds"]),
-                end_seconds=float(segment["end_seconds"]),
+                start_seconds=_segment_number(
+                    segment["start_seconds"], "start_seconds"
+                ),
+                end_seconds=_segment_number(segment["end_seconds"], "end_seconds"),
                 text=str(segment["text"]),
             )
             for segment in transcription.segments
@@ -51,7 +61,9 @@ def to_response(transcription: Transcription) -> TranscriptionResponse:
         error_code=transcription.error_code,
         error_message=transcription.error_message,
         started_at=(
-            _aware(transcription.started_at) if transcription.started_at is not None else None
+            _aware(transcription.started_at)
+            if transcription.started_at is not None
+            else None
         ),
         completed_at=(
             _aware(transcription.completed_at)
@@ -67,7 +79,9 @@ def _recording_for_attempt(database: Session, attempt_id: str) -> Recording:
     attempt = database.get(Attempt, attempt_id)
     if attempt is None:
         raise TranscriptionNotFoundError(f"attempt {attempt_id!r} was not found")
-    recording = database.scalar(select(Recording).where(Recording.attempt_id == attempt_id))
+    recording = database.scalar(
+        select(Recording).where(Recording.attempt_id == attempt_id)
+    )
     if recording is None:
         raise TranscriptionNotFoundError("attempt has no recording")
     return recording
@@ -119,10 +133,21 @@ def correct_transcription(
     *,
     attempt_id: str,
     payload: TranscriptionCorrection,
+    now: datetime,
+    timezone_name: str,
 ) -> TranscriptionResponse:
     transcription = _transcription_model_for_attempt(database, attempt_id)
     transcription.corrected_text = payload.corrected_text
     database.flush()
+    attempt = database.get(Attempt, attempt_id)
+    if attempt is None:  # Defensive: the joined lookup above already verified it.
+        raise TranscriptionNotFoundError(f"attempt {attempt_id!r} was not found")
+    recompute_problem_review_state(
+        database,
+        problem_id=attempt.problem_id,
+        now=now,
+        timezone_name=timezone_name,
+    )
     return to_response(transcription)
 
 
@@ -155,7 +180,9 @@ def retry_transcription(
     return to_response(transcription)
 
 
-def _transcription_model_for_attempt(database: Session, attempt_id: str) -> Transcription:
+def _transcription_model_for_attempt(
+    database: Session, attempt_id: str
+) -> Transcription:
     transcription = database.scalar(
         select(Transcription)
         .join(Recording, Recording.id == Transcription.recording_id)

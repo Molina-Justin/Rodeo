@@ -26,4 +26,3 @@ def get_capabilities(settings: Settings) -> CapabilitiesResponse:
         ),
         ai=AICapability(available=settings.anthropic_api_key is not None),
     )
-

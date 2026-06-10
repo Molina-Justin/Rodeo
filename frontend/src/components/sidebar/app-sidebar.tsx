@@ -16,15 +16,19 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { dueReviewCount } from "@/lib/dashboard"
-import { useAppStore } from "@/store/use-app-store"
+import { useAttempts } from "@/hooks/use-attempts"
 
 const footerItems: NavItem[] = [
   { title: "Settings", view: "settings", icon: SettingsIcon },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const attempts = useAppStore((state) => state.attempts)
-  const reviewQueueCount = React.useMemo(() => dueReviewCount(attempts), [attempts])
+  const attemptsData = useAttempts().data
+  const attempts = React.useMemo(() => attemptsData ?? [], [attemptsData])
+  const reviewQueueCount = React.useMemo(
+    () => dueReviewCount(attempts),
+    [attempts]
+  )
 
   const menuItems: NavItem[] = [
     { title: "Dashboard", view: "dashboard", icon: LayoutGridIcon },

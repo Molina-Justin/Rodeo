@@ -9,11 +9,11 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from rodeo.config import Settings, get_settings
 from rodeo.db import dispose_database_engines, session_factory_for_url
-from rodeo.routers import api_router
 from rodeo.models.base import utc_now
+from rodeo.routers import api_router
+from rodeo.security import OriginCheckMiddleware
 from rodeo.services.attempts import rebuild_review_states_if_engine_changed
 from rodeo.services.catalog import seed_catalog
-from rodeo.security import OriginCheckMiddleware
 from rodeo.services.migrations import upgrade_database
 from rodeo.static import SPAStaticFiles
 from rodeo.workers.transcription import DurableWorker

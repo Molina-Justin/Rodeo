@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from datetime import UTC, datetime
 
 import pytest
@@ -38,7 +39,7 @@ TIMEZONE = "America/New_York"
 
 
 @pytest.fixture
-def db_session() -> Session:
+def db_session() -> Iterator[Session]:
     engine = create_engine(
         "sqlite+pysqlite://",
         connect_args={"check_same_thread": False},
@@ -121,9 +122,7 @@ def test_create_is_idempotent_and_populates_review_state(
     assert review.lapses == 0
     assert review.confidence == 4
     assert review.due_at is not None
-    assert review.due_at.replace(tzinfo=UTC) == datetime(
-        2026, 8, 23, 4, tzinfo=UTC
-    )
+    assert review.due_at.replace(tzinfo=UTC) == datetime(2026, 8, 23, 4, tzinfo=UTC)
     assert review.has_notes is True
     assert review.has_audio is False
     assert review.has_transcript is False
@@ -206,6 +205,8 @@ def test_update_replays_reordered_history_and_delete_resets_state(
         now=NOW,
         timezone_name=TIMEZONE,
     )
+    review = db_session.get(ReviewState, 1)
+    assert review is not None
     assert review.last_attempt_id == newer.id
     assert review.attempt_count == 1
     assert review.status is ProblemStatus.SOLVED
@@ -216,6 +217,8 @@ def test_update_replays_reordered_history_and_delete_resets_state(
         now=NOW,
         timezone_name=TIMEZONE,
     )
+    review = db_session.get(ReviewState, 1)
+    assert review is not None
     assert review.status is ProblemStatus.NOT_STARTED
     assert review.attempt_count == 0
     assert review.last_attempt_id is None

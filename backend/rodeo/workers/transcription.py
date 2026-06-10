@@ -12,9 +12,12 @@ from sqlalchemy.orm import Session
 
 from rodeo.config import Settings
 from rodeo.db import session_factory_for_url
-from rodeo.models import Job, JobStatus, Recording, Transcription
+from rodeo.models import Attempt, Job, JobStatus, Recording, Transcription
 from rodeo.models.enums import TranscriptionStatus
-from rodeo.services.attempts import DELETE_RECORDING_JOB_KIND
+from rodeo.services.attempts import (
+    DELETE_RECORDING_JOB_KIND,
+    recompute_problem_review_state,
+)
 from rodeo.services.recordings import recording_path
 from rodeo.services.transcriptions import TRANSCRIBE_JOB_KIND
 
@@ -89,7 +92,9 @@ class DurableWorker:
             return None
         job.status = JobStatus.PROCESSING
         job.locked_by = self.worker_id
-        job.lease_expires_at = now + timedelta(seconds=self.settings.worker_lease_seconds)
+        job.lease_expires_at = now + timedelta(
+            seconds=self.settings.worker_lease_seconds
+        )
         job.attempts += 1
         return job
 
@@ -176,6 +181,15 @@ class DurableWorker:
         transcription.error_code = None
         transcription.error_message = None
         transcription.completed_at = utc_now()
+        if recording.attempt_id is not None:
+            attempt = database.get(Attempt, recording.attempt_id)
+            if attempt is not None:
+                recompute_problem_review_state(
+                    database,
+                    problem_id=attempt.problem_id,
+                    now=transcription.completed_at,
+                    timezone_name=self.settings.timezone,
+                )
 
     def _fail(self, database: Session, job: Job, error: Exception) -> None:
         logger.warning("Durable job %s failed: %s", job.id, error)

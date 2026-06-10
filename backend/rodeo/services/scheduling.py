@@ -174,9 +174,8 @@ def build_review_states(
             successful_streak += 1
 
         last_attempt = ordered[-1]
-        due_on = (
-            last_attempt.completed_at.astimezone(app_timezone).date()
-            + timedelta(days=interval_days)
+        due_on = last_attempt.completed_at.astimezone(app_timezone).date() + timedelta(
+            days=interval_days
         )
 
         states.append(

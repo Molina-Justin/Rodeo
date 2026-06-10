@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "generate:api": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/api/schema.d.ts",
+    "generate:api": "../backend/.venv/bin/python ../backend/scripts/export_openapi.py ../backend/openapi.json && openapi-typescript ../backend/openapi.json -o src/api/schema.d.ts",
     "typecheck": "tsc -b",
     "preview": "vite preview"
   },

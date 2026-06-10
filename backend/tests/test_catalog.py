@@ -167,9 +167,11 @@ def test_rejects_incomplete_graphql_snapshot() -> None:
             },
         )
 
-    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
-        with pytest.raises(CatalogValidationError, match="incomplete"):
-            fetch_leetcode_catalog(client=client, page_size=2)
+    with (
+        httpx.Client(transport=httpx.MockTransport(handler)) as client,
+        pytest.raises(CatalogValidationError, match="incomplete"),
+    ):
+        fetch_leetcode_catalog(client=client, page_size=2)
 
 
 def test_refresh_records_completion_and_applies_atomically(
@@ -205,4 +207,3 @@ def test_refresh_records_completion_and_applies_atomically(
     assert result.added_count == 1
     assert db_session.get(Problem, 10) is not None
     assert db_session.scalar(select(CatalogSync).where(CatalogSync.id == result.id))
-

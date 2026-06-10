@@ -18,4 +18,3 @@ class RecordingResponse(APIModel):
     content_url: str
     created_at: datetime
     updated_at: datetime
-

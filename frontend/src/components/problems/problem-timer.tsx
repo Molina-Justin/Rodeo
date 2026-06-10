@@ -8,6 +8,8 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { api } from "@/api/client"
+import type { PracticeSessionResponse } from "@/api/models"
 import { problemUrl } from "@/lib/problems"
 import { cn } from "@/lib/utils"
 import type { Problem } from "@/types"
@@ -134,7 +136,11 @@ export function ProblemTimer({
   onSessionInProgressChange,
 }: {
   problem: Problem
-  onStopAndLog: (elapsedMinutes: number, audioUrl?: string) => void
+  onStopAndLog: (
+    sessionId: string,
+    elapsedMinutes: number,
+    audioUrl?: string
+  ) => void
   onSessionInProgressChange: (inProgress: boolean) => void
 }) {
   const [elapsed, setElapsed] = React.useState(0)
@@ -144,16 +150,27 @@ export function ProblemTimer({
   const [recordingError, setRecordingError] = React.useState<string | null>(
     null
   )
+  const [session, setSession] = React.useState<PracticeSessionResponse | null>(
+    null
+  )
+  const [busy, setBusy] = React.useState(false)
   const [analyser, setAnalyser] = React.useState<AnalyserNode | null>(null)
   const analyserRef = React.useRef<AnalyserNode | null>(null)
   const streamRef = React.useRef<MediaStream | null>(null)
   const audioContextRef = React.useRef<AudioContext | null>(null)
   const recorderRef = React.useRef<MediaRecorder | null>(null)
   const recordingRequestRef = React.useRef(false)
+  const sessionProgressCallbackRef = React.useRef(onSessionInProgressChange)
+  const stopAndLogCallbackRef = React.useRef(onStopAndLog)
   const audioChunksRef = React.useRef<Blob[]>([])
   const recordingStopPromiseRef = React.useRef<Promise<
-    string | undefined
+    Blob | undefined
   > | null>(null)
+
+  React.useEffect(() => {
+    sessionProgressCallbackRef.current = onSessionInProgressChange
+    stopAndLogCallbackRef.current = onStopAndLog
+  }, [onSessionInProgressChange, onStopAndLog])
 
   const stopRecording = React.useCallback((saveAudio = false) => {
     if (recordingStopPromiseRef.current) {
@@ -181,28 +198,26 @@ export function ProblemTimer({
 
     if (!recorder || recorder.state === "inactive") {
       cleanUp()
-      return Promise.resolve<string | undefined>(undefined)
+      return Promise.resolve<Blob | undefined>(undefined)
     }
 
-    let resolveStop: (audioUrl: string | undefined) => void = () => undefined
-    const stopPromise = new Promise<string | undefined>((resolve) => {
+    let resolveStop: (audio: Blob | undefined) => void = () => undefined
+    const stopPromise = new Promise<Blob | undefined>((resolve) => {
       resolveStop = resolve
     })
     recordingStopPromiseRef.current = stopPromise
     recorder.addEventListener(
       "stop",
       () => {
-        const audioUrl =
+        const audio =
           saveAudio && audioChunksRef.current.length > 0
-            ? URL.createObjectURL(
-                new Blob(audioChunksRef.current, {
-                  type: recorder.mimeType || "audio/webm",
-                })
-              )
+            ? new Blob(audioChunksRef.current, {
+                type: recorder.mimeType || "audio/webm",
+              })
             : undefined
 
         cleanUp()
-        resolveStop(audioUrl)
+        resolveStop(audio)
       },
       { once: true }
     )
@@ -268,6 +283,33 @@ export function ProblemTimer({
   )
 
   React.useEffect(() => {
+    let cancelled = false
+    void api.GET("/api/v1/practice-sessions/current").then(({ data }) => {
+      if (cancelled || !data || data.problem_id !== problem.id) {
+        return
+      }
+      setSession(data)
+      setElapsed(data.active_duration_ms)
+      if (data.status === "active" || data.status === "paused") {
+        setRunning(data.status === "active")
+        setRecordingError(
+          "Timer recovered after reload. Audio recorded before the reload cannot be recovered."
+        )
+        sessionProgressCallbackRef.current(true)
+      } else if (data.status === "awaiting_details") {
+        stopAndLogCallbackRef.current(
+          data.id,
+          Math.max(1, Math.round(data.active_duration_ms / 60_000)),
+          data.recording?.content_url
+        )
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [problem.id])
+
+  React.useEffect(() => {
     if (!running) {
       return
     }
@@ -285,36 +327,128 @@ export function ProblemTimer({
 
   const idle = elapsed === 0 && !running
 
-  const start = (openProblem: boolean, shouldRecord: boolean) => {
+  const start = async (openProblem: boolean, shouldRecord: boolean) => {
     if (openProblem) {
       window.open(problemUrl(problem), "_blank", "noreferrer")
     }
 
-    setRunning(true)
-    setRecordingRequested(shouldRecord)
-    onSessionInProgressChange(true)
-
-    if (shouldRecord) {
-      void startRecording()
+    setBusy(true)
+    try {
+      let current = session
+      if (!current) {
+        const result = await api.POST("/api/v1/practice-sessions", {
+          body: { problem_id: problem.id },
+        })
+        if (!result.data) {
+          throw new Error("A practice session could not be started")
+        }
+        current = result.data
+      } else if (current.status === "paused") {
+        const result = await api.POST(
+          "/api/v1/practice-sessions/{session_id}/resume",
+          { params: { path: { session_id: current.id } } }
+        )
+        if (!result.data) {
+          throw new Error("The practice session could not be resumed")
+        }
+        current = result.data
+        if (recorderRef.current?.state === "paused") {
+          recorderRef.current.resume()
+        }
+      }
+      setSession(current)
+      setRunning(true)
+      setRecordingRequested(shouldRecord)
+      onSessionInProgressChange(true)
+      if (shouldRecord && !recorderRef.current) {
+        void startRecording()
+      }
+    } catch (error) {
+      setRecordingError(
+        error instanceof Error
+          ? error.message
+          : "The timer could not be started"
+      )
+    } finally {
+      setBusy(false)
     }
   }
 
-  const reset = () => {
+  const reset = async () => {
     setRunning(false)
     setElapsed(0)
     setRecordingRequested(false)
     setRecordingError(null)
     onSessionInProgressChange(false)
     void stopRecording()
+    if (session) {
+      await api.DELETE("/api/v1/practice-sessions/{session_id}", {
+        params: { path: { session_id: session.id } },
+      })
+      setSession(null)
+    }
   }
 
-  const stopAndLog = () => {
+  const pause = async () => {
+    if (!session) return
+    setBusy(true)
+    const result = await api.POST(
+      "/api/v1/practice-sessions/{session_id}/pause",
+      {
+        params: { path: { session_id: session.id } },
+      }
+    )
+    setBusy(false)
+    if (!result.data) {
+      setRecordingError("The practice session could not be paused")
+      return
+    }
+    if (recorderRef.current?.state === "recording") {
+      recorderRef.current.pause()
+    }
+    setSession(result.data)
+    setElapsed(result.data.active_duration_ms)
     setRunning(false)
-    const durationMinutes = Math.max(1, Math.round(elapsed / 60000))
+  }
 
-    void stopRecording(true).then((audioUrl) => {
-      onStopAndLog(durationMinutes, audioUrl)
-    })
+  const stopAndLog = async () => {
+    if (!session) return
+    setRunning(false)
+    setBusy(true)
+    const audio = await stopRecording(true)
+    const form = new FormData()
+    if (audio) {
+      form.append(
+        "audio",
+        audio,
+        `attempt.${audio.type.includes("ogg") ? "ogg" : "webm"}`
+      )
+    }
+    try {
+      const response = await fetch(
+        `/api/v1/practice-sessions/${session.id}/stop`,
+        { method: "POST", body: form }
+      )
+      if (!response.ok) {
+        throw new Error("The practice session could not be stopped")
+      }
+      const stopped = (await response.json()) as PracticeSessionResponse
+      setSession(stopped)
+      setElapsed(stopped.active_duration_ms)
+      onStopAndLog(
+        stopped.id,
+        Math.max(1, Math.round(stopped.active_duration_ms / 60_000)),
+        stopped.recording?.content_url
+      )
+    } catch (error) {
+      setRecordingError(
+        error instanceof Error
+          ? error.message
+          : "The session could not be stopped"
+      )
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -332,9 +466,8 @@ export function ProblemTimer({
         <div className="flex items-center gap-3">
           <Button
             className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90"
-            onClick={() => {
-              stopAndLog()
-            }}
+            disabled={busy}
+            onClick={() => void stopAndLog()}
           >
             <SquareIcon />
             Stop & log
@@ -342,10 +475,8 @@ export function ProblemTimer({
           <Button
             variant="outline"
             className="rounded-lg"
-            onClick={() => {
-              setRunning(false)
-              void stopRecording()
-            }}
+            disabled={busy}
+            onClick={() => void pause()}
           >
             <PauseIcon />
             Pause
@@ -355,7 +486,8 @@ export function ProblemTimer({
         <div className="flex items-center gap-3">
           <Button
             className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90"
-            onClick={() => start(idle, idle || recordingRequested)}
+            disabled={busy}
+            onClick={() => void start(idle, idle || recordingRequested)}
           >
             <PlayIcon />
             {idle ? "Start problem" : "Resume"}
@@ -364,7 +496,8 @@ export function ProblemTimer({
             <Button
               variant="outline"
               className="rounded-lg"
-              onClick={() => start(false, false)}
+              disabled={busy}
+              onClick={() => void start(false, false)}
             >
               <MicIcon />
               Timer only
@@ -374,7 +507,8 @@ export function ProblemTimer({
               <Button
                 variant="outline"
                 className="rounded-lg"
-                onClick={stopAndLog}
+                disabled={busy}
+                onClick={() => void stopAndLog()}
               >
                 <SquareIcon />
                 Stop & log
@@ -382,7 +516,8 @@ export function ProblemTimer({
               <Button
                 variant="ghost"
                 className="rounded-lg text-muted-foreground"
-                onClick={reset}
+                disabled={busy}
+                onClick={() => void reset()}
               >
                 <RotateCcwIcon />
                 Reset

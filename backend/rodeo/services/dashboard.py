@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import UTC, datetime, timedelta
+from typing import TypedDict
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
@@ -11,9 +12,35 @@ from sqlalchemy.orm import Session, selectinload
 
 from rodeo.models import Attempt, Problem, ReviewState
 from rodeo.models.enums import ProblemStatus
+from rodeo.schemas.dashboard import (
+    ActivityDay,
+    ConsistencyResponse,
+    DashboardResponse,
+    ReviewQueueItem,
+    TopicFocusResponse,
+)
+from rodeo.services.scheduling import (
+    AttemptOutcome as SchedulingOutcome,
+)
 from rodeo.services.scheduling import SchedulingAttempt, mastery_score
 
 QUEUE_LIMIT = 6
+
+
+class ActivityDayRow(TypedDict):
+    key: str
+    minutes: float
+    problem_count: int
+    activity_level: int
+
+
+class TopicRow(TypedDict):
+    topic: str
+    score: int
+    attempted: int
+    problem_count: int
+    weight: float
+    due_count: int
 
 
 def _aware(value: datetime) -> datetime:
@@ -23,7 +50,10 @@ def _aware(value: datetime) -> datetime:
 def _due_in_days(review: ReviewState, now: datetime, timezone: ZoneInfo) -> int | None:
     if review.due_at is None:
         return None
-    return (_aware(review.due_at).astimezone(timezone).date() - now.astimezone(timezone).date()).days
+    return (
+        _aware(review.due_at).astimezone(timezone).date()
+        - now.astimezone(timezone).date()
+    ).days
 
 
 def _activity_level(minutes: float) -> int:
@@ -36,43 +66,85 @@ def _activity_level(minutes: float) -> int:
     return 3 if minutes < 100 else 4
 
 
-def dashboard(database: Session, *, now: datetime, timezone_name: str, range_days: int) -> dict[str, object]:
+def dashboard(
+    database: Session, *, now: datetime, timezone_name: str, range_days: int
+) -> DashboardResponse:
     timezone = ZoneInfo(timezone_name)
     now = _aware(now)
     problems = database.scalars(
-        select(Problem).where(Problem.active.is_(True)).options(selectinload(Problem.topics))
+        select(Problem)
+        .where(Problem.active.is_(True))
+        .options(selectinload(Problem.topics))
     ).all()
     ids = {problem.id for problem in problems}
-    attempts = database.scalars(select(Attempt).where(Attempt.problem_id.in_(ids)).order_by(Attempt.completed_at, Attempt.created_at, Attempt.id)).all() if ids else []
-    states = {state.problem_id: state for state in database.scalars(select(ReviewState).where(ReviewState.problem_id.in_(ids))).all()} if ids else {}
+    attempts = (
+        database.scalars(
+            select(Attempt)
+            .where(Attempt.problem_id.in_(ids))
+            .order_by(Attempt.completed_at, Attempt.created_at, Attempt.id)
+        ).all()
+        if ids
+        else []
+    )
+    states = (
+        {
+            state.problem_id: state
+            for state in database.scalars(
+                select(ReviewState).where(ReviewState.problem_id.in_(ids))
+            ).all()
+        }
+        if ids
+        else {}
+    )
     latest: dict[int, Attempt] = {}
-    histories: dict[int, list[Attempt]] = defaultdict(list)
     for attempt in attempts:
-        histories[attempt.problem_id].append(attempt)
         latest[attempt.problem_id] = attempt
-    scheduling_attempts = [SchedulingAttempt(problem_id=item.problem_id, completed_at=_aware(item.completed_at), outcome=item.outcome, attempt_id=item.id) for item in attempts]
+    scheduling_attempts = [
+        SchedulingAttempt(
+            problem_id=item.problem_id,
+            completed_at=_aware(item.completed_at),
+            outcome=SchedulingOutcome(item.outcome.value),
+            attempt_id=item.id,
+        )
+        for item in attempts
+    ]
     mastery = mastery_score(scheduling_attempts, known_problem_ids=ids)
-    solved = {problem_id for problem_id, attempt in latest.items() if attempt.outcome.value == "optimal"}
+    solved = {
+        problem_id
+        for problem_id, attempt in latest.items()
+        if attempt.outcome.value == "optimal"
+    }
 
-    minutes_by_day: Counter[str] = Counter()
+    minutes_by_day: dict[str, float] = {}
     count_by_day: Counter[str] = Counter()
     for attempt in attempts:
         key = _aware(attempt.completed_at).astimezone(timezone).date().isoformat()
-        minutes_by_day[key] += attempt.duration_seconds / 60
+        minutes_by_day[key] = (
+            minutes_by_day.get(key, 0.0) + attempt.duration_seconds / 60
+        )
         count_by_day[key] += 1
     today = now.astimezone(timezone).date()
-    days = []
+    days: list[ActivityDayRow] = []
     for offset in range(range_days - 1, -1, -1):
         day = today - timedelta(days=offset)
         key = day.isoformat()
-        minutes = round(minutes_by_day[key], 2)
-        days.append({"key": key, "minutes": minutes, "problem_count": count_by_day[key], "activity_level": _activity_level(minutes)})
+        minutes = round(minutes_by_day.get(key, 0.0), 2)
+        days.append(
+            {
+                "key": key,
+                "minutes": minutes,
+                "problem_count": count_by_day[key],
+                "activity_level": _activity_level(minutes),
+            }
+        )
     active_keys = sorted(key for key, count in count_by_day.items() if count)
     best_streak = streak = 0
     previous = None
     for key in active_keys:
         day = datetime.fromisoformat(key).date()
-        streak = streak + 1 if previous is not None and (day - previous).days == 1 else 1
+        streak = (
+            streak + 1 if previous is not None and (day - previous).days == 1 else 1
+        )
         best_streak = max(best_streak, streak)
         previous = day
     cursor = today if count_by_day[today.isoformat()] else today - timedelta(days=1)
@@ -82,43 +154,94 @@ def dashboard(database: Session, *, now: datetime, timezone_name: str, range_day
         cursor -= timedelta(days=1)
 
     problems_by_id = {problem.id: problem for problem in problems}
-    queue = []
-    for problem_id, state in sorted(states.items(), key=lambda pair: _due_in_days(pair[1], now, timezone) or 0):
+    queue: list[ReviewQueueItem] = []
+    for problem_id, state in sorted(
+        states.items(), key=lambda pair: _due_in_days(pair[1], now, timezone) or 0
+    ):
         due_in_days = _due_in_days(state, now, timezone)
         if due_in_days is not None and due_in_days <= 0:
             problem = problems_by_id[problem_id]
-            queue.append({"problem_id": problem_id, "title": problem.title, "topic": problem.topics[0].name if problem.topics else "General", "status": state.status.value, "due_in_days": due_in_days})
+            queue.append(
+                ReviewQueueItem(
+                    problem_id=problem_id,
+                    title=problem.title,
+                    topic=problem.topics[0].name if problem.topics else "General",
+                    status=state.status,
+                    due_in_days=due_in_days,
+                )
+            )
     queue = queue[:QUEUE_LIMIT]
 
-    topic_rows: dict[str, dict[str, object]] = {}
+    topic_rows: dict[str, TopicRow] = {}
     for problem in problems:
         for topic in problem.topics:
-            item = topic_rows.setdefault(topic.name, {"topic": topic.name, "score": 0, "attempted": 0, "problem_count": 0, "weight": 0.0, "due_count": 0})
-            item["problem_count"] = int(item["problem_count"]) + 1
-            state = states.get(problem.id)
-            if state and state.attempt_count:
-                item["attempted"] = int(item["attempted"]) + 1
-                item["weight"] = float(item["weight"]) + {ProblemStatus.SOLVED: 1, ProblemStatus.REVIEW: .6, ProblemStatus.STRUGGLING: .25, ProblemStatus.NOT_STARTED: 0}[state.status]
-                due_in_days = _due_in_days(state, now, timezone)
+            item = topic_rows.setdefault(
+                topic.name,
+                {
+                    "topic": topic.name,
+                    "score": 0,
+                    "attempted": 0,
+                    "problem_count": 0,
+                    "weight": 0.0,
+                    "due_count": 0,
+                },
+            )
+            item["problem_count"] += 1
+            problem_state = states.get(problem.id)
+            if problem_state and problem_state.attempt_count:
+                item["attempted"] += 1
+                item["weight"] = (
+                    item["weight"]
+                    + {
+                        ProblemStatus.SOLVED: 1,
+                        ProblemStatus.REVIEW: 0.6,
+                        ProblemStatus.STRUGGLING: 0.25,
+                        ProblemStatus.NOT_STARTED: 0,
+                    }[problem_state.status]
+                )
+                due_in_days = _due_in_days(problem_state, now, timezone)
                 if due_in_days is not None and due_in_days <= 0:
-                    item["due_count"] = int(item["due_count"]) + 1
-    focuses = []
+                    item["due_count"] += 1
+    focuses: list[TopicFocusResponse] = []
     for item in topic_rows.values():
-        attempted = int(item.pop("attempted"))
-        weight = float(item.pop("weight"))
-        item["attempted"] = attempted
-        item["score"] = round(weight / attempted * 100) if attempted else 0
-        focuses.append(item)
-    focuses.sort(key=lambda item: (0 if item["due_count"] else 1 if item["attempted"] else 2, -int(item["due_count"]), int(item["score"]), str(item["topic"])))
-    return {
-        "attempt_count": len(attempts), "solved_count": len(solved),
-        "logged_today": count_by_day[today.isoformat()], "mastery_score": mastery,
-        "due_count": sum(
+        item["score"] = (
+            round(item["weight"] / item["attempted"] * 100) if item["attempted"] else 0
+        )
+        focuses.append(
+            TopicFocusResponse(
+                topic=item["topic"],
+                score=item["score"],
+                attempted=item["attempted"],
+                problem_count=item["problem_count"],
+                due_count=item["due_count"],
+            )
+        )
+    focuses.sort(
+        key=lambda item: (
+            0 if item.due_count else 1 if item.attempted else 2,
+            -item.due_count,
+            item.score,
+            item.topic,
+        )
+    )
+    return DashboardResponse(
+        attempt_count=len(attempts),
+        solved_count=len(solved),
+        logged_today=count_by_day[today.isoformat()],
+        mastery_score=mastery,
+        due_count=sum(
             1
             for state in states.values()
             if (due_in_days := _due_in_days(state, now, timezone)) is not None
             and due_in_days <= 0
         ),
-        "consistency": {"days": days, "minutes": round(sum(day["minutes"] for day in days), 2), "problem_count": sum(day["problem_count"] for day in days), "streak": current_streak, "best_streak": best_streak},
-        "focuses": focuses, "review_queue": queue,
-    }
+        consistency=ConsistencyResponse(
+            days=tuple(ActivityDay(**day) for day in days),
+            minutes=round(sum(day["minutes"] for day in days), 2),
+            problem_count=sum(day["problem_count"] for day in days),
+            streak=current_streak,
+            best_streak=best_streak,
+        ),
+        focuses=tuple(focuses),
+        review_queue=tuple(queue),
+    )

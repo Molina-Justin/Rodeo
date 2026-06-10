@@ -8,8 +8,8 @@ from rodeo.routers.jobs import router as jobs_router
 from rodeo.routers.problems import router as problems_router
 from rodeo.routers.recordings import router as recordings_router
 from rodeo.routers.sessions import router as sessions_router
-from rodeo.routers.transcriptions import router as transcriptions_router
 from rodeo.routers.system import router as system_router
+from rodeo.routers.transcriptions import router as transcriptions_router
 
 api_router = APIRouter()
 api_router.include_router(system_router)

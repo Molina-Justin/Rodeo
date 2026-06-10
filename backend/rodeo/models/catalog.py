@@ -51,9 +51,7 @@ class Problem(TimestampMixin, Base):
         server_default="1",
         index=True,
     )
-    catalog_updated_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    catalog_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     topics: Mapped[list[Topic]] = relationship(
         secondary="problem_topic",

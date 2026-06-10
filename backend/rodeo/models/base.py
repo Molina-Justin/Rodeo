@@ -49,4 +49,3 @@ class UUIDPrimaryKeyMixin:
         primary_key=True,
         default=new_uuid,
     )
-

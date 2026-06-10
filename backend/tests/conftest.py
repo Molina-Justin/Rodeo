@@ -33,8 +33,9 @@ def client(settings: Settings) -> Iterator[TestClient]:
 @pytest.fixture
 def db_session(settings: Settings) -> Iterator[Session]:
     upgrade_database(settings.resolved_database_url)
-    factory = session_factory_for_url(settings.resolved_database_url, settings.sqlite_busy_timeout_ms)
+    factory = session_factory_for_url(
+        settings.resolved_database_url, settings.sqlite_busy_timeout_ms
+    )
     with factory() as session:
         yield session
     dispose_database_engines()
-

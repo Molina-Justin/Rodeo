@@ -19,9 +19,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { api } from "@/api/client"
+import {
+  useAttempts,
+  useFinalizeSession,
+  useUpdateAttempt,
+} from "@/hooks/use-attempts"
 import { deriveStatus } from "@/lib/attempts"
 import { cn } from "@/lib/utils"
-import { useAppStore } from "@/store/use-app-store"
 import type { Attempt, AttemptDraft, Problem } from "@/types"
 
 interface ProblemDialogProps {
@@ -35,9 +40,9 @@ type View =
   | { kind: "edit"; attemptId: string }
 
 export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
-  const attempts = useAppStore((state) => state.attempts)
-  const logAttempt = useAppStore((state) => state.logAttempt)
-  const updateAttempt = useAppStore((state) => state.updateAttempt)
+  const attemptsQuery = useAttempts(problem?.id, problem !== null)
+  const finalizeSession = useFinalizeSession()
+  const updateAttempt = useUpdateAttempt()
   const [view, setView] = React.useState<View>({ kind: "overview" })
   const [logDurationMinutes, setLogDurationMinutes] = React.useState<
     number | null
@@ -45,6 +50,7 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
   const [timerKey, setTimerKey] = React.useState(0)
   const [sessionInProgress, setSessionInProgress] = React.useState(false)
   const [pendingAudioUrl, setPendingAudioUrl] = React.useState<string>()
+  const [pendingSessionId, setPendingSessionId] = React.useState<string>()
 
   React.useEffect(() => {
     setView({ kind: "overview" })
@@ -52,22 +58,26 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
     setTimerKey(0)
     setSessionInProgress(false)
     setPendingAudioUrl(undefined)
+    setPendingSessionId(undefined)
   }, [problem?.id])
 
-  const discardPendingAudio = () => {
-    if (pendingAudioUrl) {
-      URL.revokeObjectURL(pendingAudioUrl)
+  const discardPendingSession = () => {
+    if (pendingSessionId) {
+      void api.DELETE("/api/v1/practice-sessions/{session_id}", {
+        params: { path: { session_id: pendingSessionId } },
+      })
     }
     setPendingAudioUrl(undefined)
+    setPendingSessionId(undefined)
   }
 
   if (!problem) {
     return null
   }
 
-  const problemAttempts = attempts
-    .filter((attempt) => attempt.problemId === problem.id)
-    .sort((a, b) => b.completedAt.localeCompare(a.completedAt))
+  const problemAttempts = [...(attemptsQuery.data ?? [])].sort((a, b) =>
+    b.completedAt.localeCompare(a.completedAt)
+  )
 
   const selectedIndex =
     view.kind === "overview"
@@ -133,9 +143,10 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
               <ProblemTimer
                 key={timerKey}
                 problem={problem}
-                onStopAndLog={(durationMinutes, audioUrl) => {
+                onStopAndLog={(sessionId, durationMinutes, audioUrl) => {
                   setLogDurationMinutes(durationMinutes)
                   setPendingAudioUrl(audioUrl)
+                  setPendingSessionId(sessionId)
                 }}
                 onSessionInProgressChange={setSessionInProgress}
               />
@@ -163,8 +174,16 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
                   attempt={selectedAttempt}
                   submitLabel="Save changes"
                   onSave={(draft: AttemptDraft) => {
-                    updateAttempt(selectedAttempt.id, draft)
-                    setView({ kind: "report", attemptId: selectedAttempt.id })
+                    updateAttempt.mutate(
+                      { id: selectedAttempt.id, draft },
+                      {
+                        onSuccess: () =>
+                          setView({
+                            kind: "report",
+                            attemptId: selectedAttempt.id,
+                          }),
+                      }
+                    )
                   }}
                   onCancel={() =>
                     setView({ kind: "report", attemptId: selectedAttempt.id })
@@ -202,7 +221,7 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
         onOpenChange={(open) => {
           if (!open) {
             setLogDurationMinutes(null)
-            discardPendingAudio()
+            discardPendingSession()
           }
         }}
       >
@@ -218,15 +237,23 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
             elapsedMinutes={logDurationMinutes ?? 1}
             audioUrl={pendingAudioUrl}
             onSave={(draft: AttemptDraft) => {
-              logAttempt({ ...draft, audioUrl: pendingAudioUrl })
-              setLogDurationMinutes(null)
-              setPendingAudioUrl(undefined)
-              setSessionInProgress(false)
-              setTimerKey((current) => current + 1)
+              if (!pendingSessionId) return
+              finalizeSession.mutate(
+                { sessionId: pendingSessionId, draft },
+                {
+                  onSuccess: () => {
+                    setLogDurationMinutes(null)
+                    setPendingAudioUrl(undefined)
+                    setPendingSessionId(undefined)
+                    setSessionInProgress(false)
+                    setTimerKey((current) => current + 1)
+                  },
+                }
+              )
             }}
             onCancel={() => {
               setLogDurationMinutes(null)
-              discardPendingAudio()
+              discardPendingSession()
             }}
           />
         </DialogContent>

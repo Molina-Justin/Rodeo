@@ -1,22 +1,8 @@
-import * as React from "react"
+import { useQuery } from "@tanstack/react-query"
 
-import type { Problem } from "@/types"
+import { api } from "@/api/client"
+import { toProblem } from "@/api/models"
 import type { ProblemFilters, ProblemSort } from "@/types"
-
-type ProblemsStatus = "loading" | "ready" | "error"
-
-interface ProblemsState {
-  problems: Problem[]
-  status: ProblemsStatus
-  total: number
-}
-
-interface ProblemPageResponse {
-  items: Problem[]
-  page: number
-  page_count: number
-  total: number
-}
 
 interface UseProblemsArgs {
   filters: ProblemFilters
@@ -25,50 +11,80 @@ interface UseProblemsArgs {
   sort: ProblemSort
 }
 
-export function useProblems({ filters, page, pageSize, sort }: UseProblemsArgs): ProblemsState {
-  const [state, setState] = React.useState<ProblemsState>({
-    problems: [],
-    status: "loading",
-    total: 0,
+export function useProblems({
+  filters,
+  page,
+  pageSize,
+  sort,
+}: UseProblemsArgs) {
+  const query = useQuery({
+    queryKey: ["problems", filters, page, pageSize, sort],
+    queryFn: async () => {
+      const { data, error } = await api.GET("/api/v1/problems", {
+        params: {
+          query: {
+            page: page + 1,
+            page_size: pageSize,
+            sort,
+            access: filters.access,
+            search: filters.search || undefined,
+            difficulty:
+              filters.difficulty === "all" ? undefined : filters.difficulty,
+            status: filters.status === "all" ? undefined : filters.status,
+          },
+        },
+      })
+      if (error || !data) {
+        throw new Error("The problem catalog could not be loaded")
+      }
+      return {
+        problems: data.items.map(toProblem),
+        total: data.total,
+      }
+    },
   })
 
-  React.useEffect(() => {
-    const controller = new AbortController()
+  return {
+    problems: query.data?.problems ?? [],
+    total: query.data?.total ?? 0,
+    status: query.isPending
+      ? ("loading" as const)
+      : query.isError
+        ? ("error" as const)
+        : ("ready" as const),
+  }
+}
 
-    const load = async () => {
-      try {
-        const params = new URLSearchParams({
-          page: String(page + 1),
-          page_size: String(pageSize),
-          sort,
-          access: filters.access,
+export function useAllProblems() {
+  const query = useQuery({
+    queryKey: ["problems", "all"],
+    queryFn: async () => {
+      const problems = []
+      let page = 1
+      let pageCount: number
+      do {
+        const { data, error } = await api.GET("/api/v1/problems", {
+          params: {
+            query: { page, page_size: 200, sort: "id-asc", access: "all" },
+          },
         })
-        if (filters.search) params.set("search", filters.search)
-        if (filters.difficulty !== "all") params.set("difficulty", filters.difficulty)
-        if (filters.status !== "all") params.set("status", filters.status)
-        const response = await fetch(`/api/v1/problems?${params}`, { signal: controller.signal })
-        if (!response.ok) {
-          throw new Error(`Catalog request failed with ${response.status}`)
+        if (error || !data) {
+          throw new Error("The problem catalog could not be loaded")
         }
+        problems.push(...data.items.map(toProblem))
+        pageCount = data.page_count
+        page += 1
+      } while (page <= pageCount)
+      return problems
+    },
+  })
 
-        const result = (await response.json()) as ProblemPageResponse
-        setState({ problems: result.items, total: result.total, status: "ready" })
-      } catch (error) {
-        if (controller.signal.aborted) {
-          return
-        }
-
-        console.error(error)
-        setState({ problems: [], total: 0, status: "error" })
-      }
-    }
-
-    load()
-
-    return () => {
-      controller.abort()
-    }
-  }, [filters.access, filters.difficulty, filters.search, filters.status, page, pageSize, sort])
-
-  return state
+  return {
+    problems: query.data ?? [],
+    status: query.isPending
+      ? ("loading" as const)
+      : query.isError
+        ? ("error" as const)
+        : ("ready" as const),
+  }
 }

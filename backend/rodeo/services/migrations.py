@@ -13,4 +13,3 @@ def upgrade_database(database_url: str, revision: str = "head") -> None:
     config.set_main_option("script_location", str(API_DIR / "alembic"))
     config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
     command.upgrade(config, revision)
-

@@ -21,17 +21,11 @@ import {
   DIFFICULTY_STYLES,
   STATUS_META,
 } from "@/components/problems/problem-meta"
-import {
-  indexAttemptArtifacts,
-  deriveStatus,
-  formatLastAttempt,
-} from "@/lib/attempts"
+import { formatLastAttempt } from "@/lib/attempts"
 import { cn } from "@/lib/utils"
-import { useAppStore } from "@/store/use-app-store"
 import type { Attempt, Problem, ProblemColumnId } from "@/types"
 
-function StatusCell({ attempt }: { attempt: Attempt | undefined }) {
-  const status = deriveStatus(attempt)
+function StatusCell({ status }: { status: Problem["status"] }) {
   const { label, icon: Icon, className } = STATUS_META[status]
 
   return (
@@ -79,12 +73,6 @@ export function ProblemsTable({
   total,
   onPageChange,
 }: ProblemsTableProps) {
-  const attempts = useAppStore((state) => state.attempts)
-  const lastAttemptByProblem = useAppStore(
-    (state) => state.lastAttemptByProblem
-  )
-  const artifactsByProblem = indexAttemptArtifacts(attempts)
-
   const shows = (column: ProblemColumnId) => visibleColumns.includes(column)
   const columnCount = visibleColumns.length
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
@@ -134,8 +122,7 @@ export function ProblemsTable({
               </TableRow>
             ) : (
               problems.map((problem) => {
-                const attempt = lastAttemptByProblem[problem.id]
-                const artifacts = artifactsByProblem[problem.id]
+                const attempt = problem.lastAttempt
 
                 return (
                   <TableRow
@@ -145,7 +132,7 @@ export function ProblemsTable({
                   >
                     {shows("status") ? (
                       <TableCell className="pl-6">
-                        <StatusCell attempt={attempt} />
+                        <StatusCell status={problem.status} />
                       </TableCell>
                     ) : null}
                     {shows("number") ? (
@@ -157,7 +144,7 @@ export function ProblemsTable({
                       <TableCell>
                         <span className="inline-flex items-center gap-2 font-medium">
                           {problem.title}
-                          {artifacts?.hasNotes ? (
+                          {problem.hasNotes ? (
                             <span
                               className="text-emerald-600 dark:text-emerald-400"
                               title="Has notes"
@@ -166,7 +153,7 @@ export function ProblemsTable({
                               <span className="sr-only">Has notes</span>
                             </span>
                           ) : null}
-                          {artifacts?.hasAudio ? (
+                          {problem.hasAudio ? (
                             <span
                               className="text-violet-600 dark:text-violet-400"
                               title="Has audio recording"

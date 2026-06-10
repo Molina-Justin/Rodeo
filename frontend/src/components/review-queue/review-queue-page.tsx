@@ -6,9 +6,7 @@ import {
   ReviewQueueList,
   type QueueItem,
 } from "@/components/review-queue/review-queue-list"
-import {
-  QUEUE_RANGES,
-} from "@/components/review-queue/review-queue-meta"
+import { QUEUE_RANGES } from "@/components/review-queue/review-queue-meta"
 import { Button } from "@/components/ui/button"
 import {
   Empty,
@@ -18,19 +16,19 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useProblems } from "@/hooks/use-problems"
+import { useAllProblems } from "@/hooks/use-problems"
+import { useAttempts } from "@/hooks/use-attempts"
 import { buildReviewStates } from "@/lib/dashboard"
 import { useAppStore } from "@/store/use-app-store"
 
 export function ReviewQueuePage() {
-  const attempts = useAppStore((state) => state.attempts)
+  const attemptsQuery = useAttempts()
+  const attempts = React.useMemo(
+    () => attemptsQuery.data ?? [],
+    [attemptsQuery.data]
+  )
   const setCurrentView = useAppStore((state) => state.setCurrentView)
-  const { problems, status } = useProblems({
-    filters: { search: "", difficulty: "all", status: "all", access: "all" },
-    page: 0,
-    pageSize: 200,
-    sort: "id-asc",
-  })
+  const { problems, status } = useAllProblems()
 
   const [range, setRange] = React.useState("30")
   const [search, setSearch] = React.useState("")
@@ -44,10 +42,7 @@ export function ReviewQueuePage() {
     [problems]
   )
 
-  const allStates = React.useMemo(
-    () => buildReviewStates(attempts),
-    [attempts]
-  )
+  const allStates = React.useMemo(() => buildReviewStates(attempts), [attempts])
 
   const topics = React.useMemo(() => {
     const set = new Set<string>()
@@ -68,7 +63,7 @@ export function ReviewQueuePage() {
     const maxDays = QUEUE_RANGES.find((r) => r.value === range)?.days ?? 30
     const needle = search.trim().toLowerCase()
 
-    let filtered = allStates.filter((state) => {
+    const filtered = allStates.filter((state) => {
       const problem = catalog.get(state.problemId)
       if (!problem) return false
       if (state.dueInDays > maxDays) return false
@@ -99,15 +94,14 @@ export function ReviewQueuePage() {
 
   const dueCount = allStates.filter((state) => state.dueInDays <= 0).length
   const lateCount = allStates.filter((state) => state.dueInDays < 0).length
-  const todayCount = allStates.filter(
-    (state) => state.dueInDays === 0
-  ).length
+  const todayCount = allStates.filter((state) => state.dueInDays === 0).length
 
   // Auto-select the first item when visible items change and nothing is selected
   const effectiveSelectedId =
-    selectedId !== null && visibleItems.some((item) => item.problemId === selectedId)
+    selectedId !== null &&
+    visibleItems.some((item) => item.problemId === selectedId)
       ? selectedId
-      : visibleItems[0]?.problemId ?? null
+      : (visibleItems[0]?.problemId ?? null)
 
   const selectedState = allStates.find(
     (state) => state.problemId === effectiveSelectedId
@@ -136,7 +130,7 @@ export function ReviewQueuePage() {
     setTopicIndex((current) => (current + 1) % topics.length)
   }
 
-  if (status === "loading") {
+  if (status === "loading" || attemptsQuery.isPending) {
     return (
       <div className="flex flex-col gap-6">
         <Skeleton className="h-56 w-full rounded-2xl" />
@@ -168,8 +162,8 @@ export function ReviewQueuePage() {
               Queue is clear
             </EmptyTitle>
             <EmptyDescription className="max-w-72 text-xs leading-relaxed">
-              Reviews are scheduled from the attempts you log. Log a problem
-              to see it appear here on its next review date.
+              Reviews are scheduled from the attempts you log. Log a problem to
+              see it appear here on its next review date.
             </EmptyDescription>
           </EmptyHeader>
           <Button
@@ -190,9 +184,7 @@ export function ReviewQueuePage() {
       {selectedState && selectedProblem ? (
         <section className="flex flex-col gap-3.5">
           <div className="flex items-center gap-3.5">
-            <h3 className="text-base font-bold tracking-tight">
-              Review next
-            </h3>
+            <h3 className="text-base font-bold tracking-tight">Review next</h3>
             <span className="h-px flex-1 bg-border/60" />
             <span className="font-mono text-xs tracking-tight text-muted-foreground">
               ordered by due date

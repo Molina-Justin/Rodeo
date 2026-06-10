@@ -19,8 +19,10 @@ from rodeo.services.attempts import (
     AttemptNotFoundError,
     IdempotencyConflictError,
     ProblemNotFoundError,
+    RecordingNotFoundError,
     create_attempt,
     delete_attempt,
+    delete_attempt_recording,
     get_attempt,
     list_attempts,
     update_attempt,
@@ -40,7 +42,10 @@ def _settings(request: Request) -> Settings:
 
 
 def _raise_http_error(error: Exception) -> None:
-    if isinstance(error, (AttemptNotFoundError, ProblemNotFoundError)):
+    if isinstance(
+        error,
+        (AttemptNotFoundError, ProblemNotFoundError, RecordingNotFoundError),
+    ):
         raise HTTPException(
             status_code=http_status.HTTP_404_NOT_FOUND,
             detail=str(error),
@@ -162,6 +167,31 @@ def remove_attempt(
     settings = _settings(request)
     try:
         delete_attempt(
+            session,
+            attempt_id=attempt_id,
+            now=utc_now(),
+            timezone_name=settings.timezone,
+        )
+        session.commit()
+    except Exception as error:
+        session.rollback()
+        _raise_http_error(error)
+        raise
+    return Response(status_code=http_status.HTTP_204_NO_CONTENT)
+
+
+@router.delete(
+    "/attempts/{attempt_id}/recording",
+    status_code=http_status.HTTP_204_NO_CONTENT,
+)
+def remove_attempt_recording(
+    attempt_id: str,
+    session: DatabaseSession,
+    request: Request,
+) -> Response:
+    settings = _settings(request)
+    try:
+        delete_attempt_recording(
             session,
             attempt_id=attempt_id,
             now=utc_now(),

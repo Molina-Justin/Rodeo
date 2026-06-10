@@ -56,6 +56,11 @@ class ProblemNotFoundError(AttemptServiceError):
         super().__init__(f"problem {problem_id} was not found")
 
 
+class RecordingNotFoundError(AttemptServiceError):
+    def __init__(self, attempt_id: str) -> None:
+        super().__init__(f"attempt {attempt_id!r} has no recording")
+
+
 class IdempotencyConflictError(AttemptServiceError):
     def __init__(self, idempotency_key: str) -> None:
         super().__init__(
@@ -347,6 +352,40 @@ def delete_attempt(
     recompute_problem_review_state(
         session,
         problem_id=problem_id,
+        now=now,
+        timezone_name=timezone_name,
+    )
+
+
+def delete_attempt_recording(
+    session: Session,
+    *,
+    attempt_id: str,
+    now: datetime,
+    timezone_name: str,
+) -> None:
+    attempt = session.get(Attempt, attempt_id)
+    if attempt is None:
+        raise AttemptNotFoundError(attempt_id)
+    recording = session.scalar(
+        select(Recording).where(Recording.attempt_id == attempt_id)
+    )
+    if recording is None:
+        raise RecordingNotFoundError(attempt_id)
+
+    session.add(
+        Job(
+            kind=DELETE_RECORDING_JOB_KIND,
+            status=JobStatus.QUEUED,
+            payload={"storage_key": recording.storage_key},
+            available_at=_as_aware_utc(now),
+        )
+    )
+    session.delete(recording)
+    session.flush()
+    recompute_problem_review_state(
+        session,
+        problem_id=attempt.problem_id,
         now=now,
         timezone_name=timezone_name,
     )

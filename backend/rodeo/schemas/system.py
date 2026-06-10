@@ -30,4 +30,3 @@ class AICapability(APIModel):
 class CapabilitiesResponse(APIModel):
     transcription: TranscriptionCapability
     ai: AICapability
-

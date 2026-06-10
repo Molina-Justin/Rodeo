@@ -150,7 +150,9 @@ def create_session(
 def get_session(database: Session, session_id: str) -> PracticeSession:
     practice_session = database.get(PracticeSession, session_id)
     if practice_session is None:
-        raise PracticeSessionNotFoundError(f"practice session {session_id!r} was not found")
+        raise PracticeSessionNotFoundError(
+            f"practice session {session_id!r} was not found"
+        )
     return practice_session
 
 
@@ -174,7 +176,9 @@ def pause_session(practice_session: PracticeSession, *, now: datetime) -> None:
     if practice_session.status is not PracticeSessionStatus.ACTIVE:
         raise PracticeSessionStateError("only an active practice session can be paused")
     timestamp = _aware(now)
-    practice_session.accumulated_active_ms = active_duration_ms(practice_session, now=timestamp)
+    practice_session.accumulated_active_ms = active_duration_ms(
+        practice_session, now=timestamp
+    )
     practice_session.running_since = None
     practice_session.paused_at = timestamp
     practice_session.status = PracticeSessionStatus.PAUSED
@@ -195,7 +199,9 @@ def stop_session(practice_session: PracticeSession, *, now: datetime) -> None:
     }:
         raise PracticeSessionStateError("practice session has already been stopped")
     timestamp = _aware(now)
-    practice_session.accumulated_active_ms = active_duration_ms(practice_session, now=timestamp)
+    practice_session.accumulated_active_ms = active_duration_ms(
+        practice_session, now=timestamp
+    )
     practice_session.running_since = None
     practice_session.paused_at = None
     practice_session.stopped_at = timestamp
@@ -244,7 +250,9 @@ def finalize_session(
         PracticeSessionStatus.AWAITING_DETAILS,
         PracticeSessionStatus.FINALIZED,
     }:
-        raise PracticeSessionStateError("practice session must be stopped before finalizing")
+        raise PracticeSessionStateError(
+            "practice session must be stopped before finalizing"
+        )
     completed_at = practice_session.stopped_at or _aware(now)
     attempt_payload = AttemptCreate(
         completed_at=_aware(completed_at),
@@ -281,7 +289,9 @@ def discard_session(
     now: datetime,
 ) -> None:
     if practice_session.status is PracticeSessionStatus.FINALIZED:
-        raise PracticeSessionStateError("a finalized practice session cannot be discarded")
+        raise PracticeSessionStateError(
+            "a finalized practice session cannot be discarded"
+        )
     recording = _recording_for(database, practice_session.id)
     if recording is not None:
         database.add(

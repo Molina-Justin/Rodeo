@@ -30,4 +30,3 @@ def ready(request: Request) -> ReadinessResponse:
 @router.get("/capabilities", response_model=CapabilitiesResponse)
 def capabilities(request: Request) -> CapabilitiesResponse:
     return get_capabilities(request.app.state.settings)
-

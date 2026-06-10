@@ -8,7 +8,13 @@ import {
 import { ProblemDialog } from "@/components/problems/problem-dialog"
 import { ProblemsTable } from "@/components/problems/problems-table"
 import { ProblemsToolbar } from "@/components/problems/problems-toolbar"
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useProblems } from "@/hooks/use-problems"
 import type {
@@ -89,9 +95,7 @@ export function ProblemsPage() {
             </EmptyMedia>
             <EmptyTitle>Catalog unavailable</EmptyTitle>
             <EmptyDescription>
-              The local problem catalog could not be read. Run
-              {" "}
-              <code>node scripts/fetch-problems.mjs</code> to rebuild it.
+              The local problem catalog could not be read from the Rodeo API.
             </EmptyDescription>
           </EmptyHeader>
         </Empty>

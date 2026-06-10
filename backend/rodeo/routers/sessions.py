@@ -1,8 +1,17 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, cast
 
-from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, Response, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Header,
+    HTTPException,
+    Request,
+    Response,
+    UploadFile,
+)
 from fastapi import status as http_status
 from sqlalchemy.orm import Session
 
@@ -18,7 +27,6 @@ from rodeo.schemas.sessions import (
 from rodeo.services.attempts import IdempotencyConflictError, ProblemNotFoundError
 from rodeo.services.recordings import RecordingUploadError, store_upload
 from rodeo.services.sessions import (
-    PracticeSessionError,
     PracticeSessionNotFoundError,
     PracticeSessionStateError,
     attach_recording,
@@ -35,11 +43,13 @@ from rodeo.services.sessions import (
 
 router = APIRouter(prefix="/practice-sessions", tags=["practice sessions"])
 DatabaseSession = Annotated[Session, Depends(get_db_session)]
-IdempotencyKey = Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)]
+IdempotencyKey = Annotated[
+    str, Header(alias="Idempotency-Key", min_length=1, max_length=128)
+]
 
 
 def _settings(request: Request) -> Settings:
-    return request.app.state.settings
+    return cast(Settings, request.app.state.settings)
 
 
 def _error(error: Exception) -> None:
@@ -52,8 +62,12 @@ def _error(error: Exception) -> None:
     raise error
 
 
-@router.post("", response_model=PracticeSessionResponse, status_code=http_status.HTTP_201_CREATED)
-def start(payload: PracticeSessionCreate, database: DatabaseSession) -> PracticeSessionResponse:
+@router.post(
+    "", response_model=PracticeSessionResponse, status_code=http_status.HTTP_201_CREATED
+)
+def start(
+    payload: PracticeSessionCreate, database: DatabaseSession
+) -> PracticeSessionResponse:
     now = utc_now()
     try:
         practice_session = create_session(database, payload=payload, now=now)
@@ -68,7 +82,11 @@ def start(payload: PracticeSessionCreate, database: DatabaseSession) -> Practice
 @router.get("/current", response_model=PracticeSessionResponse | None)
 def current(database: DatabaseSession) -> PracticeSessionResponse | None:
     practice_session = get_current_session(database)
-    return None if practice_session is None else to_response(database, practice_session, now=utc_now())
+    return (
+        None
+        if practice_session is None
+        else to_response(database, practice_session, now=utc_now())
+    )
 
 
 @router.post("/{session_id}/pause", response_model=PracticeSessionResponse)
@@ -162,11 +180,12 @@ def finalize(
 @router.delete("/{session_id}", status_code=http_status.HTTP_204_NO_CONTENT)
 def discard(session_id: str, database: DatabaseSession) -> Response:
     try:
-        discard_session(database, practice_session=get_session(database, session_id), now=utc_now())
+        discard_session(
+            database, practice_session=get_session(database, session_id), now=utc_now()
+        )
         database.commit()
     except Exception as error:
         database.rollback()
         _error(error)
         raise
     return Response(status_code=http_status.HTTP_204_NO_CONTENT)
-

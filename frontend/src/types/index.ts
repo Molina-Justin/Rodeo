@@ -26,6 +26,12 @@ export interface Problem {
   premium: boolean
   acceptance: number
   topics: string[]
+  status: ProblemStatus
+  attemptCount: number
+  hasNotes: boolean
+  hasAudio: boolean
+  hasTranscript: boolean
+  lastAttempt?: Attempt
 }
 
 export type DifficultyFilter = Difficulty | "all"
@@ -64,8 +70,12 @@ export interface Attempt {
   effort: AttemptEffort
   blocker: AttemptBlocker
   notes: string
-  /** Object URL for the locally captured session audio. */
+  /** Durable recording endpoint returned by the API. */
   audioUrl?: string
+  recordingId?: string
+  transcriptionId?: string
+  transcriptionStatus?: "queued" | "processing" | "completed" | "failed"
+  hasTranscript?: boolean
 }
 
 export type AttemptDraft = Omit<Attempt, "id">

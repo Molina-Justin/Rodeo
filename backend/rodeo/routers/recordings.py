@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from starlette.responses import FileResponse
 from sqlalchemy.orm import Session
+from starlette.responses import FileResponse
 
 from rodeo.config import Settings
 from rodeo.db import get_db_session
@@ -29,7 +29,9 @@ def content(
     try:
         path: Path = recording_path(settings, recording.storage_key)
     except RecordingUploadError as error:
-        raise HTTPException(status_code=500, detail="Recording storage is invalid") from error
+        raise HTTPException(
+            status_code=500, detail="Recording storage is invalid"
+        ) from error
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Recording content is unavailable")
     # Starlette FileResponse provides ETags and byte range responses for seekable
