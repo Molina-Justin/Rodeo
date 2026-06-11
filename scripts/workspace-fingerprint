@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Print a stable hash of the live database and recording files.
+set -euo pipefail
+
+project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$project_dir"
+
+if [[ -n "$(docker compose ps --quiet --status running rodeo 2>/dev/null)" ]]; then
+  docker compose exec -T rodeo python -m rodeo.cli.fingerprint "$@"
+else
+  docker compose run --rm --no-deps -T rodeo python -m rodeo.cli.fingerprint "$@"
+fi
