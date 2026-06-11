@@ -27,6 +27,13 @@ export interface SessionContext {
   targetMinutes: number
 }
 
+/** Optional, non-identifying context the candidate set in Settings. */
+export interface CandidateGoals {
+  targetRole: string
+  targetDate: string
+  yearsExperience: number | null
+}
+
 export interface SessionPayload {
   topic: string
   mastery: { score: number; target: number }
@@ -40,12 +47,15 @@ export interface SessionPayload {
   request: { minutes: number; problemCount: number }
   /** Completed problem history for the selected topic only. */
   completedProblems: TopicProblem[]
+  /** Present only when the candidate has filled in Interview Goals. */
+  candidateGoals: CandidateGoals | null
 }
 
 export function buildSessionPayload(
   focus: TopicFocus,
   context: SessionContext,
-  options: SessionOptions = DEFAULT_SESSION_OPTIONS
+  options: SessionOptions = DEFAULT_SESSION_OPTIONS,
+  candidateGoals: CandidateGoals | null = null
 ): SessionPayload {
   const strip = (problem: TopicProblem): TopicProblem =>
     options.includeNotes ? problem : { ...problem, notes: "" }
@@ -70,6 +80,13 @@ export function buildSessionPayload(
     },
     completedProblems:
       focus.attempted > 0 ? focus.attemptedProblems.map(strip) : [],
+    candidateGoals:
+      candidateGoals &&
+      (candidateGoals.targetRole ||
+        candidateGoals.targetDate ||
+        candidateGoals.yearsExperience !== null)
+        ? candidateGoals
+        : null,
   }
 }
 
@@ -94,6 +111,7 @@ function defaultSessionTask(payload: SessionPayload) {
  * The interpolated Settings template is included as `task`.
  */
 export function toJson(payload: SessionPayload, template?: string): string {
+  const goals = payload.candidateGoals
   const instructions = template
     ? interpolatePromptTemplate(template, {
         topic: payload.topic,
@@ -101,6 +119,9 @@ export function toJson(payload: SessionPayload, template?: string): string {
         problem_count: payload.request.problemCount,
         blocker: payload.topBlocker?.blocker ?? "No recurring blocker",
         readiness: `${payload.readinessScore}%`,
+        target_role: goals?.targetRole || "Not specified",
+        target_date: goals?.targetDate || "Not specified",
+        years_experience: goals?.yearsExperience ?? "Not specified",
       })
     : defaultSessionTask(payload)
   const task =

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -15,8 +16,14 @@ from rodeo.security import OriginCheckMiddleware
 from rodeo.services.attempts import rebuild_review_states_if_engine_changed
 from rodeo.services.catalog import seed_catalog
 from rodeo.services.migrations import upgrade_database
+from rodeo.services.restore import apply_pending_restore
 from rodeo.static import SPAStaticFiles
+from rodeo.workers.backups import BackupScheduler
 from rodeo.workers.transcription import DurableWorker
+
+# Uvicorn configures handlers for its own loggers only; a "rodeo.*" logger would
+# propagate to an unconfigured root and never reach the container logs.
+logger = logging.getLogger("uvicorn.error")
 
 
 def prepare_storage(settings: Settings) -> None:
@@ -25,6 +32,7 @@ def prepare_storage(settings: Settings) -> None:
         settings.recordings_dir,
         settings.temporary_dir,
         settings.local_models_dir,
+        settings.backups_dir,
     ):
         directory.mkdir(parents=True, exist_ok=True)
 
@@ -35,6 +43,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         prepare_storage(app_settings)
+        restored = apply_pending_restore(app_settings)
+        if restored is not None:
+            logger.info(
+                "Restored %s before startup (%d recording(s) recovered)",
+                restored["restored"],
+                len(restored["recordings_restored"]),
+            )
+        # Migrations run after a restore so an older snapshot is brought forward.
         upgrade_database(app_settings.resolved_database_url)
         factory = session_factory_for_url(
             app_settings.resolved_database_url,
@@ -50,7 +66,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         worker = DurableWorker(app_settings)
         worker.start()
         _app.state.worker = worker
+        backups = BackupScheduler(app_settings)
+        backups.start()
+        _app.state.backups = backups
+        logger.info("Rodeo is ready at %s", app_settings.public_url)
         yield
+        backups.stop()
         worker.stop()
         dispose_database_engines()
 

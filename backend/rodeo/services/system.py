@@ -23,6 +23,8 @@ from rodeo.schemas.system import (
     ExportAttempt,
     ExportResponse,
     ExportReviewState,
+    InterviewGoalsResponse,
+    InterviewGoalsUpdate,
     PromptTemplatesResponse,
     ReadinessResponse,
     TranscriptionCapability,
@@ -118,6 +120,37 @@ def reset_prompt_template(
     return get_prompt_templates(session)
 
 
+INTERVIEW_GOALS_SETTING_KEY = "interview_goals"
+
+
+def get_interview_goals(session: Session) -> InterviewGoalsResponse:
+    setting = session.get(AppSetting, INTERVIEW_GOALS_SETTING_KEY)
+    data = (
+        setting.value if setting is not None and isinstance(setting.value, dict) else {}
+    )
+    return InterviewGoalsResponse(
+        target_role=data.get("target_role") or "",
+        target_date=data.get("target_date") or "",
+        years_experience=data.get("years_experience"),
+    )
+
+
+def update_interview_goals(
+    session: Session, *, goals: InterviewGoalsUpdate, now: datetime
+) -> InterviewGoalsResponse:
+    value = goals.model_dump()
+    setting = session.get(AppSetting, INTERVIEW_GOALS_SETTING_KEY)
+    if setting is None:
+        session.add(
+            AppSetting(key=INTERVIEW_GOALS_SETTING_KEY, value=value, updated_at=now)
+        )
+    else:
+        setting.value = value
+        setting.updated_at = now
+    session.flush()
+    return get_interview_goals(session)
+
+
 def check_readiness(settings: Settings) -> ReadinessResponse:
     with get_engine(settings).connect() as connection:
         connection.execute(text("SELECT 1")).scalar_one()
@@ -193,6 +226,7 @@ def export_workspace(session: Session, *, now: datetime) -> ExportResponse:
         attempts=attempts,
         review_state=review_state,
         prompt_templates=get_prompt_templates(session),
+        interview_goals=get_interview_goals(session),
     )
 
 

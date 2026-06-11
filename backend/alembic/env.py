@@ -11,7 +11,10 @@ from rodeo.models import Base
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # Migrations run inside the app lifespan, after Uvicorn has configured its
+    # own logging. The default would disable every logger not named in
+    # alembic.ini, silencing the app's logs for the rest of the process.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 

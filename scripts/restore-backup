@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Restore a Rodeo database snapshot. Stops the container, restores, restarts.
+#
+# The restore itself lives in rodeo.services.restore so that it is testable;
+# this script only sequences the container around it.
+set -euo pipefail
+
+project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$project_dir"
+
+usage() {
+  echo "Usage: scripts/restore-backup <snapshot filename>" >&2
+  echo "       scripts/restore-backup --list" >&2
+  echo "Example: scripts/restore-backup rodeo-20260830T123045Z.db" >&2
+}
+
+if [[ $# -ne 1 ]]; then
+  usage
+  exit 2
+fi
+
+# `run --rm --no-deps` overrides the image CMD, so this never starts the API.
+rodeo_python() {
+  docker compose run --rm --no-deps -T rodeo python -m rodeo.cli.restore "$@"
+}
+
+if [[ "$1" == "--list" ]]; then
+  rodeo_python --list
+  exit 0
+fi
+
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+was_running=false
+if [[ -n "$(docker compose ps --quiet --status running 2>/dev/null)" ]]; then
+  was_running=true
+fi
+
+# Stopping cleanly lets SQLite checkpoint the WAL before anything is moved.
+docker compose down
+
+restart_needed="$was_running"
+trap 'if [[ "$restart_needed" == true ]]; then docker compose up -d; fi' EXIT
+
+rodeo_python "$1"
+
+if [[ "$was_running" == true ]]; then
+  docker compose up -d
+  echo "Restore complete. Rodeo is starting."
+else
+  echo "Restore complete. Start Rodeo with: docker compose up -d"
+fi
+restart_needed=false
+trap - EXIT

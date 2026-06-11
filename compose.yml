@@ -4,14 +4,14 @@ services:
       context: .
       args:
         WHISPER_MODEL: base.en
+    container_name: rodeo
     environment:
       RODEO_ALLOWED_HOSTS: '["127.0.0.1", "localhost"]'
       RODEO_TIMEZONE: America/New_York
+      # Printed on startup. Keep the port in step with the host side of `ports`.
+      RODEO_PUBLIC_URL: http://127.0.0.1:8000
     ports:
       - "127.0.0.1:8000:8000"
     restart: unless-stopped
     volumes:
-      - rodeo-data:/data
-
-volumes:
-  rodeo-data:
+      - ./data:/data

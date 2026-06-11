@@ -32,6 +32,9 @@ def configure_sqlite_connection(
     try:
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA journal_mode=WAL")
+        # WAL survives a crashed process on its own; FULL is what carries a
+        # committed attempt through a power cut, so it is set explicitly.
+        cursor.execute("PRAGMA synchronous=FULL")
         cursor.execute(f"PRAGMA busy_timeout={busy_timeout_ms:d}")
     finally:
         cursor.close()

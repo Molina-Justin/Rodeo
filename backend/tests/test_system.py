@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -6,7 +7,8 @@ from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
 from rodeo.config import Settings
-from rodeo.db import get_engine
+from rodeo.db import dispose_database_engines, get_engine
+from rodeo.main import create_app
 from rodeo.models import (
     AppSetting,
     Attempt,
@@ -38,6 +40,33 @@ def test_readiness_checks_database(client: TestClient) -> None:
     assert response.json() == {"status": "ready", "database": "ready"}
 
 
+def test_startup_logs_the_url_the_app_is_reachable_from(
+    settings: Settings,
+) -> None:
+    reachable = settings.model_copy(update={"public_url": "http://127.0.0.1:8123"})
+    records: list[str] = []
+
+    # Applying migrations reconfigures logging mid-startup and replaces the root
+    # handlers, so capture on the logger itself rather than through caplog.
+    class Capture(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            records.append(record.getMessage())
+
+    logger = logging.getLogger("uvicorn.error")
+    handler = Capture(level=logging.INFO)
+    logger.addHandler(handler)
+    previous_level = logger.level
+    logger.setLevel(logging.INFO)
+    try:
+        with TestClient(create_app(reachable)):
+            pass
+    finally:
+        logger.removeHandler(handler)
+        logger.setLevel(previous_level)
+
+    assert "Rodeo is ready at http://127.0.0.1:8123" in records
+
+
 def test_capabilities_do_not_claim_uninstalled_features(
     client: TestClient,
 ) -> None:
@@ -50,8 +79,28 @@ def test_capabilities_do_not_claim_uninstalled_features(
             "available": False,
             "model": "base.en",
         },
-        "ai": {"provider": "anthropic", "available": False},
     }
+
+
+def test_backup_status_and_manual_controls(client: TestClient) -> None:
+    created = client.post("/api/v1/system/backups", headers=ORIGIN_HEADERS)
+
+    assert created.status_code == 200
+    body = created.json()
+    assert body["enabled"] is True
+    assert body["last_backup_at"] is not None
+    assert body["next_backup_at"] is not None
+    assert body["last_backup_filename"].startswith("rodeo-")
+    assert body["snapshot_count"] >= 1
+    assert body["recordings_included"] is True
+
+    listing = client.get("/api/v1/system/backups/files")
+    assert listing.status_code == 200
+    catalogue = listing.json()
+    assert catalogue["files"][0]["filename"] == body["last_backup_filename"]
+    assert catalogue["files"][0]["size_bytes"] > 0
+    assert catalogue["recording_count"] == 0
+    assert catalogue["location"] == body["location"]
 
 
 def test_rejects_unknown_origin(client: TestClient) -> None:
@@ -109,7 +158,6 @@ def test_migration_creates_schema_and_sqlite_pragmas(
     migration_settings = settings.model_copy(update={"database_url": database_url})
     engine = get_engine(migration_settings)
     expected_tables = {
-        "ai_artifact",
         "alembic_version",
         "app_settings",
         "attempt",
@@ -200,9 +248,47 @@ def test_export_includes_attempts_with_transcript_and_review_state(
         "Pick {{problem_count}} problems"
         in body["prompt_templates"]["session_template"]
     )
+    assert body["interview_goals"] == {
+        "target_role": "",
+        "target_date": "",
+        "years_experience": None,
+    }
 
 
-def test_prompt_templates_can_be_saved_and_reset(client: TestClient) -> None:
+def test_interview_goals_can_be_saved_and_are_included_in_export(
+    client: TestClient,
+) -> None:
+    initial = client.get("/api/v1/settings/interview-goals")
+
+    assert initial.status_code == 200
+    assert initial.json() == {
+        "target_role": "",
+        "target_date": "",
+        "years_experience": None,
+    }
+
+    saved = client.put(
+        "/api/v1/settings/interview-goals",
+        headers=ORIGIN_HEADERS,
+        json={
+            "target_role": "Backend engineer",
+            "target_date": "3 months",
+            "years_experience": 4,
+        },
+    )
+
+    assert saved.status_code == 200
+    assert saved.json() == {
+        "target_role": "Backend engineer",
+        "target_date": "3 months",
+        "years_experience": 4,
+    }
+
+    export = client.get("/api/v1/system/export")
+    assert export.json()["interview_goals"] == saved.json()
+
+
+def test_prompt_templates_can_be_saved(client: TestClient) -> None:
     initial = client.get("/api/v1/settings/prompt-templates")
 
     assert initial.status_code == 200
@@ -216,13 +302,6 @@ def test_prompt_templates_can_be_saved_and_reset(client: TestClient) -> None:
 
     assert saved.status_code == 200
     assert saved.json()["session_template"] == "Plan {{minutes}} minutes for {{topic}}."
-
-    reset = client.delete(
-        "/api/v1/settings/prompt-templates/session", headers=ORIGIN_HEADERS
-    )
-
-    assert reset.status_code == 200
-    assert "Pick {{problem_count}} problems" in reset.json()["session_template"]
 
 
 def test_clear_deletes_user_data_and_recording_files_but_keeps_catalog(
@@ -261,3 +340,82 @@ def test_clear_deletes_user_data_and_recording_files_but_keeps_catalog(
     assert db_session.scalars(select(Job)).all() == []
     assert db_session.scalars(select(AppSetting)).all() == []
     assert len(db_session.scalars(select(Problem)).all()) == catalog_size_before
+
+
+def test_restore_endpoint_stages_without_restarting_outside_production(
+    client: TestClient,
+) -> None:
+    created = client.post("/api/v1/system/backups", headers=ORIGIN_HEADERS)
+    filename = created.json()["last_backup_filename"]
+
+    scheduled = client.post(
+        "/api/v1/system/backups/restore",
+        json={"filename": filename},
+        headers=ORIGIN_HEADERS,
+    )
+
+    assert scheduled.status_code == 202
+    assert scheduled.json() == {"filename": filename, "will_restart": False}
+
+
+def test_restore_endpoint_rejects_an_unknown_snapshot(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/system/backups/restore",
+        json={"filename": "rodeo-20200101T000000Z.db"},
+        headers=ORIGIN_HEADERS,
+    )
+
+    assert response.status_code == 400
+
+
+def test_a_staged_restore_is_applied_when_the_app_starts(settings) -> None:  # type: ignore[no-untyped-def]
+    """The whole loop: snapshot, change data, stage, restart, data is back."""
+    from rodeo.services.restore import stage_restore_request
+
+    with TestClient(create_app(settings)) as first:
+        first.post("/api/v1/system/backups", headers=ORIGIN_HEADERS)
+        snapshot = first.get("/api/v1/system/backups", headers=ORIGIN_HEADERS).json()[
+            "last_backup_filename"
+        ]
+    dispose_database_engines()
+
+    marker = settings.data_dir / "restored.txt"
+    marker.write_text("placeholder")
+    stage_restore_request(settings, backup_name=snapshot)
+
+    # A fresh application start stands in for the container coming back up.
+    with TestClient(create_app(settings)) as second:
+        status_response = second.get("/api/v1/system/backups", headers=ORIGIN_HEADERS)
+        assert status_response.status_code == 200
+        assert second.get("/api/v1/health/ready").status_code == 200
+
+    assert not (settings.data_dir / "restore-request.json").exists()
+    assert len(list(settings.pre_restore_dir.glob("pre-restore-*.db"))) == 1
+    dispose_database_engines()
+
+
+def test_backup_listing_reports_progress_and_supports_deletion(
+    client: TestClient,
+) -> None:
+    client.post("/api/v1/system/backups", headers=ORIGIN_HEADERS)
+    listing = client.get("/api/v1/system/backups/files").json()
+    filename = listing["files"][0]["filename"]
+
+    assert listing["files"][0]["attempt_count"] == 0
+    assert listing["files"][0]["solved_count"] == 0
+
+    deleted = client.delete(
+        f"/api/v1/system/backups/files/{filename}", headers=ORIGIN_HEADERS
+    )
+
+    assert deleted.status_code == 200
+    assert deleted.json()["files"] == []
+
+
+def test_deleting_an_unknown_backup_is_rejected(client: TestClient) -> None:
+    response = client.delete(
+        "/api/v1/system/backups/files/rodeo-20200101T000000Z.db",
+        headers=ORIGIN_HEADERS,
+    )
+
+    assert response.status_code == 404

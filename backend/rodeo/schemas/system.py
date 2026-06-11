@@ -24,6 +24,39 @@ class ReadinessResponse(APIModel):
     database: Literal["ready"] = "ready"
 
 
+class RestoreRequest(APIModel):
+    filename: str = Field(min_length=1, max_length=200)
+
+
+class RestoreScheduledResponse(APIModel):
+    filename: str
+    will_restart: bool
+
+
+class BackupStatusResponse(APIModel):
+    enabled: bool
+    last_backup_at: datetime | None
+    next_backup_at: datetime | None
+    last_backup_filename: str | None
+    snapshot_count: int = Field(ge=0)
+    recordings_included: bool
+    location: str
+
+
+class BackupFile(APIModel):
+    filename: str
+    size_bytes: int = Field(ge=0)
+    created_at: datetime
+    attempt_count: int | None = None
+    solved_count: int | None = None
+
+
+class BackupFileListResponse(APIModel):
+    location: str
+    recording_count: int = Field(ge=0)
+    files: list[BackupFile]
+
+
 class TranscriptionCapability(APIModel):
     enabled: bool
     available: bool
@@ -41,6 +74,18 @@ class PromptTemplatesResponse(APIModel):
 
 class PromptTemplateUpdate(APIModel):
     template: str = Field(min_length=1, max_length=20_000)
+
+
+class InterviewGoalsResponse(APIModel):
+    target_role: str
+    target_date: str
+    years_experience: int | None
+
+
+class InterviewGoalsUpdate(APIModel):
+    target_role: str = Field(default="", max_length=200)
+    target_date: str = Field(default="", max_length=200)
+    years_experience: int | None = Field(default=None, ge=0, le=60)
 
 
 class ExportAttempt(APIModel):
@@ -75,6 +120,7 @@ class ExportResponse(APIModel):
     attempts: list[ExportAttempt]
     review_state: list[ExportReviewState]
     prompt_templates: PromptTemplatesResponse
+    interview_goals: InterviewGoalsResponse
 
 
 class ClearResponse(APIModel):

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -21,6 +22,8 @@ class Settings(BaseSettings):
     api_prefix: str = "/api/v1"
     timezone: str = "America/New_York"
 
+    public_url: str = "http://127.0.0.1:8000"
+
     data_dir: Path = Path("/data")
     static_dir: Path = Path("/app/static")
     database_url: str | None = None
@@ -37,6 +40,11 @@ class Settings(BaseSettings):
             "http://localhost:5199",
         ]
     )
+
+    backup_enabled: bool = True
+    backup_interval_hours: int = Field(default=24, gt=0, le=8_760)
+    backup_retention: int = Field(default=14, ge=1, le=365)
+    backup_include_recordings: bool = True
 
     transcription_enabled: bool = True
     transcription_model: str = "base.en"
@@ -59,6 +67,24 @@ class Settings(BaseSettings):
     @property
     def temporary_dir(self) -> Path:
         return self.data_dir / "tmp"
+
+    @property
+    def backups_dir(self) -> Path:
+        return self.data_dir / "backups"
+
+    @property
+    def backup_recordings_dir(self) -> Path:
+        return self.backups_dir / "recordings"
+
+    @property
+    def pre_restore_dir(self) -> Path:
+        """Databases displaced by a restore, kept so one can be undone."""
+        return self.backups_dir / "pre-restore"
+
+    @property
+    def backup_retention_window(self) -> timedelta:
+        """How long a deleted recording stays recoverable."""
+        return timedelta(hours=self.backup_interval_hours) * self.backup_retention
 
     @property
     def local_models_dir(self) -> Path:

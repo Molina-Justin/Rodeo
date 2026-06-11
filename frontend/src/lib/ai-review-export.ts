@@ -5,6 +5,7 @@ import {
   formatDuration,
 } from "@/lib/attempts"
 import { interpolatePromptTemplate } from "@/lib/prompt-templates"
+import type { CandidateGoals } from "@/lib/session-prompt"
 import type { Attempt, Problem } from "@/types"
 
 interface AiReviewExportInput {
@@ -13,6 +14,8 @@ interface AiReviewExportInput {
   transcript?: string | null
   transcriptStatus?: Attempt["transcriptionStatus"]
   template?: string
+  /** Interview Goals from Settings, when the candidate has filled them in. */
+  candidateGoals?: CandidateGoals | null
 }
 
 function attemptDate(iso: string) {
@@ -29,7 +32,23 @@ export function buildAiReviewPrompt({
   transcript,
   transcriptStatus,
   template,
+  candidateGoals,
 }: AiReviewExportInput): string {
+  const templateUsesGoals =
+    template !== undefined &&
+    ["{{target_role}}", "{{target_date}}", "{{years_experience}}"].some(
+      (variable) => template.includes(variable)
+    )
+  const hasGoals =
+    candidateGoals &&
+    (candidateGoals.targetRole ||
+      candidateGoals.targetDate ||
+      candidateGoals.yearsExperience !== null)
+  const goalsSection =
+    hasGoals && !templateUsesGoals
+      ? `\n## Candidate profile\n\n- **Target role:** ${candidateGoals.targetRole || "Not specified"}\n- **Target timeline:** ${candidateGoals.targetDate || "Not specified"}\n- **Years of experience:** ${candidateGoals.yearsExperience ?? "Not specified"}\n`
+      : ""
+
   const audioSection = attempt.audioUrl
     ? transcript?.trim()
       ? `## Audio memo transcript\n\n${transcript.trim()}\n\n> The original audio memo is attached separately. Use it to catch context or tone that the transcript misses.`
@@ -45,6 +64,9 @@ export function buildAiReviewPrompt({
         outcome: OUTCOME_LABELS[attempt.outcome],
         notes: attempt.notes.trim() || "No written notes were recorded.",
         transcript: transcript?.trim() || "No transcript is available.",
+        target_role: candidateGoals?.targetRole || "Not specified",
+        target_date: candidateGoals?.targetDate || "Not specified",
+        years_experience: candidateGoals?.yearsExperience ?? "Not specified",
       })
     : `Please act as a constructive technical-interview coach. Review this attempt without immediately giving me a full solution. First assess my reasoning from the notes and audio memo, then give targeted hints and concrete next steps. Focus on correctness, algorithm choice, complexity, edge cases, implementation risks, and how I communicated my thinking. Point out what I did well too.
 
@@ -79,5 +101,5 @@ ${instructions}
 ${attempt.notes.trim() || "No written notes were recorded."}
 
 ${audioSection}
-`
+${goalsSection}`
 }

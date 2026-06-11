@@ -3,6 +3,7 @@ FROM node:22-bookworm-slim AS web-build
 WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
+COPY backend/tests/fixtures/dashboard-parity.json /build/backend/tests/fixtures/dashboard-parity.json
 COPY frontend/ ./
 RUN npm run build
 
