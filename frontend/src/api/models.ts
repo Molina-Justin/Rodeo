@@ -7,6 +7,8 @@ export type AttemptUpdate = components["schemas"]["AttemptUpdate"]
 export type ProblemListItem = components["schemas"]["ProblemListItem"]
 export type PracticeSessionResponse =
   components["schemas"]["PracticeSessionResponse"]
+export type InterviewGoalsResponse =
+  components["schemas"]["InterviewGoalsResponse"]
 
 export function toProblem(problem: ProblemListItem): Problem {
   return {

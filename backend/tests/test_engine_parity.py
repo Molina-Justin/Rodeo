@@ -22,6 +22,7 @@ from tests.engine_parity import (
 FIXTURE = load_parity_fixture()
 CASES = [pytest.param(case, id=case.name) for case in FIXTURE.cases]
 
+
 def python_states(case: ParityCase) -> dict[int, ReviewState]:
     return {
         state.problem_id: state

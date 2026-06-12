@@ -55,6 +55,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/system/backups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Backup Status */
+        get: operations["backup_status_api_v1_system_backups_get"];
+        put?: never;
+        /** Backup Now */
+        post: operations["backup_now_api_v1_system_backups_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/backups/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Backup */
+        post: operations["restore_backup_api_v1_system_backups_restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/backups/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Backup Files */
+        get: operations["backup_files_api_v1_system_backups_files_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/backups/files/{filename}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Backup */
+        delete: operations["remove_backup_api_v1_system_backups_files__filename__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings/prompt-templates": {
         parameters: {
             query?: never;
@@ -83,8 +152,26 @@ export interface paths {
         /** Save Prompt Template */
         put: operations["save_prompt_template_api_v1_settings_prompt_templates__template_key__put"];
         post?: never;
-        /** Restore Prompt Template */
-        delete: operations["restore_prompt_template_api_v1_settings_prompt_templates__template_key__delete"];
+        /** Reset Saved Prompt Template */
+        delete: operations["reset_saved_prompt_template_api_v1_settings_prompt_templates__template_key__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/interview-goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Interview Goals */
+        get: operations["interview_goals_api_v1_settings_interview_goals_get"];
+        /** Save Interview Goals */
+        put: operations["save_interview_goals_api_v1_settings_interview_goals_put"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -118,24 +205,6 @@ export interface paths {
         put?: never;
         /** Clear Data */
         post: operations["clear_data_api_v1_system_clear_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/attempts/{attempt_id}/ai-artifacts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Artifacts */
-        get: operations["list_artifacts_api_v1_attempts__attempt_id__ai_artifacts_get"];
-        put?: never;
-        /** Create Artifact */
-        post: operations["create_artifact_api_v1_attempts__attempt_id__ai_artifacts_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -491,59 +560,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** AIArtifactCreate */
-        AIArtifactCreate: {
-            /** Kind */
-            kind: string;
-            /**
-             * Include Notes
-             * @default false
-             */
-            include_notes: boolean;
-            /**
-             * Include Transcript
-             * @default false
-             */
-            include_transcript: boolean;
-        };
-        /** AIArtifactResponse */
-        AIArtifactResponse: {
-            /** Id */
-            id: string;
-            /** Attempt Id */
-            attempt_id: string;
-            /** Kind */
-            kind: string;
-            /** Provider */
-            provider: string;
-            /** Model */
-            model: string;
-            /** Prompt Version */
-            prompt_version: string;
-            /** Content */
-            content: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
-        };
-        /** AICapability */
-        AICapability: {
-            /**
-             * Provider
-             * @default anthropic
-             * @constant
-             */
-            provider: "anthropic";
-            /** Available */
-            available: boolean;
-        };
         /** ActivityDay */
         ActivityDay: {
             /** Key */
@@ -655,6 +671,48 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /** BackupFile */
+        BackupFile: {
+            /** Filename */
+            filename: string;
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Attempt Count */
+            attempt_count?: number | null;
+            /** Solved Count */
+            solved_count?: number | null;
+        };
+        /** BackupFileListResponse */
+        BackupFileListResponse: {
+            /** Location */
+            location: string;
+            /** Recording Count */
+            recording_count: number;
+            /** Files */
+            files: components["schemas"]["BackupFile"][];
+        };
+        /** BackupStatusResponse */
+        BackupStatusResponse: {
+            /** Enabled */
+            enabled: boolean;
+            /** Last Backup At */
+            last_backup_at: string | null;
+            /** Next Backup At */
+            next_backup_at: string | null;
+            /** Last Backup Filename */
+            last_backup_filename: string | null;
+            /** Snapshot Count */
+            snapshot_count: number;
+            /** Recordings Included */
+            recordings_included: boolean;
+            /** Location */
+            location: string;
+        };
         /** Body_stop_api_v1_practice_sessions__session_id__stop_post */
         Body_stop_api_v1_practice_sessions__session_id__stop_post: {
             /** Audio */
@@ -663,7 +721,6 @@ export interface components {
         /** CapabilitiesResponse */
         CapabilitiesResponse: {
             transcription: components["schemas"]["TranscriptionCapability"];
-            ai: components["schemas"]["AICapability"];
         };
         /** CatalogSyncResponse */
         CatalogSyncResponse: {
@@ -801,6 +858,7 @@ export interface components {
             /** Review State */
             review_state: components["schemas"]["ExportReviewState"][];
             prompt_templates: components["schemas"]["PromptTemplatesResponse"];
+            interview_goals: components["schemas"]["InterviewGoalsResponse"];
         };
         /** ExportReviewState */
         ExportReviewState: {
@@ -842,6 +900,30 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** InterviewGoalsResponse */
+        InterviewGoalsResponse: {
+            /** Target Role */
+            target_role: string;
+            /** Target Date */
+            target_date: string;
+            /** Years Experience */
+            years_experience: number | null;
+        };
+        /** InterviewGoalsUpdate */
+        InterviewGoalsUpdate: {
+            /**
+             * Target Role
+             * @default
+             */
+            target_role: string;
+            /**
+             * Target Date
+             * @default
+             */
+            target_date: string;
+            /** Years Experience */
+            years_experience?: number | null;
         };
         /** JobResponse */
         JobResponse: {
@@ -1118,6 +1200,18 @@ export interface components {
              */
             updated_at: string;
         };
+        /** RestoreRequest */
+        RestoreRequest: {
+            /** Filename */
+            filename: string;
+        };
+        /** RestoreScheduledResponse */
+        RestoreScheduledResponse: {
+            /** Filename */
+            filename: string;
+            /** Will Restart */
+            will_restart: boolean;
+        };
         /** ReviewQueueItem */
         ReviewQueueItem: {
             /** Problem Id */
@@ -1291,6 +1385,130 @@ export interface operations {
             };
         };
     };
+    backup_status_api_v1_system_backups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupStatusResponse"];
+                };
+            };
+        };
+    };
+    backup_now_api_v1_system_backups_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupStatusResponse"];
+                };
+            };
+        };
+    };
+    restore_backup_api_v1_system_backups_restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestoreRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestoreScheduledResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    backup_files_api_v1_system_backups_files_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupFileListResponse"];
+                };
+            };
+        };
+    };
+    remove_backup_api_v1_system_backups_files__filename__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                filename: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupFileListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     prompt_templates_api_v1_settings_prompt_templates_get: {
         parameters: {
             query?: never;
@@ -1346,7 +1564,7 @@ export interface operations {
             };
         };
     };
-    restore_prompt_template_api_v1_settings_prompt_templates__template_key__delete: {
+    reset_saved_prompt_template_api_v1_settings_prompt_templates__template_key__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -1364,6 +1582,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PromptTemplatesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    interview_goals_api_v1_settings_interview_goals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewGoalsResponse"];
+                };
+            };
+        };
+    };
+    save_interview_goals_api_v1_settings_interview_goals_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterviewGoalsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewGoalsResponse"];
                 };
             };
             /** @description Validation Error */
@@ -1413,72 +1684,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClearResponse"];
-                };
-            };
-        };
-    };
-    list_artifacts_api_v1_attempts__attempt_id__ai_artifacts_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                attempt_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AIArtifactResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_artifact_api_v1_attempts__attempt_id__ai_artifacts_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                attempt_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AIArtifactCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AIArtifactResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

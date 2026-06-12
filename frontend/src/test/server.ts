@@ -20,10 +20,17 @@ interface TranscriptionRecord {
   error_message: string | null
 }
 
+interface InterviewGoalsRecord {
+  target_role: string
+  target_date: string
+  years_experience: number | null
+}
+
 interface Store {
   problems: Problem[]
   attempts: Attempt[]
   transcriptions: Map<string, TranscriptionRecord>
+  interviewGoals: InterviewGoalsRecord
 }
 
 /** Matches the document origin pinned in `vitest.config.ts`. */
@@ -33,22 +40,31 @@ function route(path: string): string {
   return `${ORIGIN}${path}`
 }
 
+const EMPTY_INTERVIEW_GOALS: InterviewGoalsRecord = {
+  target_role: "",
+  target_date: "",
+  years_experience: null,
+}
+
 export const store: Store = {
   problems: [],
   attempts: [],
   transcriptions: new Map(),
+  interviewGoals: { ...EMPTY_INTERVIEW_GOALS },
 }
 
 export function seed(options: Partial<Store> = {}): void {
   store.problems = options.problems ?? CATALOG.map((row) => ({ ...row }))
   store.attempts = options.attempts ?? HISTORY.map((row) => ({ ...row }))
   store.transcriptions = options.transcriptions ?? new Map()
+  store.interviewGoals = options.interviewGoals ?? { ...EMPTY_INTERVIEW_GOALS }
 }
 
 export function resetStore(): void {
   store.problems = []
   store.attempts = []
   store.transcriptions = new Map()
+  store.interviewGoals = { ...EMPTY_INTERVIEW_GOALS }
 }
 
 const OUTCOME_STATUS: Record<Attempt["outcome"], Problem["status"]> = {
@@ -319,7 +335,6 @@ export const handlers: HttpHandler[] = [
 
   http.get(route("/api/v1/capabilities"), () =>
     HttpResponse.json({
-      ai: { available: false, provider: "anthropic" },
       transcription: { available: true, provider: "faster-whisper" },
     })
   ),
@@ -331,6 +346,16 @@ export const handlers: HttpHandler[] = [
       review_template: "Review {{problem_title}}.",
     })
   ),
+
+  http.get(route("/api/v1/settings/interview-goals"), () =>
+    HttpResponse.json(store.interviewGoals)
+  ),
+
+  http.put(route("/api/v1/settings/interview-goals"), async ({ request }) => {
+    const body = (await request.json()) as InterviewGoalsRecord
+    store.interviewGoals = body
+    return HttpResponse.json(store.interviewGoals)
+  }),
 ]
 
 export const server = setupServer(...handlers)

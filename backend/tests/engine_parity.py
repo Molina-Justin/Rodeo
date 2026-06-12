@@ -55,9 +55,7 @@ def load_parity_fixture() -> ParityFixture:
                 row["completedAt"].replace("Z", "+00:00")
             ),
             outcome=AttemptOutcome(row["outcome"]),
-            duration_seconds=row.get(
-                "durationSeconds", row["durationMinutes"] * 60
-            ),
+            duration_seconds=row.get("durationSeconds", row["durationMinutes"] * 60),
             difficulty=difficulty_by_problem.get(row["problemId"], Difficulty.MEDIUM),
         )
 
