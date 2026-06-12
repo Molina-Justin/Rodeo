@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { toCandidateGoals, useInterviewGoals } from "@/hooks/use-interview-goals"
 import { usePromptTemplates } from "@/hooks/use-prompt-templates"
 import {
   Tooltip,
@@ -248,6 +249,7 @@ function CopyAction({
   onIncludeNotesChange: (next: boolean) => void
 }) {
   const { data: promptTemplates } = usePromptTemplates()
+  const { data: interviewGoals } = useInterviewGoals()
   const [copied, setCopied] = React.useState(false)
   const [failed, setFailed] = React.useState(false)
   const notesId = React.useId()
@@ -268,10 +270,15 @@ function CopyAction({
   }, [copied])
 
   const handleCopy = async () => {
-    const payload = buildSessionPayload(focus, context, {
-      ...DEFAULT_SESSION_OPTIONS,
-      includeNotes,
-    })
+    const payload = buildSessionPayload(
+      focus,
+      context,
+      {
+        ...DEFAULT_SESSION_OPTIONS,
+        includeNotes,
+      },
+      toCandidateGoals(interviewGoals)
+    )
 
     try {
       await navigator.clipboard.writeText(
