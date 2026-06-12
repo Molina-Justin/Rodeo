@@ -9,12 +9,6 @@ export type NavView =
   | "settings"
   | "help"
 
-export interface UserProfile {
-  name: string
-  email: string
-  avatarUrl?: string
-}
-
 export type Difficulty = "easy" | "medium" | "hard"
 
 export interface Problem {

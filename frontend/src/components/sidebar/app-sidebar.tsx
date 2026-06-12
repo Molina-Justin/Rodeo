@@ -1,4 +1,3 @@
-import * as React from "react"
 import {
   LayoutGridIcon,
   ListChecksIcon,
@@ -14,20 +13,14 @@ import {
   SidebarHeader,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
-import { dueReviewCount } from "@/lib/dashboard"
-import { useAttempts } from "@/hooks/use-attempts"
+import { useReviewQueue } from "@/hooks/use-review-queue"
 
 const footerItems: NavItem[] = [
   { title: "Settings", view: "settings", icon: SettingsIcon },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const attemptsData = useAttempts().data
-  const attempts = React.useMemo(() => attemptsData ?? [], [attemptsData])
-  const reviewQueueCount = React.useMemo(
-    () => dueReviewCount(attempts),
-    [attempts]
-  )
+  const reviewQueueCount = useReviewQueue().data?.length ?? 0
 
   const menuItems: NavItem[] = [
     { title: "Dashboard", view: "dashboard", icon: LayoutGridIcon },

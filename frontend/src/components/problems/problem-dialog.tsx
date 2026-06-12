@@ -239,7 +239,7 @@ export function ProblemDialog({ problem, onOpenChange }: ProblemDialogProps) {
                 variant="secondary"
                 className="gap-1.5 rounded-md font-medium"
               >
-                <span className="font-mono text-[11px] text-muted-foreground">
+                <span className="font-mono text-2xs text-muted-foreground">
                   #{problem.id}
                 </span>
                 {problem.title}

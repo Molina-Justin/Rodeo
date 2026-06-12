@@ -82,7 +82,7 @@ export function LogSessionDialog({
             Choose a problem to open its timer and session controls.
           </DialogDescription>
         </DialogHeader>
-        <div className="border-t border-border px-5 pt-4 pb-5">
+        <div className="min-w-0 border-t border-border px-5 pt-4 pb-5">
           <div className="relative">
             <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -95,7 +95,7 @@ export function LogSessionDialog({
             />
           </div>
 
-          <div className="mt-3 max-h-80 overflow-y-auto rounded-lg border border-border p-1">
+          <div className="mt-3 h-80 overflow-y-auto rounded-lg border border-border p-1">
             {status === "loading" ? (
               <p className="px-3 py-8 text-center text-sm text-muted-foreground">
                 Loading problem catalog…

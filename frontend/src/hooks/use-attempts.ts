@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 
 import { api } from "@/api/client"
 import { toAttempt } from "@/api/models"
@@ -18,7 +23,7 @@ function attemptBody(draft: AttemptDraft) {
 function invalidateAttempts(queryClient: ReturnType<typeof useQueryClient>) {
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: ["attempts"] }),
-    queryClient.invalidateQueries({ queryKey: ["problems"] }),
+    queryClient.invalidateQueries({ queryKey: ["problem-list"] }),
     queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
     queryClient.invalidateQueries({ queryKey: ["review-queue"] }),
   ])
@@ -51,6 +56,7 @@ export function useAttempts(problemId?: number, enabled = true) {
       return attempts
     },
     enabled,
+    placeholderData: keepPreviousData,
   })
 }
 

@@ -16,6 +16,7 @@ import { buildAiReviewPrompt } from "@/lib/ai-review-export"
 import { renderMarkdown } from "@/lib/markdown"
 import { cn } from "@/lib/utils"
 import { useTranscription } from "@/hooks/use-transcription"
+import { toCandidateGoals, useInterviewGoals } from "@/hooks/use-interview-goals"
 import { usePromptTemplates } from "@/hooks/use-prompt-templates"
 import type { Attempt, AttemptOutcome, Problem } from "@/types"
 
@@ -71,12 +72,14 @@ export function AttemptReport({
     Boolean(attempt.audioUrl)
   )
   const { data: promptTemplates } = usePromptTemplates()
+  const { data: interviewGoals } = useInterviewGoals()
   const reviewPrompt = buildAiReviewPrompt({
     problem,
     attempt,
     transcript: transcription?.text,
     transcriptStatus: transcription?.status,
     template: promptTemplates?.review_template,
+    candidateGoals: toCandidateGoals(interviewGoals),
   })
 
   const copyReviewPrompt = async () => {

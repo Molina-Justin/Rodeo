@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/layout/site-header"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { Toaster } from "@/components/ui/sonner"
 import { useAppStore } from "@/store/use-app-store"
 
 const DashboardOverview = React.lazy(async () => ({
@@ -61,6 +62,7 @@ export function App() {
           </React.Suspense>
         </div>
       </SidebarInset>
+      <Toaster />
     </SidebarProvider>
   )
 }

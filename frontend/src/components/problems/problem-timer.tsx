@@ -5,9 +5,20 @@ import {
   PlayIcon,
   RotateCcwIcon,
   SquareIcon,
+  Trash2Icon,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/api/client"
 import type { PracticeSessionResponse } from "@/api/models"
@@ -168,6 +179,11 @@ export function ProblemTimer({
   const [session, setSession] = React.useState<PracticeSessionResponse | null>(
     null
   )
+  const [conflict, setConflict] = React.useState<{
+    session: PracticeSessionResponse
+    title?: string
+  } | null>(null)
+  const [confirmDiscardOpen, setConfirmDiscardOpen] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
   const [stoppingAndLogging, setStoppingAndLogging] = React.useState(false)
   const [analyser, setAnalyser] = React.useState<AnalyserNode | null>(null)
@@ -314,10 +330,30 @@ export function ProblemTimer({
     [stopRecording]
   )
 
+  const loadConflict = React.useCallback(
+    async (known?: PracticeSessionResponse) => {
+      const data =
+        known ?? (await api.GET("/api/v1/practice-sessions/current")).data
+      if (!data || data.problem_id === problem.id) {
+        setConflict(null)
+        return
+      }
+      const { data: other } = await api.GET("/api/v1/problems/{problem_id}", {
+        params: { path: { problem_id: data.problem_id } },
+      })
+      setConflict({ session: data, title: other?.title })
+    },
+    [problem.id]
+  )
+
   React.useEffect(() => {
     let cancelled = false
     void api.GET("/api/v1/practice-sessions/current").then(({ data }) => {
-      if (cancelled || !data || data.problem_id !== problem.id) {
+      if (cancelled || !data) {
+        return
+      }
+      if (data.problem_id !== problem.id) {
+        void loadConflict(data)
         return
       }
       setSession(data)
@@ -339,7 +375,7 @@ export function ProblemTimer({
     return () => {
       cancelled = true
     }
-  }, [problem.id])
+  }, [problem.id, loadConflict])
 
   React.useEffect(() => {
     if (!running) {
@@ -372,6 +408,10 @@ export function ProblemTimer({
           body: { problem_id: problem.id },
         })
         if (!result.data) {
+          if (result.response.status === 409) {
+            await loadConflict()
+            return
+          }
           throw new Error("A practice session could not be started")
         }
         current = result.data
@@ -400,6 +440,36 @@ export function ProblemTimer({
         error instanceof Error
           ? error.message
           : "The timer could not be started"
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const discardConflict = async () => {
+    if (!conflict) {
+      return
+    }
+    setBusy(true)
+    try {
+      const result = await api.DELETE(
+        "/api/v1/practice-sessions/{session_id}",
+        {
+          params: { path: { session_id: conflict.session.id } },
+        }
+      )
+      if (result.error && result.response.status !== 204) {
+        throw new Error(
+          "The conflicting practice session could not be discarded"
+        )
+      }
+      setConflict(null)
+      setConfirmDiscardOpen(false)
+    } catch (error) {
+      setRecordingError(
+        error instanceof Error
+          ? error.message
+          : "The conflicting practice session could not be discarded"
       )
     } finally {
       setBusy(false)
@@ -503,7 +573,56 @@ export function ProblemTimer({
         {format(elapsed)}
       </span>
 
-      {running ? (
+      {conflict ? (
+        <div className="flex flex-col items-center gap-3">
+          <p className="text-center text-xs text-muted-foreground">
+            A practice session is already in progress on{" "}
+            <span className="text-foreground">
+              #{conflict.session.problem_id}
+              {conflict.title ? ` ${conflict.title}` : ""}
+            </span>
+            . Only one session can run at a time.
+          </p>
+          <AlertDialog
+            open={confirmDiscardOpen}
+            onOpenChange={setConfirmDiscardOpen}
+          >
+            <Button
+              variant="outline"
+              className="rounded-lg"
+              disabled={busy}
+              onClick={() => setConfirmDiscardOpen(true)}
+            >
+              <Trash2Icon />
+              Discard that session
+            </Button>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Discard this practice session?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently discards the elapsed time for #
+                  {conflict.session.problem_id}
+                  {conflict.title ? ` ${conflict.title}` : ""}. You can only run
+                  one practice session at a time.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={busy}>
+                  Keep session
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={busy}
+                  onClick={() => void discardConflict()}
+                >
+                  Discard session
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      ) : running ? (
         <div className="flex items-center gap-3">
           <Button
             className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90"
