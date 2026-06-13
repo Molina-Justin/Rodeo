@@ -1,158 +1,244 @@
 # Rodeo
 
-A single-user, local-first technical interview preparation app: time tracker, spaced-repetition engine, and progress dashboard.
+Rodeo is a local, single-user technical interview practice app. Track timed
+problem attempts, revisit work with spaced repetition, and follow progress on
+the dashboard.
 
-## Stack
+## What it includes
 
-React + TypeScript, Vite, TanStack Query, Tailwind CSS, shadcn/ui, FastAPI,
-SQLAlchemy, SQLite, and a local faster-whisper worker.
+- A searchable LeetCode problem catalog
+- Timed practice sessions with attempt notes and optional audio recording
+- A deterministic review queue based on completed attempts
+- Mastery, readiness, and activity views
+- Interview goals and editable prompt templates
+- Local workspace export and clearing controls
 
-## Scripts
+## Quick start
 
-Run frontend commands from `frontend/`:
+Docker Compose is the supported way to run Rodeo. It builds the frontend and
+the API into one image, applies migrations, and serves everything from a single
+origin.
+
+Requirements: Docker Desktop (or Docker Engine with the Compose plugin).
 
 ```bash
-cd frontend
-npm run dev        # start the dev server on http://localhost:5199
-npm run build      # typecheck and build for production
-npm run typecheck  # tsc --noEmit
-npm run lint       # eslint
-npm run format     # prettier
-npm run test       # vitest: engine, component, and chart tests
-npm run test:e2e   # playwright: the whole app against a real backend
+git clone <repository-url> rodeo
+cd rodeo
+docker compose up --build
 ```
 
-During development, Vite proxies `/api` requests to
-`http://127.0.0.1:8000`.
+The first build downloads the Whisper transcription model and takes several
+minutes; later builds are cached. When the app is ready it logs the address to
+open:
 
-Run the API from `backend/`:
+```text
+INFO:     Rodeo is ready at http://127.0.0.1:8000
+```
+
+If that port is taken, change both the host side of `ports` and
+`RODEO_PUBLIC_URL` in `compose.yml`.
+
+Rodeo runs entirely on your machine and makes no outbound service calls. To
+change the scheduling timezone or the transcription model, edit the
+`environment` block in `compose.yml`.
+
+Day-to-day commands:
+
+```bash
+docker compose up -d      # start in the background
+docker compose logs -f    # follow logs
+docker compose down       # stop; data is untouched
+docker compose up --build # rebuild after pulling changes
+```
+
+## Your data
+
+Everything Rodeo stores lives in `./data` next to the repository — the SQLite
+database, your recordings, and the backups. It is a plain folder on your
+computer, not a Docker volume, so `docker compose down` never touches it.
+
+The folder is git-ignored, which means it will not appear in `git status` and
+some editors grey it out. It is still there:
+
+```text
+data/
+  rodeo.db              your problems, attempts, and review schedule
+  recordings/           audio from practice sessions
+  backups/              daily snapshots, kept for two weeks
+```
+
+### Backups
+
+Rodeo copies the database into `data/backups/` once a day and keeps the last
+14. Each snapshot is one self-contained file. Recordings are copied once each
+into `data/backups/recordings/`, and a recording you delete stays in the backup
+for two weeks in case you change your mind.
+
+Settings → Backups shows when the last one ran, where they are, and can make
+one immediately.
+
+### Restoring
+
+Open Settings → Backups → Browse snapshots, pick one, and choose **Restore**.
+Rodeo confirms, restarts itself, and the page reloads when it comes back.
+
+The restore puts the database back and returns any recordings that snapshot
+needs. Your current database is saved to `data/backups/pre-restore/` first, so
+a restore can itself be undone.
+
+A restore can also be run from a terminal, which is the way to do it if the app
+will not start:
+
+```bash
+scripts/restore-backup --list
+scripts/restore-backup rodeo-20260830T123045Z.db
+```
+
+### Testing the full backup and restore flow
+
+For a disposable test workspace, start with an empty `data/` directory and add
+realistic practice history:
+
+```bash
+docker compose up -d --build
+scripts/seed-demo-data
+```
+
+The generator adds more than 25 varied attempts across easy, medium, and hard
+problems, including repeated reviews, timed sessions, notes, interview goals,
+and a custom prompt template. It refuses to run if it finds existing workspace
+data, so it cannot silently mix fixtures into real history.
+
+Capture a baseline, then use Settings → Backups → Back up now:
+
+```bash
+scripts/workspace-fingerprint --verbose
+```
+
+Save the first line. Change the workspace through the app—for example, edit an
+attempt, add another, or use Settings → Clear workspace—then run the fingerprint
+again to confirm it changed. Restore the saved snapshot through Settings and run
+the command a third time. The final SHA-256 must exactly match the baseline.
+The fingerprint covers the logical database contents and all live recording
+files, while ignoring the backup directory itself.
+
+The automated equivalent is covered by
+`backend/tests/test_demo_data.py`: populate → snapshot → clear/add → restore →
+exact fingerprint comparison.
+
+### Protecting against losing the computer
+
+These backups live on the same disk as the original. Include the whole `data`
+folder in Time Machine, File History, or whatever you already use, so a drive
+failure or a lost laptop does not take your practice history with it.
+
+On Linux the container runs as root, so files under `./data` are root-owned;
+use `sudo` to move or delete them.
+
+See [Backups and Restore](docs/backups-and-restore.md) for how the snapshots
+are taken and why.
+
+## Development
+
+The Docker image is the deliverable; run the two processes directly only when
+you are changing code. This uses a separate throwaway database at
+`backend/.data`, not the workspace above. Stop the container first — both bind
+to port 8000.
+
+Requirements: Python 3.12+ and Node 22+.
+
+### Backend
 
 ```bash
 cd backend
-python3 -m venv .venv
-.venv/bin/pip install -e '.[dev,ai]'
-.venv/bin/python -m uvicorn rodeo.main:app --host 127.0.0.1 --port 8000
+cp .env.example .env
+python3.12 -m venv .venv
+.venv/bin/pip install -e '.[dev]'
+.venv/bin/python -m uvicorn rodeo.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-The first startup migrates SQLite and seeds the bundled LeetCode catalog. For
-local development, data defaults to `/data`; set `RODEO_DATA_DIR` to a writable
-directory when running outside Docker. `RODEO_TIMEZONE` controls calendar-day
-scheduling semantics.
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite server runs on <http://127.0.0.1:5199> and proxies `/api` to the
+backend.
+
+On startup, Rodeo applies outstanding SQLite migrations. A new database is
+seeded with the bundled LeetCode catalog.
+
+## Configuration
+
+Environment variables are read with the `RODEO_` prefix; see
+`backend/.env.example` for the full development set.
+`RODEO_DATA_DIR` selects the data directory and `RODEO_TIMEZONE` defines the
+timezone used for calendar-day scheduling. `RODEO_BACKUP_ENABLED`,
+`RODEO_BACKUP_INTERVAL_HOURS` (default 24), and `RODEO_BACKUP_RETENTION`
+(default 14) control the database snapshots described above, and
+`RODEO_BACKUP_INCLUDE_RECORDINGS` (default true) controls the audio mirror.
+The interval must be 1–8,760 hours and retention must be 1–365 snapshots;
+invalid values prevent startup instead of silently weakening recovery.
 
 ## Review queue
 
-Rodeo’s review queue uses spaced retrieval practice for solved coding problems.
-Each logged attempt schedules the next review based on whether the problem was
-solved independently, solved with help, reviewed from a solution, and whether
-it was completed within the target time for its difficulty. Fast independent
-solves increase the interval; hints result in an earlier follow-up, while
-reviewing a solution or not finishing resets the problem to review the next
-day. A problem leaves the automatic queue only after four consecutive,
-well-spaced, fast independent solves. No cron job is required: Rodeo shows an
-active problem when its saved due date is today or earlier in the configured
-timezone.
+Each completed attempt updates the review schedule. Fast independent solves
+extend the interval; hints bring the next review closer; solutions and failed
+attempts schedule an earlier review. A problem graduates from the automatic
+queue after repeated, well-spaced, fast independent solves.
 
-Regenerate the checked-in TypeScript API contract after changing a FastAPI
-route or schema:
+See [Review Queue Rules](docs/review-queue-rules.md) for the complete policy.
+
+## Mastery and readiness
+
+Topic Mastery measures progress across distinct problems. The Readiness Score
+combines mastery, coverage, and recent practice cadence.
+
+See [Mastery and Readiness](docs/mastery-and-readiness.md) for the formulas.
+
+## Settings and workspace data
+
+Interview Goals can store a target role, target interview date, and years of
+experience. Prompt templates support their documented context variables.
+
+Goals and templates are stored locally and included in workspace exports.
+Templates can be reset to their built-in defaults; clearing the workspace
+removes saved goals and templates.
+
+## Verification
+
+Run backend checks from `backend/`:
+
+```bash
+.venv/bin/python -m ruff check rodeo tests scripts
+.venv/bin/python -m mypy rodeo tests scripts
+.venv/bin/python -m pytest -q
+```
+
+Run frontend checks from `frontend/`:
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+npm run test
+npm run test:e2e
+```
+
+Regenerate frontend API types after changing a FastAPI route or schema:
 
 ```bash
 cd frontend
 npm run generate:api
 ```
 
-## Mastery and readiness
+## Project layout
 
-Topic Mastery scores evidence across distinct problems, not just the quality
-of whatever got attempted. Large topics use a 50-problem breadth target;
-smaller topics use every catalog problem. Two clean solves therefore score 4%
-in a large topic, while about 38 reach the 75% target. Only the latest result
-for each problem counts, so repetition cannot inflate mastery. It reads the
-same per-attempt outcome the review queue derives above and does not decay on
-its own.
-
-The Readiness Score blends three signals, weighted so a single attempt can't
-dominate the result: discounted mastery (70%) — a catalog-weighted average
-where each solved problem's quality is itself scaled by difficulty and by how
-efficiently it was solved against its target time, then decayed the longer
-it has sat overdue for review; catalog coverage (20%) — the plain fraction of
-the catalog ever solved; and recent practice cadence (10%) — how much of the
-selected window carried an attempt. See
-[`docs/mastery-and-readiness.md`](docs/mastery-and-readiness.md) for the full
-formula and the reasoning behind the weights.
-
-## Settings
-
-Settings includes editable templates for dashboard session prompts and
-per-attempt review prompts. Templates are stored in Rodeo's local database,
-support context variables, and are included in workspace exports. Clearing a
-workspace also removes saved templates and restores the built-in defaults.
-
-## Verification
-
-```bash
-cd backend
-.venv/bin/python -m ruff check rodeo tests scripts
-.venv/bin/python -m mypy rodeo tests scripts
-.venv/bin/python -m pytest -q
-
-cd ../frontend
-npm run lint
-npx tsc -b
-npm run build
-npm run test
-npm run test:e2e
+```text
+frontend/  React application and generated API types
+backend/   FastAPI application, SQLite models, scheduling, and workers
+docs/      Product rules and implementation rationale
 ```
-
-## Tests
-
-Four layers, fastest first. Each one catches something the layer below it
-cannot; see [docs/testing-strategy.md](docs/testing-strategy.md) for what
-belongs where.
-
-| Layer | Command | Covers |
-| --- | --- | --- |
-| Service and API | `pytest` (`backend/`) | scheduling math, mastery, review queue, attempt replay, transcription, migrations, and every HTTP endpoint against the seeded catalog |
-| Engine parity | `pytest` (`backend/tests/test_engine_parity.py`) | the Python and TypeScript engines agreeing, and the policy-v2 golden snapshot |
-| Unit and component | `npm run test` (`frontend/`) | the client engine, formatting and prompt export, every dashboard card, the review queue, the attempt history, and the transcript panel, with the API faked by MSW |
-| End to end | `npm run test:e2e` (`frontend/`) | the real browser against a real FastAPI process on a throwaway database: charts painting with real dimensions, the timer, and the log-attempt loop |
-
-`npm run test:e2e` starts its own API on port 8123 and its own Vite server on
-port 5198, so it never touches a running dev server or real practice data.
-Install the browser once with `npx playwright install chromium`.
-
-The two engines are kept honest by a shared fixture. Regenerate it from the
-TypeScript engine with `npm run generate:fixtures` (from `frontend/`), and
-regenerate the Python golden snapshot with
-`.venv/bin/python scripts/dump_engine_golden.py` (from `backend/`). Read the
-diffs: an unexplained change to either is a scheduling regression.
-
-## Docker
-
-```bash
-docker compose up --build
-```
-
-The image serves the SPA and API from one origin with one Uvicorn process. A
-single `/data` volume owns SQLite, recordings, queued jobs, and local model
-overrides. The default bundled transcription model is `base.en`; set the
-`WHISPER_MODEL` build argument to choose another compatible model.
-
-Practice-session time is recoverable after a page reload because the server
-owns the clock. Audio captured by `MediaRecorder` remains in page memory until
-Stop & log uploads it, so audio recorded before an unexpected reload cannot be
-recovered.
-
-## Structure
-
-- `frontend/src/components/layout` — app shell: header and theme toggle
-- `frontend/src/components/sidebar` — sidebar shell and navigation groups
-- `frontend/src/components/dashboard` — dashboard surfaces
-- `frontend/src/components/brand` — logo mark
-- `frontend/src/components/ui` — shadcn/ui primitives
-- `frontend/src/store` — Zustand state
-- `frontend/src/types` — shared types
-- `frontend/src/api` — generated OpenAPI types and the same-origin API client
-- `backend/rodeo/routers` — HTTP contracts
-- `backend/rodeo/services` — catalog, attempt, scheduling, audio, and dashboard logic
-- `backend/rodeo/workers` — leased transcription and file-cleanup jobs
-- `backend/alembic` — SQLite migrations
