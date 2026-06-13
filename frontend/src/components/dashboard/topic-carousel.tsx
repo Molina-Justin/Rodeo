@@ -37,12 +37,6 @@ import { cn } from "@/lib/utils"
 const MICRO = "font-mono text-xs tracking-widest text-background/60 uppercase"
 const COPIED_RESET_MS = 2000
 
-/**
- * The card inverts the theme (`bg-foreground`), so the switch cannot keep its
- * own tokens — `bg-input` and the dark unchecked thumb both resolve to the
- * card's own surface and vanish. Pin the track and the thumb to the inverted
- * pair, which flips with the theme the same way the card does.
- */
 const INVERTED_SWITCH =
   "cursor-pointer data-checked:bg-emerald-400 data-unchecked:bg-background/25 dark:data-unchecked:bg-background/25 dark:data-unchecked:[&_[data-slot=switch-thumb]]:bg-background"
 
@@ -68,12 +62,6 @@ function SlideStat({
   )
 }
 
-/**
- * Three inline bars, scaled to the busiest difficulty in the topic rather than
- * to the catalog — a topic holds thousands of problems, so a catalog share
- * would flatten every bar to nothing. The solid run is solved, the faded run is
- * attempted but not yet solved.
- */
 function DifficultyBars({ entries }: { entries: TopicDifficulty[] }) {
   const scale = Math.max(...entries.map((entry) => entry.attempted), 1)
 
@@ -129,7 +117,7 @@ function TopicSlide({
           <span className="size-1 rounded-full bg-background/50" />
           <span className="font-mono text-xs tracking-wide text-background/60">
             {untouched
-              ? "no history yet · open ground"
+              ? "no history yet, open ground"
               : focus.dueCount > 0
                 ? `${focus.dueCount} ${focus.dueCount === 1 ? "review" : "reviews"} due`
                 : "no reviews due"}
@@ -160,13 +148,15 @@ function TopicSlide({
           </SlideStat>
           <SlideStat label="Pace">
             <span className="text-sm font-medium text-background tabular-nums">
-              {focus.averageMinutes > 0 ? `${focus.averageMinutes}m avg` : "—"}
+              {focus.averageMinutes > 0
+                ? `${focus.averageMinutes}m avg`
+                : "No data"}
             </span>
           </SlideStat>
           <SlideStat label="Recurring blocker" className="min-w-0 flex-1">
             <span className="text-sm font-medium leading-snug text-background">
               {focus.topBlocker
-                ? `${BLOCKER_LABELS[focus.topBlocker.blocker]} · ${focus.topBlocker.count} of ${focus.topBlocker.total}`
+                ? `${BLOCKER_LABELS[focus.topBlocker.blocker]}, ${focus.topBlocker.count} of ${focus.topBlocker.total}`
                 : "Nothing recurring"}
             </span>
           </SlideStat>
@@ -199,7 +189,6 @@ function CopyAction({
   const [copied, setCopied] = React.useState(false)
   const [failed, setFailed] = React.useState(false)
 
-  // Reset the confirmation when the slide changes under a reused component.
   React.useEffect(() => {
     setCopied(false)
     setFailed(false)
@@ -271,7 +260,7 @@ function CopyAction({
       <span className="text-center font-mono text-2xs text-background/50">
         {failed
           ? "Clipboard unavailable in this browser"
-          : `${problemCount} problems · ${minutes} min · ${focus.attemptedProblems.length} completed rows`}
+          : `${problemCount} problems, ${minutes} min, ${focus.attemptedProblems.length} completed rows`}
       </span>
     </div>
   )
@@ -280,7 +269,6 @@ function CopyAction({
 export function TopicCarousel({ focuses, context }: TopicCarouselProps) {
   const [api, setApi] = React.useState<CarouselApi>()
   const [current, setCurrent] = React.useState(0)
-  // One preference for the whole deck — each slide renders its own controls.
   const [includeNotes, setIncludeNotes] = React.useState(
     DEFAULT_SESSION_OPTIONS.includeNotes
   )
@@ -296,9 +284,6 @@ export function TopicCarousel({ focuses, context }: TopicCarouselProps) {
     api.on("select", sync)
     api.on("reInit", sync)
 
-    // Embla drives its viewport by transform, so a native scroll — which the
-    // browser fires whenever focus lands on a control inside an off-screen
-    // slide — silently desyncs the two. Pin it back to zero.
     const viewport = api.rootNode()
     const pin = () => {
       if (viewport.scrollLeft !== 0) {
@@ -326,8 +311,6 @@ export function TopicCarousel({ focuses, context }: TopicCarouselProps) {
           {focuses.map((focus, index) => (
             <CarouselItem
               key={focus.topic}
-              // Only the visible slide is reachable; the rest stay out of the
-              // tab order and the accessibility tree.
               inert={index !== current}
               aria-hidden={index !== current}
             >

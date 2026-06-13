@@ -23,7 +23,7 @@ decision in the code.
 Snapshots are written with `VACUUM INTO`, not a file copy. In WAL mode the most
 recent commits may still live in `rodeo.db-wal`; copying `rodeo.db` alone would
 silently omit them. `VACUUM INTO` reads through a normal transaction, so it
-folds in the WAL contents and needs no write lock — the app keeps running while
+folds in the WAL contents and needs no write lock. The app keeps running while
 it runs.
 
 Every snapshot is verified with `PRAGMA quick_check` immediately after it is
@@ -54,9 +54,9 @@ A running application holds the database open, and its worker thread holds
 connections of its own, so the file cannot be swapped underneath it. The
 restore therefore never happens in the running process.
 
-Choosing **Restore** in Settings validates the snapshot immediately — an
+Choosing **Restore** in Settings validates the snapshot immediately. An
 unreadable file is rejected there and then rather than failing after a
-restart — writes a `restore-request.json` into the data directory, and asks
+restart. It writes a `restore-request.json` into the data directory and asks
 uvicorn to stop with SIGTERM. The graceful stop matters: the lifespan closes
 the database and checkpoints the WAL before anything reads it. The container
 restart policy brings the process back, and the restore runs at startup before
@@ -74,7 +74,7 @@ it directly outside Docker.
 
 The order matters:
 
-1. Verify the snapshot with the full `integrity_check` — slower than
+1. Verify the snapshot with the full `integrity_check`. It is slower than
    `quick_check`, but this runs once and reads a file that may be weeks old.
    Nothing is touched until it passes.
 2. Copy the current database aside into `data/backups/pre-restore/`, using
@@ -89,6 +89,6 @@ The order matters:
    app returns with attempts whose audio is gone.
 
 Pre-restore copies follow the same retention count as snapshots. They are named
-`pre-restore-*.db` and live in their own directory so that snapshot detection —
-a strict `rodeo-YYYYMMDDTHHMMSSZ.db` match — can never mistake one for a
+`pre-restore-*.db` and live in their own directory. Snapshot detection uses
+a strict `rodeo-YYYYMMDDTHHMMSSZ.db` match, so it cannot mistake one for a
 backup and schedule from it.

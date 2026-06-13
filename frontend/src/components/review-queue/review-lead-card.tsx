@@ -104,7 +104,7 @@ export function ReviewLeadCard({
               {colors.label}
             </Badge>
             <span className={MICRO}>
-              {lateCount} late · {todayCount} due today · spaced repetition
+              {lateCount} late, {todayCount} due today, spaced repetition
             </span>
           </div>
 
@@ -153,7 +153,7 @@ export function ReviewLeadCard({
                 caption={state.lastAttempt.outcome}
               />
               <span className="text-xs text-background/80">
-                {DIFFICULTY_LABELS[difficulty]} · {topic}
+                {DIFFICULTY_LABELS[difficulty]}, {topic}
               </span>
             </StatTile>
           </div>
@@ -174,8 +174,8 @@ export function ReviewLeadCard({
                 <PlayIcon className="size-4" />
               )}
               {started
-                ? "Session running · 00:00"
-                : `Start review · ${dueCount}`}
+                ? "Session running, 00:00"
+                : `Start review, ${dueCount}`}
             </Button>
             <Button
               variant="outline"

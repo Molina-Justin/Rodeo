@@ -188,8 +188,6 @@ def apply_catalog_snapshot(
     problems_by_slug = {problem.slug: problem for problem in existing_problems}
     entries_by_id = {entry.id: entry for entry in entries}
 
-    # A retired problem may still own a slug that LeetCode later assigns to a
-    # different ID. Retain the historical row while freeing the canonical slug.
     reassigned_slugs = {
         entry.slug: entry.id
         for entry in entries
@@ -201,8 +199,6 @@ def apply_catalog_snapshot(
         old_owner.slug = f"retired-{old_owner.id}-{slug}"[:255]
         old_owner.active = False
         if old_owner.id in entries_by_id:
-            # The old ID is also present and will receive its current upstream
-            # slug below; this temporary value only avoids a uniqueness clash.
             continue
         problems_by_slug.pop(slug)
         problems_by_slug[old_owner.slug] = old_owner
@@ -309,8 +305,6 @@ def _catalog_problem(question: _GraphQLQuestion) -> CatalogProblem:
             "LeetCode returned an unsupported problem identifier or difficulty"
         ) from error
 
-    # LeetCode returns acRate as a fraction. This matches the previous catalog
-    # generator's one-decimal percentage while avoiding Python banker's rounding.
     acceptance = math.floor(question.acceptance_rate * 1_000 + 0.5) / 10
     try:
         return CatalogProblem(

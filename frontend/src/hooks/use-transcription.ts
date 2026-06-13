@@ -31,11 +31,6 @@ function transcriptionQueryKey(attemptId: string | undefined) {
   return ["transcription", attemptId ?? "none"]
 }
 
-/**
- * Loads the transcript for an attempt, auto-requesting one the first time a
- * saved attempt with audio is seen (the create endpoint is idempotent), and
- * polls while the backend worker is still transcribing.
- */
 export function useTranscription(
   attemptId: string | undefined,
   hasAudio: boolean
@@ -61,10 +56,6 @@ export function useTranscription(
     enabled,
   })
 
-  // A plain interval rather than `refetchInterval`: that option only
-  // re-evaluates on the query's own fetch lifecycle, so it never notices a
-  // status pushed in via `setQueryData` from the mutations below (observed
-  // to leave polling permanently off after the initial auto-request).
   React.useEffect(() => {
     if (!enabled) {
       return

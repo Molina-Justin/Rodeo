@@ -1,10 +1,5 @@
 import * as React from "react"
 
-/**
- * Renders the small markdown subset the notes editor exposes: headings, bold,
- * italic, inline code, fenced code, bullet and numbered lists, quotes, links.
- * Output is React nodes rather than HTML, so note content is never injected.
- */
 
 const INLINE_PATTERN =
   /(\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|`[^`]+`|\[[^\]]+\]\([^)\s]+\))/g

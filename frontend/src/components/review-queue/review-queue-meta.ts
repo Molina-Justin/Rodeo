@@ -53,7 +53,7 @@ export function rationale(
   intervalDays: number
 ): string {
   if (dueInDays < 0) {
-    return `Held back by ${lapses} ${lapses === 1 ? "lapse" : "lapses"} — every solution lookup resets the interval to a single day.`
+    return `${lapses} ${lapses === 1 ? "lapse" : "lapses"}. Looking up a solution resets the interval to one day.`
   }
 
   if (dueInDays === 0) {

@@ -64,11 +64,6 @@ interface BandRow {
   avg: number
 }
 
-/**
- * Produces a stable position within a difficulty band. FNV-1a avoids the
- * prefix clustering of a simple string hash, so sequential IDs still spread
- * across the full height of the band on every render.
- */
 function verticalJitter(id: string): number {
   let hash = 2166136261
 
@@ -80,7 +75,6 @@ function verticalJitter(id: string): number {
   return (hash >>> 0) / 0xffffffff - 0.5
 }
 
-/** Recharts clones this with its own `x`/`y`/`payload`; `rows` comes from us. */
 function PaceYTick({
   x,
   y,
@@ -261,7 +255,7 @@ export function TimePerDifficultyCard({
                         <span className="text-muted-foreground capitalize">
                           {point.difficulty}
                         </span>
-                        <span className="text-muted-foreground">·</span>
+                        <span className="text-muted-foreground">,</span>
                         <span className="font-mono font-medium">
                           {point.duration} min
                         </span>

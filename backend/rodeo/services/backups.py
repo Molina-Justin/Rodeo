@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 BACKUP_FILENAME_FORMAT = "rodeo-%Y%m%dT%H%M%SZ.db"
 BACKUP_GLOB = "rodeo-*.db"
-# `rodeo-*.db` alone would also match a name like `rodeo-before-restore-x.db`,
-# so scheduling only ever considers names it could have written itself.
+
+
 BACKUP_FILENAME_PATTERN = re.compile(r"^rodeo-\d{8}T\d{6}Z\.db$")
 
 
@@ -30,8 +30,6 @@ class SnapshotStats(TypedDict):
     solved_count: int
 
 
-# "Solved" matches the dashboard: the most recent attempt on a problem was
-# optimal. Counting every optimal attempt would double-count repeat practice.
 SOLVED_COUNT_SQL = """
 SELECT count(*) FROM (
     SELECT outcome, row_number() OVER (
@@ -84,7 +82,7 @@ def validate_backup(path: Path, *, thorough: bool = False) -> None:
     pragma = "integrity_check" if thorough else "quick_check"
     try:
         uri = f"file:{path.resolve().as_posix()}?mode=ro"
-        # `with sqlite3.connect(...)` manages a transaction, not the handle.
+
         with closing(sqlite3.connect(uri, uri=True)) as connection:
             results = [str(row[0]) for row in connection.execute(f"PRAGMA {pragma}")]
     except sqlite3.Error as error:
@@ -131,8 +129,7 @@ def vacuum_into(engine: Engine, target: Path) -> None:
     VACUUM INTO reads through a normal transaction, so it captures committed
     work still sitting in the WAL and needs no write lock on the database.
     """
-    # SQLite refuses VACUUM inside a transaction, and SQLAlchemy opens one for
-    # any statement unless the connection is explicitly in autocommit.
+
     connection = engine.connect().execution_options(isolation_level="AUTOCOMMIT")
     with connection:
         connection.exec_driver_sql(f"VACUUM INTO '{sql_literal(target)}'")
@@ -149,8 +146,6 @@ def create_backup(settings: Settings, *, now: datetime) -> Path:
         vacuum_into(get_engine(settings), target)
         validate_backup(target)
     except Exception:
-        # Never leave an invalid file that future scheduling would mistake for
-        # the newest successful snapshot.
         target.unlink(missing_ok=True)
         raise
     return target

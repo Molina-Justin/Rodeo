@@ -35,7 +35,7 @@ export const EFFORT_LABELS: Record<AttemptEffort, string> = {
 }
 
 export const BLOCKER_LABELS: Record<AttemptBlocker, string> = {
-  none: "Nothing — it flowed",
+  none: "None",
   pattern: "Missed the pattern",
   "edge-cases": "Edge cases",
   complexity: "Time or space complexity",
@@ -44,7 +44,6 @@ export const BLOCKER_LABELS: Record<AttemptBlocker, string> = {
   time: "Ran out of time",
 }
 
-/** Latest attempt per problem, so table rows resolve in constant time. */
 export function indexAttempts(attempts: Attempt[]): Record<number, Attempt> {
   const index: Record<number, Attempt> = {}
 
@@ -58,7 +57,6 @@ export function indexAttempts(attempts: Attempt[]): Record<number, Attempt> {
   return index
 }
 
-/** Whether a problem has any saved notes or recorded audio across its history. */
 export function indexAttemptArtifacts(
   attempts: Attempt[]
 ): Record<number, AttemptArtifacts> {
@@ -132,7 +130,6 @@ export function bestDuration(attempts: Attempt[]): number | undefined {
   return Math.min(...attempts.map((attempt) => attempt.durationMinutes))
 }
 
-/** Minutes saved (negative) or lost (positive) against the previous attempt. */
 export function durationDelta(
   attempt: Attempt,
   previous: Attempt | undefined
@@ -144,7 +141,6 @@ export function durationDelta(
   return attempt.durationMinutes - previous.durationMinutes
 }
 
-/** "3d ago · 28m · Optimal" */
 export function formatLastAttempt(attempt: Attempt, now: Date = new Date()) {
   return [
     formatElapsed(attempt.completedAt, now),

@@ -204,8 +204,8 @@ def test_readiness_score_is_wired_into_the_dashboard_response(
 @pytest.mark.parametrize(
     ("difficulty", "duration_seconds", "expected_score"),
     [
-        (Difficulty.HARD, 1200, 26),  # fast solve: 20 of its 45-minute target
-        (Difficulty.EASY, 2400, 12),  # slow solve: 40 of its 20-minute target
+        (Difficulty.HARD, 1200, 26),
+        (Difficulty.EASY, 2400, 12),
     ],
 )
 def test_readiness_score_uses_the_real_attempt_duration_and_difficulty(

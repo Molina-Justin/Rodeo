@@ -71,7 +71,6 @@ interface AudioTranscriptPanelProps {
   audioUrl: string
 }
 
-/** Playback, read-only transcript, and deletion for a saved attempt's recording. */
 export function AudioTranscriptPanel({
   attemptId,
   audioUrl,

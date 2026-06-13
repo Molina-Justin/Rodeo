@@ -107,7 +107,6 @@ def mirror_recordings(settings: Settings, *, now: datetime) -> MirrorResult:
     for storage_key in sorted(present):
         mirrored = settings.backup_recordings_dir / storage_key
         if storage_key in entries and mirrored.is_file():
-            # A deleted recording that came back is live again, not pending.
             entries[storage_key]["missing_since"] = None
             continue
         _copy_recording(settings, storage_key)

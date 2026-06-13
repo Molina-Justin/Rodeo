@@ -34,6 +34,5 @@ def content(
         ) from error
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Recording content is unavailable")
-    # Starlette FileResponse provides ETags and byte range responses for seekable
-    # local files, which keeps browser playback and seeking standards-compliant.
+
     return FileResponse(path, media_type=recording.media_type, filename=path.name)

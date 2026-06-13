@@ -55,7 +55,7 @@ class BackupScheduler:
         if not self.settings.backup_enabled:
             raise RuntimeError("Backups are disabled")
         target = self._attempt(now=now or datetime.now(UTC), scheduled=False)
-        if target is None:  # Only scheduled attempts can be skipped.
+        if target is None:
             raise RuntimeError("Backup did not run")
         return target
 
@@ -96,8 +96,6 @@ class BackupScheduler:
             with self.state_lock:
                 next_attempt_at = self.next_attempt_at
             if next_attempt_at is not None and now >= next_attempt_at:
-                # Failure state and the retry time are recorded by _attempt; a
-                # failed snapshot must never stop the application.
                 with suppress(Exception):
                     self._attempt(now=now, scheduled=True)
             self.stop_event.wait(TICK_SECONDS)

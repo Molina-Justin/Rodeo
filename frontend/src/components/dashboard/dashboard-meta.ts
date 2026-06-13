@@ -1,7 +1,6 @@
 import type { DashboardTone } from "@/lib/dashboard"
 import type { Difficulty } from "@/types"
 
-/** Tinted stat-card surfaces, matching the design palette across light and dark modes. */
 export const TONE_SURFACE: Record<DashboardTone, string> = {
   emerald:
     "bg-emerald-500/10 text-emerald-950 dark:bg-emerald-950/40 dark:text-emerald-300",
@@ -13,7 +12,6 @@ export const TONE_SURFACE: Record<DashboardTone, string> = {
     "bg-purple-500/10 text-purple-950 dark:bg-purple-950/40 dark:text-purple-300",
 }
 
-/** Same tones at badge scale, for the review queue tags. */
 export const TONE_TAG: Record<DashboardTone, string> = {
   emerald:
     "bg-emerald-500/15 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
@@ -32,10 +30,6 @@ export const TONE_TEXT: Record<DashboardTone, string> = {
   violet: "text-purple-700 dark:text-purple-400",
 }
 
-/**
- * Difficulty tints for the inverted "next up" surface, where the card
- * background flips with the theme and the text tint has to flip against it.
- */
 export const INVERTED_DIFFICULTY: Record<Difficulty, string> = {
   easy: "bg-emerald-500/20 text-emerald-300 dark:text-emerald-400",
   medium: "bg-indigo-500/20 text-indigo-300 dark:text-indigo-400",
@@ -48,7 +42,6 @@ export const DIFFICULTY_BAR: Record<Difficulty, string> = {
   hard: "bg-orange-500",
 }
 
-/** Shared chart palette, aligned with the cycle stat surfaces. */
 export const CHART_COLORS = {
   emerald: "#10b981",
   orange: "#f97316",
@@ -65,7 +58,6 @@ export const DASHBOARD_CHART_HEIGHT = "h-64 w-full"
 export const CHART_TOOLTIP_CLASS =
   "flex flex-col gap-1.5 rounded-lg border border-border/80 bg-popover px-3 py-2.5 text-xs text-popover-foreground shadow-md"
 
-/** Five-step activity ramp, index-aligned with `ActivityDay.level`. */
 export const HEATMAP_LEVELS = [
   "bg-black/10 dark:bg-white/15",
   "bg-emerald-200 dark:bg-emerald-950/80",
@@ -80,7 +72,6 @@ export const RANGE_OPTIONS = [
   { value: "90", label: "90d", days: 90 },
   { value: "180", label: "6m", days: 180 },
   { value: "365", label: "1 Year", days: 365 },
-  // A heatmap wider than one year is not useful, so All shares the 1 Year window.
   { value: "all", label: "All", days: 365 },
 ] as const
 
@@ -89,10 +80,5 @@ export type RangeOptionValue = (typeof RANGE_OPTIONS)[number]["value"]
 export const META_TEXT =
   "font-mono text-xs tracking-tight text-muted-foreground tabular-nums"
 
-/**
- * The study slab inverts the theme (`bg-foreground`), so a switch cannot keep
- * its own tokens — `bg-input` and the dark unchecked thumb both resolve to the
- * slab's own surface and vanish. Pin the track and thumb to the inverted pair.
- */
 export const INVERTED_SWITCH =
   "cursor-pointer data-checked:bg-emerald-400 data-unchecked:bg-background/25 dark:data-unchecked:bg-background/25 dark:data-unchecked:[&_[data-slot=switch-thumb]]:bg-background"

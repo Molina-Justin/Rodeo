@@ -1,16 +1,10 @@
 import type { TopicFocus, TopicProblem } from "@/lib/dashboard"
 import { interpolatePromptTemplate } from "@/lib/prompt-templates"
 
-/**
- * Builds the clipboard payload for a study session. The AI that consumes this
- * lives entirely outside the app — there is no request, no key, and nothing
- * here feeds mastery or scheduling. It is a string the user carries by hand.
- */
 
 export interface SessionOptions {
   minutes: number
   problemCount: number
-  /** Notes are free text written for the user alone, so they ship opt-in. */
   includeNotes: boolean
 }
 
@@ -27,7 +21,6 @@ export interface SessionContext {
   targetMinutes: number
 }
 
-/** Optional, non-identifying context the candidate set in Settings. */
 export interface CandidateGoals {
   targetRole: string
   targetDate: string
@@ -45,9 +38,7 @@ export interface SessionPayload {
   readinessScore: number
   streakDays: number
   request: { minutes: number; problemCount: number }
-  /** Completed problem history for the selected topic only. */
   completedProblems: TopicProblem[]
-  /** Present only when the candidate has filled in Interview Goals. */
   candidateGoals: CandidateGoals | null
 }
 
@@ -90,26 +81,19 @@ export function buildSessionPayload(
   }
 }
 
-/** Task text used only before the prompt-templates request has resolved. */
 function defaultSessionTask(payload: SessionPayload) {
   return [
     `Pick ${payload.request.problemCount} problems for a ${payload.request.minutes}-minute session on ${payload.topic}.`,
     payload.completedProblems.length > 0
       ? "Weigh overdue reviews against new coverage."
-      : "Build a sensible entry point and increase the difficulty gradually.",
+      : "Start with an approachable problem, then increase the difficulty.",
     payload.topBlocker ? "Account for the recurring blocker above." : "",
-    "For each pick, give one sentence on why it earns the slot and what to",
-    "watch for. Order them for the session.",
+    "For each pick, explain why you chose it and what to watch for. Order them for the session.",
   ]
     .filter(Boolean)
     .join(" ")
 }
 
-/**
- * JSON keeps the selected topic context and its completed problem rows. It
- * intentionally excludes unanswered catalog rows, which are not user history.
- * The interpolated Settings template is included as `task`.
- */
 export function toJson(payload: SessionPayload, template?: string): string {
   const goals = payload.candidateGoals
   const instructions = template

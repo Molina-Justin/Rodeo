@@ -17,12 +17,6 @@ import {
 import { CATALOG, HISTORY, NOW } from "@/test/fixtures"
 import { renderWithProviders, screen, within } from "@/test/render"
 
-/**
- * Charts are the part of the app a type-check cannot vouch for: a card that
- * renders an empty SVG still compiles. Each case asserts both that the chart
- * draws something for real data and that the empty state is reachable, since
- * an unhandled empty array is the usual way these blow up.
- */
 
 const DASHBOARD = buildDashboard(CATALOG, HISTORY, NOW, 90)
 
@@ -74,10 +68,9 @@ describe("TopicMasteryCard", () => {
 
     expect(screen.getByText("Topic mastery")).toBeInTheDocument()
     expect(
-      screen.getByText(`${mastery.length} axes · target 75%`)
+      screen.getByText(`${mastery.length} axes, target 75%`)
     ).toBeInTheDocument()
     expect(chartSvg(container)).toBeInTheDocument()
-    // Each axis is labelled with its own score, which is what the card promises.
     expect(
       screen.getAllByText(new RegExp(`${mastery[0].score}%`)).length
     ).toBeGreaterThan(0)

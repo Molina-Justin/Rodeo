@@ -136,7 +136,6 @@ def test_populate_backup_mutate_restore_returns_to_exact_logical_state(
         )
     assert fingerprint_workspace(demo_workspace).sha256 != before.sha256
 
-    # The Settings flow stops the process before startup applies the staged restore.
     dispose_database_engines()
     restore_database(
         demo_workspace,

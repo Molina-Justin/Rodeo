@@ -102,7 +102,6 @@ export function ReviewQueuePage() {
   ).length
   const todayCount = allStates.filter((state) => state.dueInDays === 0).length
 
-  // Auto-select the first item when visible items change and nothing is selected
   const effectiveSelectedId =
     selectedId !== null &&
     visibleItems.some((item) => item.problemId === selectedId)

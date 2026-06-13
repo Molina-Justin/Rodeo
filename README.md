@@ -45,16 +45,16 @@ change the scheduling timezone or the transcription model, edit the
 Day-to-day commands:
 
 ```bash
-docker compose up -d      # start in the background
-docker compose logs -f    # follow logs
-docker compose down       # stop; data is untouched
-docker compose up --build # rebuild after pulling changes
+docker compose up -d
+docker compose logs -f
+docker compose down
+docker compose up --build
 ```
 
 ## Your data
 
-Everything Rodeo stores lives in `./data` next to the repository — the SQLite
-database, your recordings, and the backups. It is a plain folder on your
+Everything Rodeo stores lives in `./data` next to the repository. This includes
+the SQLite database, your recordings, and the backups. It is a plain folder on your
 computer, not a Docker volume, so `docker compose down` never touches it.
 
 The folder is git-ignored, which means it will not appear in `git status` and
@@ -115,8 +115,8 @@ Capture a baseline, then use Settings → Backups → Back up now:
 scripts/workspace-fingerprint --verbose
 ```
 
-Save the first line. Change the workspace through the app—for example, edit an
-attempt, add another, or use Settings → Clear workspace—then run the fingerprint
+Save the first line. Change the workspace through the app. For example, edit an
+attempt, add another, or use Settings → Clear workspace. Then run the fingerprint
 again to confirm it changed. Restore the saved snapshot through Settings and run
 the command a third time. The final SHA-256 must exactly match the baseline.
 The fingerprint covers the logical database contents and all live recording
@@ -142,7 +142,7 @@ are taken and why.
 
 The Docker image is the deliverable; run the two processes directly only when
 you are changing code. This uses a separate throwaway database at
-`backend/.data`, not the workspace above. Stop the container first — both bind
+`backend/.data`, not the workspace above. Stop the container first. Both bind
 to port 8000.
 
 Requirements: Python 3.12+ and Node 22+.
@@ -180,7 +180,7 @@ timezone used for calendar-day scheduling. `RODEO_BACKUP_ENABLED`,
 `RODEO_BACKUP_INTERVAL_HOURS` (default 24), and `RODEO_BACKUP_RETENTION`
 (default 14) control the database snapshots described above, and
 `RODEO_BACKUP_INCLUDE_RECORDINGS` (default true) controls the audio mirror.
-The interval must be 1–8,760 hours and retention must be 1–365 snapshots;
+The interval must be 1 to 8,760 hours and retention must be 1 to 365 snapshots;
 invalid values prevent startup instead of silently weakening recovery.
 
 ## Review queue

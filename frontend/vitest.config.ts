@@ -10,11 +10,7 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    // Pin the document origin: the API client resolves its relative paths
-    // against it, and the MSW handlers are registered on the same origin.
     environmentOptions: { jsdom: { url: "http://localhost:5199" } },
-    // The engine works in local calendar days, so the zone is part of the
-    // contract. The parity fixture is recorded in this zone.
     env: { TZ: "America/New_York" },
     globals: true,
     setupFiles: ["./src/test/setup.ts"],

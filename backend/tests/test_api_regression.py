@@ -19,7 +19,7 @@ from rodeo.config import Settings
 ORIGIN_HEADERS = {"Origin": "http://testserver"}
 API = "/api/v1"
 
-# Seeded catalog rows, chosen for a spread of difficulty and topic.
+
 TWO_SUM = 1
 ADD_TWO_NUMBERS = 2
 LONGEST_SUBSTRING = 3
@@ -81,7 +81,7 @@ def test_catalog_is_seeded_and_an_empty_dashboard_is_all_zeroes(
     assert body["review_queue"] == []
     assert body["consistency"]["streak"] == 0
     assert body["consistency"]["minutes"] == 0
-    # The heatmap is dense: every day in the range is present even at zero.
+
     assert len(body["consistency"]["days"]) == 90
     assert {day["activity_level"] for day in body["consistency"]["days"]} == {0}
 
@@ -109,7 +109,6 @@ def test_timed_session_finalizes_into_an_attempt_the_dashboard_counts(
     assert paused.json()["status"] == "paused"
     parked_ms = paused.json()["active_duration_ms"]
 
-    # A paused clock does not advance, which is the whole point of the pause.
     still_parked = client.get(f"{API}/practice-sessions/current").json()
     assert still_parked["active_duration_ms"] == parked_ms
 
@@ -141,7 +140,6 @@ def test_timed_session_finalizes_into_an_attempt_the_dashboard_counts(
     attempt_id = finalized.json()["attempt"]["id"]
     assert finalized.json()["attempt"]["duration_seconds"] == 26 * 60
 
-    # Replaying the same finalize must not double-count the attempt.
     replay = client.post(
         f"{API}/practice-sessions/{session_id}/finalize", json=payload, headers=headers
     )
@@ -189,7 +187,7 @@ def test_attempt_history_edit_and_delete_rewrite_derived_state(
 
     history = client.get(f"{API}/problems/{TWO_SUM}/attempts").json()
     assert history["total"] == 2
-    # Newest first, so the history panel reads top-down.
+
     assert [item["id"] for item in history["items"]] == [newer["id"], older["id"]]
 
     paged = client.get(
@@ -202,7 +200,6 @@ def test_attempt_history_edit_and_delete_rewrite_derived_state(
     assert solved["status"] == "solved"
     assert solved["best_duration_seconds"] == 780
 
-    # Editing the latest attempt's outcome must replay the whole history.
     patched = client.patch(
         f"{API}/attempts/{newer['id']}",
         json={"outcome": "failed", "notes": "Blanked on the index math."},
@@ -218,7 +215,6 @@ def test_attempt_history_edit_and_delete_rewrite_derived_state(
     deleted = client.delete(f"{API}/attempts/{newer['id']}", headers=ORIGIN_HEADERS)
     assert deleted.status_code == 204
 
-    # With only the original failure left the problem stays unsolved.
     after_delete = client.get(f"{API}/problems/{TWO_SUM}").json()
     assert after_delete["attempt_count"] == 1
     assert after_delete["last_attempt"]["id"] == older["id"]
@@ -230,7 +226,6 @@ def test_attempt_history_edit_and_delete_rewrite_derived_state(
     final = client.delete(f"{API}/attempts/{older['id']}", headers=ORIGIN_HEADERS)
     assert final.status_code == 204
 
-    # Deleting the last attempt clears the derived state entirely.
     reset = client.get(f"{API}/problems/{TWO_SUM}").json()
     assert reset["attempt_count"] == 0
     assert reset["status"] == "not-started"
@@ -258,7 +253,6 @@ def test_attempt_writes_are_idempotent_and_reject_a_changed_payload(
     )
     assert first.status_code == 201
 
-    # A retried submit returns 200 with the original row, never a second attempt.
     second = client.post(
         f"{API}/problems/{TWO_SUM}/attempts", json=body, headers=headers
     )
@@ -279,21 +273,21 @@ def test_review_queue_surfaces_due_work_and_matches_the_dashboard(
     client: TestClient,
 ) -> None:
     now = datetime.now(UTC)
-    # Solved a while ago, so its three-day interval has long since elapsed.
+
     log_attempt(
         client,
         TWO_SUM,
         idempotency_key="queue-overdue",
         completed_at=now - timedelta(days=30),
     )
-    # Solved today, so it is scheduled into the future and is not yet due.
+
     log_attempt(
         client,
         ADD_TWO_NUMBERS,
         idempotency_key="queue-fresh",
         completed_at=now - timedelta(hours=1),
     )
-    # Failed today, which the engine schedules for tomorrow.
+
     log_attempt(
         client,
         LONGEST_SUBSTRING,
@@ -310,7 +304,7 @@ def test_review_queue_surfaces_due_work_and_matches_the_dashboard(
 
     assert TWO_SUM in queued
     assert ADD_TWO_NUMBERS not in queued
-    # Soonest first, so the top of the queue is the most overdue.
+
     assert [item["due_in_days"] for item in items] == sorted(
         item["due_in_days"] for item in items
     )
@@ -368,8 +362,7 @@ def test_dashboard_charts_carry_the_data_every_card_reads(
         assert 0 <= focus["score"] <= 100
         assert focus["attempted"] <= focus["problem_count"]
         assert focus["due_count"] >= 0
-    # Ordered the way the carousel leads: due work first, then topics that have
-    # been touched, then the weakest score inside each of those bands.
+
     bands = [
         (0 if focus["due_count"] else 1 if focus["attempted"] else 2, focus["score"])
         for focus in body["focuses"]
@@ -434,7 +427,6 @@ def test_export_and_clear_round_trip_the_whole_workspace(
     cleared = client.post(f"{API}/system/clear", headers=ORIGIN_HEADERS)
     assert cleared.status_code == 200
 
-    # User data goes; the catalog the app needs to function stays.
     assert dashboard(client)["attempt_count"] == 0
     assert client.get(f"{API}/system/export").json()["attempts"] == []
     assert client.get(f"{API}/problems", params={"page_size": 1}).json()["total"] > 0

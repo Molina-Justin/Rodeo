@@ -50,7 +50,7 @@ export function ReviewQueueCard({
             Review queue
           </CardTitle>
           <CardDescription className={META_TEXT}>
-            Spaced repetition · {dueCount} due
+            Spaced repetition, {dueCount} due
           </CardDescription>
         </div>
         <span className="rounded-lg border border-border/50 bg-muted/60 px-2.5 py-1 font-mono text-xs font-medium text-muted-foreground">
@@ -94,7 +94,7 @@ export function ReviewQueueCard({
                     {item.title}
                   </span>
                   <span className="font-mono text-2xs text-muted-foreground">
-                    interval {item.intervalDays}d · {item.lapses}{" "}
+                    interval {item.intervalDays}d, {item.lapses}{" "}
                     {item.lapses === 1 ? "lapse" : "lapses"}
                   </span>
                 </span>
@@ -122,7 +122,7 @@ export function ReviewQueueCard({
           className="h-10 w-full cursor-pointer rounded-xl border border-border/80 bg-muted/40 font-semibold text-foreground hover:bg-muted"
         >
           <CheckCheckIcon className="size-4" />
-          Run review · {dueCount}
+          Run review, {dueCount}
         </Button>
       </div>
     </Card>

@@ -66,7 +66,6 @@ export interface Attempt {
   effort: AttemptEffort
   blocker: AttemptBlocker
   notes: string
-  /** Durable recording endpoint returned by the API. */
   audioUrl?: string
   recordingId?: string
   transcriptionId?: string

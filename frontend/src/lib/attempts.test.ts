@@ -52,7 +52,6 @@ describe("indexAttemptArtifacts", () => {
     ])
 
     expect(artifacts[1]).toEqual({ hasAudio: true, hasNotes: true })
-    // Whitespace is not a note.
     expect(artifacts[2]).toEqual({ hasAudio: false, hasNotes: false })
   })
 })

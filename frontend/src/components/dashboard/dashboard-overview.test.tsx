@@ -6,11 +6,6 @@ import { CATALOG, NOW, makeAttempt } from "@/test/fixtures"
 import { renderWithProviders, screen, waitFor } from "@/test/render"
 import { resetStore, seed, server } from "@/test/server"
 
-/**
- * The whole overview end to end: fetch the catalog and the attempts, run the
- * engine, and draw every card. This is the test that fails when a chart stops
- * rendering, which no type-check or service-level test would catch.
- */
 
 const ORIGIN = "http://localhost:5199"
 
@@ -71,7 +66,6 @@ describe("DashboardOverview", () => {
     expect(screen.getByText("Interview readiness")).toBeInTheDocument()
     expect(screen.getByText(/Past 90 days/)).toBeInTheDocument()
 
-    // Three chart cards sit in the bottom row; each must draw a real SVG.
     await waitFor(() =>
       expect(container.querySelectorAll("svg").length).toBeGreaterThan(3)
     )
@@ -105,7 +99,6 @@ describe("DashboardOverview", () => {
 
     expect(await screen.findByText("Study next")).toBeInTheDocument()
     expect(screen.getByText("Topic mastery")).toBeInTheDocument()
-    // Nothing drawn, but nothing thrown either.
     expect(screen.getByText(/Past 90 days/)).toBeInTheDocument()
   })
 
@@ -142,7 +135,6 @@ describe("DashboardOverview", () => {
     renderWithProviders(<DashboardOverview />)
 
     await screen.findByText("Study next")
-    // 250 problems at 200 per page is two requests, not one.
     await waitFor(() => expect(pagesFetched).toBeGreaterThanOrEqual(2))
   })
 })

@@ -119,7 +119,6 @@ function countWords(value: string) {
   return trimmed ? trimmed.split(/\s+/).length : 0
 }
 
-/** Formats a Date as the `YYYY-MM-DD` string the API stores, in local time. */
 function dateToStorageValue(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, "0")
@@ -127,7 +126,6 @@ function dateToStorageValue(date: Date): string {
   return `${year}-${month}-${day}`
 }
 
-/** Parses a `YYYY-MM-DD` string as a local date, not UTC. */
 function storageValueToDate(value: string): Date | undefined {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!match) {
@@ -367,8 +365,6 @@ export function SettingsPage() {
   }
 
   const waitForRodeo = () => {
-    // The old server answers for a moment while it shuts down, so wait past
-    // that window and require two clean replies before reloading into it.
     const FIRST_CHECK_MS = 5000
     const INTERVAL_MS = 1500
     let healthy = 0
@@ -381,7 +377,7 @@ export function SettingsPage() {
           })
           healthy = response.ok ? healthy + 1 : 0
         } catch {
-          healthy = 0 // Expected while the container is down.
+          healthy = 0
         }
         if (healthy >= 2) {
           window.location.reload()
@@ -638,7 +634,7 @@ export function SettingsPage() {
         <SectionHeading
           detail={
             backupStatus.data
-              ? `${backupStatus.data.snapshot_count} snapshot${backupStatus.data.snapshot_count === 1 ? "" : "s"}${backupFiles.data ? ` · ${formatFileSize(totalBackupSize)}` : ""}`
+              ? `${backupStatus.data.snapshot_count} snapshot${backupStatus.data.snapshot_count === 1 ? "" : "s"}${backupFiles.data ? `, ${formatFileSize(totalBackupSize)}` : ""}`
               : "local recovery"
           }
         >
@@ -688,7 +684,7 @@ export function SettingsPage() {
                       {formatRelativeTime(backupStatus.data.last_backup_at)}
                       <span className="font-normal text-muted-foreground">
                         {" "}
-                        · {formatBackupTime(backupStatus.data.last_backup_at)}
+                       , {formatBackupTime(backupStatus.data.last_backup_at)}
                       </span>
                     </>
                   ) : (
@@ -702,7 +698,7 @@ export function SettingsPage() {
                       : "Next automatic backup is being scheduled"
                     : "Automatic backups are turned off"}
                   {backupStatus.data
-                    ? ` · ${backupStatus.data.snapshot_count} snapshot${backupStatus.data.snapshot_count === 1 ? "" : "s"} kept`
+                    ? `, ${backupStatus.data.snapshot_count} snapshot${backupStatus.data.snapshot_count === 1 ? "" : "s"} kept`
                     : ""}
                   {oldestBackup
                     ? `, oldest ${formatBackupDateLabel(oldestBackup.created_at)}`
@@ -781,8 +777,8 @@ export function SettingsPage() {
                 </div>
                 <p className="mt-2 flex gap-2 text-xs leading-relaxed text-muted-foreground">
                   <CircleHelpIcon className="mt-0.5 size-3.5 shrink-0" />
-                  On this computer only — nothing is uploaded. Include this
-                  folder in Time Machine or File History to survive disk loss.
+                  Stored on this computer. Nothing is uploaded. Add this folder
+                  to Time Machine or File History to protect it from disk loss.
                 </p>
               </div>
             </div>
@@ -822,8 +818,8 @@ export function SettingsPage() {
                           <div className="text-muted-foreground">
                             {file.attempt_count === null ||
                             file.attempt_count === undefined
-                              ? `Contents unreadable · ${formatFileSize(file.size_bytes)}`
-                              : `${file.attempt_count} attempt${file.attempt_count === 1 ? "" : "s"} · ${file.solved_count} solved · ${formatFileSize(file.size_bytes)}`}
+                              ? `Contents unreadable, ${formatFileSize(file.size_bytes)}`
+                              : `${file.attempt_count} attempt${file.attempt_count === 1 ? "" : "s"}, ${file.solved_count} solved, ${formatFileSize(file.size_bytes)}`}
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-1">
@@ -943,8 +939,8 @@ export function SettingsPage() {
                   </AlertDialogMedia>
                   <AlertDialogTitle>Restoring your backup</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Rodeo is restarting. This usually takes 10–15 seconds and
-                    the page will reload on its own — no need to do anything.
+                    Rodeo is restarting. This usually takes 10 to 15 seconds.
+                    The page will reload automatically.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
               </AlertDialogContent>
@@ -996,8 +992,8 @@ export function SettingsPage() {
                       3
                     </span>
                     <span>
-                      Rodeo restarts and the page reloads by itself, usually in
-                      10–15 seconds.
+                      Rodeo restarts and reloads the page, usually within 10 to
+                      15 seconds.
                     </span>
                   </li>
                 </ol>
@@ -1080,7 +1076,7 @@ export function SettingsPage() {
                 </CardContent>
                 <CardFooter className="justify-between gap-3 px-4 py-4">
                   <span className="font-mono text-2xs text-muted-foreground">
-                    {countWords(value)} words · {value.length} characters
+                    {countWords(value)} words, {value.length} characters
                   </span>
                   <div className="flex gap-2">
                     <Button

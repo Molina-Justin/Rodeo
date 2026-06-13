@@ -92,12 +92,6 @@ function StatValue({
   )
 }
 
-/**
- * One bar per difficulty, each flexed by how much of the topic you have
- * attempted there, filled by how much of that you solved. Scaling by attempts
- * rather than by catalog size keeps a topic holding thousands of problems from
- * flattening every bar to nothing.
- */
 function DifficultySplit({ entries }: { entries: TopicDifficulty[] }) {
   const difficultyEntries = TOPIC_DIFFICULTIES.map(
     (difficulty) =>
@@ -149,7 +143,6 @@ function DifficultySplit({ entries }: { entries: TopicDifficulty[] }) {
   )
 }
 
-/** Why this topic leads, stated in the terms the ranking actually used. */
 function Rationale({
   focus,
   rank,
@@ -167,9 +160,8 @@ function Rationale({
         No attempts yet across{" "}
         <span className="font-semibold text-background">
           {focus.problemCount} catalog problems
-        </span>{" "}
-        — open ground, where a first pass tells you more than another rep on
-        something you already know.
+        </span>
+        . Start here to establish a baseline.
       </>
     )
   }
@@ -180,8 +172,8 @@ function Rationale({
         Holding at{" "}
         <span className="font-semibold text-background">
           {focus.score - TARGET_SCORE} points above your {TARGET_SCORE}% target
-        </span>{" "}
-        — worth a maintenance pass rather than a deep dive.
+        </span>
+        . A short maintenance pass is enough.
       </>
     )
   }
@@ -195,10 +187,10 @@ function Rationale({
         {gap} points under your {TARGET_SCORE}% target
       </span>
       {rank === 1
-        ? " — the widest gap of any topic you have touched"
-        : ` — ranked ${rank} of ${total} by mastery gap`}
+        ? ". This is your widest mastery gap"
+        : `. It ranks ${rank} of ${total} by mastery gap`}
       {focus.topBlocker
-        ? ", and the one that keeps costing you the same mistake."
+        ? ". It also has a repeated sticking point."
         : "."}
     </>
   )
@@ -254,7 +246,6 @@ function CopyAction({
   const [failed, setFailed] = React.useState(false)
   const notesId = React.useId()
 
-  // Reset the confirmation when the rail moves under a reused component.
   React.useEffect(() => {
     setCopied(false)
     setFailed(false)
@@ -397,7 +388,7 @@ export function StudyCard({ focuses, context }: StudyCardProps) {
                     : "Open ground"}
               </Badge>
               <span className={MICRO}>
-                Rank {selectedIndex + 1} of {ranked.length} · next session
+                Rank {selectedIndex + 1} of {ranked.length}, next session
               </span>
             </div>
 
@@ -455,13 +446,13 @@ export function StudyCard({ focuses, context }: StudyCardProps) {
                     <span className="text-xs text-background/80">
                       {BLOCKER_LABELS[focus.topBlocker.blocker]}
                       {focus.averageMinutes > 0
-                        ? ` · ${focus.averageMinutes}m avg`
+                        ? `, ${focus.averageMinutes}m avg`
                         : null}
                     </span>
                   </>
                 ) : (
                   <>
-                    <StatValue value="—" caption="nothing recurring" />
+                    <StatValue value="None" caption="nothing recurring" />
                     <span className="text-xs text-background/80">
                       {focus.attempted === 0
                         ? "No attempts logged"

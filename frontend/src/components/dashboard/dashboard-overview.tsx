@@ -64,7 +64,6 @@ export function DashboardOverview() {
   )
   const rangeDays = selectedRange?.days ?? 365
 
-  // Every card reads from this one pass; nothing recomputes the same window twice.
   const dashboard = React.useMemo(
     () => buildDashboard(problems, attempts, dashboardNow, rangeDays),
     [problems, attempts, dashboardNow, rangeDays]
@@ -158,7 +157,7 @@ export function DashboardOverview() {
           </ToggleGroup>
         </div>
 
-        {/* All is intentionally capped at the same one-year window as the heat map. */}
+        {}
         <div className="grid gap-3.5 xl:grid-cols-5">
           <ConsistencyCard
             consistency={heatmapConsistency}

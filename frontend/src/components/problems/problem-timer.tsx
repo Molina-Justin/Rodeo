@@ -198,7 +198,6 @@ export function ProblemTimer({
   const recordingStopPromiseRef = React.useRef<Promise<
     Blob | undefined
   > | null>(null)
-  /** Retained until upload succeeds, so a failed /stop can be retried without re-recording. */
   const capturedAudioRef = React.useRef<Blob | undefined>(undefined)
 
   React.useEffect(() => {

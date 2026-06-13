@@ -1,9 +1,3 @@
-/**
- * Refreshes the local LeetCode problem catalog.
- *
- * Usage: node scripts/fetch-problems.mjs
- * Writes: public/data/leetcode-problems.json
- */
 import { writeFile, mkdir } from "node:fs/promises"
 
 const ENDPOINT = "https://leetcode.com/graphql"

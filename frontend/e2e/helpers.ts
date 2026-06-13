@@ -5,10 +5,8 @@ import { WEB_ORIGIN } from "../playwright.config"
 
 export const API = "/api/v1"
 
-/** Unsafe requests carry an Origin, which is the app's only access control. */
 const HEADERS = { Origin: WEB_ORIGIN }
 
-/** Drops every attempt, recording, and session; the catalog survives. */
 export async function clearWorkspace(
   request: APIRequestContext
 ): Promise<void> {

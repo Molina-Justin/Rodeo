@@ -2,10 +2,6 @@ import { TONE_SURFACE } from "@/components/dashboard/dashboard-meta"
 import type { SummaryStat } from "@/lib/dashboard"
 import { cn } from "@/lib/utils"
 
-/**
- * The four cycle figures, sized to sit beside the consistency heatmap rather
- * than above it — the grid stretches each card to fill the shared row height.
- */
 export function CycleStats({
   stats,
   className,

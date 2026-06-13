@@ -2,13 +2,13 @@
 
 Rodeo is a deterministic engine wrapped in a set of charts. Those two halves
 fail in completely different ways, so they are tested in completely different
-ways. This file records what each layer is responsible for, and — more
-usefully — what it deliberately cannot catch, so a new test lands in the right
+ways. This file records what each layer is responsible for and, more
+usefully, what it deliberately cannot catch, so a new test lands in the right
 place instead of the convenient one.
 
 ## The four layers
 
-### 1. Service and API tests — `backend/tests/`
+### 1. Service and API tests: `backend/tests/`
 
 `pytest` against an in-memory or temporary SQLite database. Two styles live
 here on purpose:
@@ -21,12 +21,12 @@ here on purpose:
 - **API tests** (`test_api_regression.py`) drive the real application through
   `TestClient`: migrations run, the bundled catalog seeds, the origin check
   applies, and every router is mounted. This is where wiring failures show up
-  — a route that moved, a query parameter that no longer validates, a status
-  code that changed — none of which a service test can see.
+  such as a moved route, an invalid query parameter, or a changed status code.
+  A service test cannot detect those failures.
 
 Both are fast enough to run on every save, so there is no reason to skip them.
 
-### 2. Engine parity — `backend/tests/test_engine_parity.py`
+### 2. Engine parity: `backend/tests/test_engine_parity.py`
 
 Rodeo currently runs the scheduling engine **twice**:
 
@@ -42,9 +42,9 @@ a wrong number on a screen rather than as an error. The parity layer makes it
 loud instead:
 
 - `frontend/scripts/dump-dashboard-fixtures.ts` runs the **TypeScript** engine
-  over a set of histories — an empty one, an all-failures one, two attempts on
+  over a set of histories: an empty one, an all-failures one, two attempts on
   the same day, a daylight-saving boundary, an attempt on a problem that left
-  the catalog, and a mixed history — and records the results to
+  the catalog, and a mixed history. It records the results to
   `backend/tests/fixtures/dashboard-parity.json`.
 - `frontend/src/lib/dashboard.test.ts` asserts the TypeScript engine still
   reproduces that recording, which stops the client half from moving unnoticed.
@@ -64,7 +64,7 @@ engine's own output, including the v2-only fields (`next_due_on`,
 If the rich dashboard moves fully to server projections, this layer can
 collapse into the API tests. Until then, exact parity is required.
 
-### 3. Unit and component tests — `frontend/src/**/*.test.tsx`
+### 3. Unit and component tests: `frontend/src/**/*.test.tsx`
 
 Vitest in jsdom. Covers the client engine, the formatting helpers, the prompt
 builders, every dashboard card, the review queue page, the attempt history, and
@@ -79,7 +79,7 @@ Two pieces of harness are load-bearing and easy to break:
   `globalThis.fetch` when `src/api/client.ts` loads, so `server.listen()` runs
   at setup-module scope rather than inside `beforeAll`. Starting it later
   leaves the API client holding the unpatched fetch, and requests escape to
-  whatever is really listening on the origin — a dev server, most likely, which
+  whatever is really listening on the origin. This is usually a dev server, which
   answers plausibly enough that the tests still look like they pass.
 
 `src/test/server.ts` is a small in-memory backend rather than a set of mocked
@@ -89,7 +89,7 @@ query cache, and the real client all take part.
 The clock is frozen with `vi.setSystemTime` wherever a component reads
 `new Date()` internally, which the review queue and the dashboard both do.
 
-### 4. End to end — `frontend/e2e/`
+### 4. End to end: `frontend/e2e/`
 
 Playwright drives Chromium against a real Uvicorn process on a throwaway
 database (`backend/.e2e-data/`) and a dedicated Vite server, on ports that do
@@ -101,7 +101,7 @@ This layer earns its cost on exactly two things:
   a non-zero width and height. A card that renders a correctly-structured but
   invisible SVG passes every other layer.
 - **The full loop.** Start the timer, stop and log, reload the page, and find
-  the attempt still there — which proves the server owns the state, not the
+  the attempt still there. This proves the server owns the state, not the
   browser.
 
 It also fails the run on any console error during a dashboard render, which

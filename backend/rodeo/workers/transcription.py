@@ -54,7 +54,7 @@ class DurableWorker:
             try:
                 if not self._process_one():
                     self.stop_event.wait(self.settings.worker_poll_interval_seconds)
-            except Exception:  # Never let a malformed job kill the worker.
+            except Exception:
                 logger.exception("Durable worker loop failed")
                 self.stop_event.wait(self.settings.worker_poll_interval_seconds)
 
@@ -154,8 +154,6 @@ class DurableWorker:
         if not self.settings.transcription_enabled or model_path is None:
             raise RuntimeError("configured transcription model is unavailable")
 
-        # Explicitly opening through PyAV validates the WebM/Opus decode path
-        # before faster-whisper invokes its FFmpeg-backed decoder.
         import av
         from faster_whisper import WhisperModel
 

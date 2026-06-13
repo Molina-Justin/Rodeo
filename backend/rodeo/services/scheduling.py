@@ -110,9 +110,7 @@ _STATUS_WEIGHT: dict[ProblemStatus, Fraction] = {
     ProblemStatus.STRUGGLING: Fraction(1, 4),
 }
 
-# Readiness-only weighting: how much a single attempt's quality should move
-# for its difficulty and pace. Kept separate from _STATUS_WEIGHT, which
-# mastery owns and which readiness still starts from.
+
 _DIFFICULTY_WEIGHT: dict[Difficulty, Fraction] = {
     Difficulty.EASY: Fraction(4, 5),
     Difficulty.MEDIUM: Fraction(1, 1),
@@ -263,7 +261,6 @@ def build_review_states(
                 AttemptClassification.CLEAN_AND_QUICK,
                 AttemptClassification.INDEPENDENT_NOT_QUICK,
             }:
-                # Early successful practice cannot manufacture a longer gap.
                 continue
 
             interval_days = candidate_interval
@@ -314,7 +311,6 @@ def build_review_states(
             )
         )
 
-    # Python's sort is stable, matching Array.sort for equal due dates.
     states.sort(
         key=lambda state: (
             state.due_in_days is None,
@@ -412,8 +408,8 @@ def _time_factor(attempt: SchedulingAttempt) -> Fraction:
 def attempt_quality(attempt: SchedulingAttempt) -> Fraction:
     """Weighted quality of a single attempt, on the same 0-1 scale as mastery.
 
-    Starts from the outcome weight mastery already uses — the same place
-    hint and solution usage is captured — then scales it by the problem's
+    Starts from the outcome weight mastery already uses. This captures hint
+    and solution usage before scaling by the problem's
     difficulty and by how efficiently the attempt used its target time.
     """
 
@@ -427,7 +423,7 @@ def _overdue_factor(state: ReviewState) -> Fraction:
 
     A problem not yet due, or graduated out of the review queue entirely,
     keeps full credit. One that is overdue decays smoothly toward
-    ``_MIN_OVERDUE_FACTOR`` — it never drops out, because the attempt
+    ``_MIN_OVERDUE_FACTOR``. It never drops out because the attempt
     genuinely happened, but stale practice counts for less than fresh
     practice when judging interview readiness today.
     """
@@ -473,24 +469,24 @@ def readiness_score(
     Blends three signals, weighted so a single attempt cannot dominate the
     result:
 
-    - Discounted mastery (70%) — the catalog-weighted average of each
+    - Discounted mastery (70%): the catalog-weighted average of each
       problem's latest-attempt quality (``attempt_quality``: outcome x
       difficulty x pace), decayed by ``_overdue_factor`` for problems overdue
       for review.
-    - Catalog coverage (20%) — the plain fraction of the catalog ever solved.
-    - Recent practice cadence (10%) — the fraction of
+    - Catalog coverage (20%): the plain fraction of the catalog ever solved.
+    - Recent practice cadence (10%): the fraction of
       ``cadence_window_days`` that carried an attempt.
 
     Coverage and cadence are intentionally minor terms here. The prior
-    implementation blended four near-equal weights, but two of them —
-    coverage and mastery — both move in lockstep with "problems solved /
+    implementation blended four near-equal weights. Coverage and mastery
+    both move in lockstep with "problems solved /
     catalog size": solving one new problem nudges both at once, so together
     they carried three quarters of the total weight for what was
     functionally a single signal counted twice. On a catalog small enough
     for 1/N to be a large step, that produced double-digit swings from one
-    attempt. Making discounted mastery the dominant term — rather than
+    attempt. Making discounted mastery the dominant term, rather than
     mastery and coverage each independently commanding their own near-40%
-    share — removes that duplication.
+    share, removes that duplication.
     """
 
     _require_aware(now, "now")

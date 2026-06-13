@@ -15,7 +15,6 @@ const TOPIC_AXIS_LIMIT = 12
 export const TOPIC_MASTERY_SAMPLE_TARGET = 50
 export const TARGET_MINUTES = 45
 export const TARGET_SCORE = 75
-/** Suggestions are capped so a broad topic does not emit a thousand rows. */
 const UNATTEMPTED_LIMIT = 25
 const READINESS_MONTHS = 6
 const MAX_INTERVAL_DAYS = 365
@@ -36,19 +35,12 @@ const STATUS_WEIGHT: Record<ProblemStatus, number> = {
   struggling: 0.25,
 }
 
-/**
- * Readiness-only weighting: how much a single attempt's quality should move
- * for its difficulty and pace, and how much a problem's quality should decay
- * once it sits overdue for review. Kept separate from STATUS_WEIGHT, which
- * mastery owns and which readiness still starts from.
- */
 const READINESS_DIFFICULTY_WEIGHT: Record<Difficulty, number> = {
   easy: 0.8,
   medium: 1,
   hard: 1.2,
 }
 
-/** Per-difficulty pace target, mirroring the backend engine's target minutes. */
 const READINESS_TARGET_MINUTES: Record<Difficulty, number> = {
   easy: 20,
   medium: 30,
@@ -62,11 +54,6 @@ const READINESS_MIN_TIME_FACTOR = 0.5
 const READINESS_MIN_OVERDUE_FACTOR = 0.4
 const READINESS_OVERDUE_GRACE_DAYS = 14
 
-/**
- * Readiness blends three signals; the weights sum to 1. Discounted mastery
- * dominates on purpose — see readinessAt for why coverage and mastery can no
- * longer split the weight near-evenly between them.
- */
 const READINESS_WEIGHTS = {
   mastery: 0.7,
   coverage: 0.2,
@@ -122,7 +109,6 @@ export interface ReviewItem extends Omit<ReviewState, "dueInDays"> {
   when: string
 }
 
-/** One catalog problem inside a topic, with whatever history exists for it. */
 export interface TopicProblem {
   id: number
   title: string
@@ -141,7 +127,6 @@ export interface TopicProblem {
   notes: string
 }
 
-/** Completed and attempted counts inside one topic, split by difficulty. */
 export interface TopicDifficulty {
   difficulty: Difficulty
   solved: number
@@ -154,7 +139,6 @@ export interface TopicBlocker {
   total: number
 }
 
-/** Everything one carousel slide renders, and everything its copy action emits. */
 export interface TopicFocus {
   topic: string
   score: number
@@ -240,14 +224,12 @@ function dayKey(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`
 }
 
-/** Whole days between two instants, ignoring the time of day. */
 function dayDistance(from: Date, to: Date): number {
   return Math.round(
     (startOfDay(to).getTime() - startOfDay(from).getTime()) / MS_PER_DAY
   )
 }
 
-/** Monday-first weekday index, so the heatmap rows read M–S. */
 function weekdayIndex(date: Date): number {
   return (date.getDay() + 6) % 7
 }
@@ -345,7 +327,6 @@ function nextIntervalDays(
   return Math.min(MAX_INTERVAL_DAYS, candidate)
 }
 
-/** Policy-v2 replay, kept byte-for-byte in parity with the Python engine. */
 export function buildReviewStates(
   attempts: Attempt[],
   now: Date = new Date()
@@ -452,7 +433,6 @@ export function buildReviewStates(
   })
 }
 
-/** Sidebar badge count — attempts are all it needs, so the catalog stays out. */
 export function dueReviewCount(
   attempts: Attempt[],
   now: Date = new Date()
@@ -462,14 +442,9 @@ export function dueReviewCount(
   ).length
 }
 
-/**
- * Streaks count days that carry an attempt, not days that carry minutes — a
- * logged attempt of zero duration is still a day at the desk.
- */
 function currentStreak(counts: Map<string, number>, now: Date): number {
   let cursor = startOfDay(now)
 
-  // A day that has not been logged yet should not break yesterday's streak.
   if (!counts.get(dayKey(cursor))) {
     cursor = addDays(cursor, -1)
   }
@@ -567,10 +542,6 @@ function solvedProblemIds(attempts: Attempt[]): Set<number> {
   return solved
 }
 
-/**
- * Catalog-weighted mastery, scaled to 0–100. When `problemCount` is supplied,
- * problems without an attempt contribute zero.
- */
 export function masteryScore(
   attempts: Attempt[],
   problemCount?: number
@@ -590,7 +561,6 @@ export function masteryScore(
   return Math.round((total / denominator) * 100)
 }
 
-/** Distinct days carrying an attempt inside the window ending at `cutoff`. */
 function activeDaysWithin(
   attempts: Attempt[],
   cutoff: Date,
@@ -619,24 +589,12 @@ interface ReadinessSnapshot {
   activeDays: number
 }
 
-/** How efficiently an attempt used its difficulty's target time.
- *
- * Finishing at or under target earns full credit; running over tapers
- * credit down to READINESS_MIN_TIME_FACTOR rather than to zero, since a
- * correct, slow solve is still worth far more than not solving it at all.
- */
 function readinessTimeFactor(problem: Problem, attempt: Attempt): number {
   const targetMinutes = READINESS_TARGET_MINUTES[problem.difficulty]
   const ratio = targetMinutes / attempt.durationMinutes
   return Math.max(READINESS_MIN_TIME_FACTOR, Math.min(1, ratio))
 }
 
-/** Weighted quality of a single attempt, on the same 0-1 scale as mastery.
- *
- * Starts from the outcome weight mastery already uses — the same place hint
- * and solution usage is captured — then scales it by the problem's
- * difficulty and by how efficiently the attempt used its target time.
- */
 function readinessAttemptQuality(problem: Problem, attempt: Attempt): number {
   const outcomeWeight = STATUS_WEIGHT[deriveStatus(attempt)]
   return (
@@ -646,13 +604,6 @@ function readinessAttemptQuality(problem: Problem, attempt: Attempt): number {
   )
 }
 
-/** Decay applied to a problem's quality the longer it sits overdue.
- *
- * A problem not yet due keeps full credit. One that is overdue decays
- * smoothly toward READINESS_MIN_OVERDUE_FACTOR — it never drops out, because
- * the attempt genuinely happened, but stale practice counts for less than
- * fresh practice when judging interview readiness today.
- */
 function readinessOverdueFactor(dueInDays: number | null): number {
   if (dueInDays === null || dueInDays > 0) {
     return 1
@@ -665,26 +616,6 @@ function readinessOverdueFactor(dueInDays: number | null): number {
   )
 }
 
-/**
- * Readiness as of a single instant. Every term is measured against the history
- * that existed at `cutoff`, so replaying the function across past cutoffs
- * yields a real trend rather than today's figure smeared backwards.
- *
- * Blends three signals, weighted so a single attempt cannot dominate the
- * result: discounted mastery (70%) — the catalog-weighted average of each
- * problem's latest-attempt quality, decayed for problems overdue for review;
- * catalog coverage (20%) — the plain fraction of the catalog ever solved;
- * and recent practice cadence (10%) — the fraction of `rangeDays` that
- * carried an attempt.
- *
- * Coverage and cadence are intentionally minor terms here. The previous
- * formula blended four near-equal weights, but two of them — coverage and
- * mastery — both move in lockstep with "problems solved / catalog size":
- * solving one new problem nudges both at once, so together they carried
- * three quarters of the total weight for what was functionally a single
- * signal counted twice. On a catalog small enough for 1/N to be a large
- * step, that produced double-digit swings from one attempt.
- */
 function readinessAt(
   problems: Problem[],
   attempts: Attempt[],
@@ -729,7 +660,6 @@ function readinessAt(
   }
 }
 
-/** Aggregate interview-readiness signal from coverage, mastery, consistency, and pace. */
 export function buildReadiness(
   problems: Problem[],
   attempts: Attempt[],
@@ -740,7 +670,6 @@ export function buildReadiness(
 
   for (let back = READINESS_MONTHS - 1; back >= 0; back -= 1) {
     const monthStart = new Date(now.getFullYear(), now.getMonth() - back, 1)
-    // The current month is only complete up to now; earlier months run to their end.
     const cutoff =
       back === 0
         ? now
@@ -760,7 +689,6 @@ export function buildReadiness(
     })
   }
 
-  // Shares the cutoff with the final history point, so the two agree by construction.
   const current = readinessAt(problems, attempts, now, rangeDays)
 
   return {
@@ -773,12 +701,6 @@ export function buildReadiness(
   }
 }
 
-/**
- * Mastery per topic, limited to the axes the catalog leans on hardest. Large
- * topics use a 50-distinct-problem evidence target so mastery stays demanding
- * but attainable; smaller topics still require breadth across their catalog.
- * Ranking by frequency keeps the radar axes stable as history grows.
- */
 export function buildTopicMastery(
   problems: Problem[],
   attempts: Attempt[],
@@ -905,7 +827,6 @@ export function buildDifficultyMix(
   })
 }
 
-/** "Dynamic Programming" -> "DP", "Trie" -> "TR". */
 export function topicTag(topic: string | undefined): string {
   if (!topic) {
     return "??"
@@ -1022,11 +943,6 @@ function buildSummary(
   ]
 }
 
-/**
- * Ranks a topic for the carousel. Topics with review debt lead, weakest first;
- * then topics you have touched but that are not yet due; untouched topics last,
- * because a 0% score is a gap to plan for, not the thing to open on.
- */
 function focusTier(focus: TopicFocus): number {
   if (focus.dueCount > 0) {
     return 0
@@ -1084,10 +1000,6 @@ function toTopicProblem(
   }
 }
 
-/**
- * Folds the catalog and the attempt history into one slide per topic. Pure —
- * the carousel position picks a slide, it does not change what is computed.
- */
 export function buildTopicFocuses(
   problems: Problem[],
   attempts: Attempt[],
@@ -1161,11 +1073,9 @@ export function buildTopicFocuses(
         ...tallies[difficulty],
       })),
       topBlocker: blockerFor(history),
-      // Most overdue first, so the slide and the payload lead with the debt.
       attemptedProblems: attemptedProblems.sort(
         (a, b) => (a.dueInDays ?? 0) - (b.dueInDays ?? 0)
       ),
-      // Widely-solved problems first — a sane default entry point into a topic.
       unattemptedProblems: unattemptedProblems
         .sort((a, b) => b.acceptance - a.acceptance)
         .slice(0, UNATTEMPTED_LIMIT),
@@ -1183,7 +1093,6 @@ export function buildTopicFocuses(
 
 export type MasteryTier = "under" | "at" | "open"
 
-/** Under target, at target, or never attempted — the rail's three tiers. */
 export function masteryTier(focus: TopicFocus): MasteryTier {
   if (focus.attempted === 0) {
     return "open"
@@ -1192,12 +1101,6 @@ export function masteryTier(focus: TopicFocus): MasteryTier {
   return focus.score >= TARGET_SCORE ? "at" : "under"
 }
 
-/**
- * Ranks study candidates by mastery gap alone — review debt deliberately plays
- * no part, so the order answers "where am I weakest" rather than "what is due".
- * Widest gap first, then topics already at target, then open ground ordered by
- * how much catalog sits behind them.
- */
 export function rankByMasteryGap(focuses: TopicFocus[]): TopicFocus[] {
   const tierRank: Record<MasteryTier, number> = { under: 0, at: 1, open: 2 }
 

@@ -95,8 +95,6 @@ def test_review_state_replays_history_chronologically() -> None:
         timezone_name="UTC",
     )
 
-    # The early hint schedules a shorter review; the following clean attempt
-    # happens within the one-day grace window and grows that two-day interval.
     assert state.interval_days == 5
     assert state.last_attempt is third
     assert state.attempt_count == 3
@@ -141,7 +139,6 @@ def test_due_dates_use_local_calendar_days_across_dst() -> None:
         timezone_name="America/New_York",
     )
 
-    # The clocks changed on March 8, but March 10 is still one calendar day away.
     assert state.interval_days == 3
     assert state.due_in_days == 1
 
@@ -169,12 +166,10 @@ def test_mastery_uses_latest_attempt_and_javascript_rounding() -> None:
         attempt(2, datetime(2026, 1, 1, tzinfo=UTC), AttemptOutcome.SOLUTION),
     ]
 
-    # (1.0 + 0.25) / 2 * 100 = 62.5; Math.round returns 63.
     assert mastery_score(attempts) == 63
 
     attempts.append(attempt(1, datetime(2026, 1, 2, tzinfo=UTC), AttemptOutcome.HINT))
 
-    # (0.6 + 0.25) / 2 * 100 = 42.5; Math.round returns 43.
     assert mastery_score(attempts) == 43
 
 
@@ -364,19 +359,11 @@ def test_non_clean_manual_attempt_reactivates_a_graduated_problem() -> None:
 @pytest.mark.parametrize(
     ("outcome", "duration_seconds", "difficulty", "expected"),
     [
-        # A clean, on-time medium solve is the 1.0 baseline every other case
-        # is measured against.
         (AttemptOutcome.OPTIMAL, 30 * 60, Difficulty.MEDIUM, Fraction(1)),
-        # Difficulty scales a clean, on-time solve up or down from there.
         (AttemptOutcome.OPTIMAL, 45 * 60, Difficulty.HARD, Fraction(6, 5)),
         (AttemptOutcome.OPTIMAL, 20 * 60, Difficulty.EASY, Fraction(4, 5)),
-        # Running over the target time tapers credit down...
         (AttemptOutcome.OPTIMAL, 60 * 60, Difficulty.MEDIUM, Fraction(1, 2)),
-        # ...but never below the floor, no matter how long it took.
         (AttemptOutcome.OPTIMAL, 120 * 60, Difficulty.MEDIUM, Fraction(1, 2)),
-        # Hint and solution usage still discount quality the same way they
-        # discount mastery's status weight — this is not a new axis, just
-        # reused from the outcome the review queue already derives.
         (AttemptOutcome.HINT, 30 * 60, Difficulty.MEDIUM, Fraction(3, 5)),
         (AttemptOutcome.SOLUTION, 30 * 60, Difficulty.MEDIUM, Fraction(1, 4)),
         (AttemptOutcome.FAILED, 30 * 60, Difficulty.MEDIUM, Fraction(1, 4)),
@@ -404,9 +391,7 @@ def test_attempt_quality_weighs_outcome_difficulty_and_pace(
 def test_attempt_quality_prefers_the_snapshotted_target_over_difficulty_default() -> (
     None
 ):
-    # A problem's difficulty can change after the attempt; the target_minutes
-    # captured at attempt time should still govern its pace, the same way
-    # classify_attempt already prefers it over target_minutes_for_difficulty.
+
     fast_against_snapshot = attempt(
         1,
         datetime(2026, 1, 1, tzinfo=UTC),
@@ -426,15 +411,10 @@ def test_readiness_is_zero_for_empty_history() -> None:
 
 
 def test_readiness_blends_discounted_mastery_coverage_and_cadence() -> None:
-    # One clean, on-time medium solve against a four-problem catalog, on the
-    # same day it was solved (so it is not yet due for review).
+
     now = datetime(2026, 1, 1, tzinfo=UTC)
     history = [attempt(1, now, AttemptOutcome.OPTIMAL)]
 
-    # quality = 1 (optimal * medium * on-time); not yet due, so undiscounted.
-    # discounted_mastery = 1/4; coverage = 1/4; cadence = 1/90 active day.
-    # (1/4)*0.7 + (1/4)*0.2 + (1/90)*0.1 = 407/1800 -> *100 = 22.61(6);
-    # _round_like_javascript rounds that up to 23.
     score = readiness_score(
         history,
         now=now,
@@ -444,8 +424,7 @@ def test_readiness_blends_discounted_mastery_coverage_and_cadence() -> None:
     )
 
     assert score == 23
-    # Coverage and mastery no longer ride together at near-equal weight, so
-    # one attempt moves readiness by less than the plain mastery score.
+
     assert score < mastery_score(history, known_problem_ids={1, 2, 3, 4})
 
 
@@ -461,7 +440,7 @@ def test_readiness_decays_as_a_solved_problem_goes_overdue() -> None:
         known_problem_ids=known_problem_ids,
         cadence_window_days=90,
     )
-    # The solve's 3-day interval has long since lapsed with no follow-up.
+
     stale = readiness_score(
         history,
         now=datetime(2026, 1, 20, tzinfo=UTC),

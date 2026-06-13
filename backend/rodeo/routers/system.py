@@ -97,7 +97,7 @@ def _backup_scheduler(request: Request) -> BackupScheduler:
 
 
 def _backup_location(settings: Settings) -> str:
-    # /data is the container path; users see the bind-mounted host directory.
+
     if settings.data_dir == Path("/data"):
         return "data/backups"
     return str(settings.backups_dir)
@@ -137,7 +137,7 @@ def backup_now(request: Request) -> BackupStatusResponse:
     except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Backup failed; Rodeo will retry automatically",
+            detail="Backup failed. Rodeo will retry automatically",
         ) from error
     return _backup_status(request)
 
@@ -167,8 +167,6 @@ def restore_backup(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)
         ) from error
 
-    # Outside the container nothing would bring the process back up, so the
-    # request is staged and the person restarts Rodeo themselves.
     will_restart = settings.environment == "production"
     if will_restart:
         logger.info("Restarting to restore %s", payload.filename)
@@ -195,7 +193,6 @@ def _backup_catalogue(settings: Settings) -> BackupFileListResponse:
         sum(
             1
             for path in settings.backup_recordings_dir.iterdir()
-            # Skip the dot-prefixed temporary files an in-flight copy leaves.
             if path.is_file() and not path.name.startswith(".")
         )
         if settings.backup_recordings_dir.is_dir()

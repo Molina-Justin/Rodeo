@@ -26,11 +26,6 @@ import {
 } from "@/test/fixtures"
 import type { Attempt, Problem } from "@/types"
 
-/**
- * The engine that actually renders the dashboard. It reads local calendar
- * days, so the suite pins the zone; `vitest.config.ts` sets TZ to match the
- * zone the parity fixture was recorded in.
- */
 
 const FIXTURE_NOW = new Date(parityFixture.now)
 const FIXTURE_PROBLEMS = parityFixture.problems as Problem[]

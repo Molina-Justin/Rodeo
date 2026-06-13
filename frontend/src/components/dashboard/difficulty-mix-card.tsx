@@ -21,7 +21,6 @@ interface DifficultyMixCardProps {
   onBuildSet: () => void
 }
 
-/** The weakest band with enough history to judge, else the hardest tier. */
 function weakestBand(mix: DifficultyMix[]): DifficultyMix | undefined {
   const attempted = mix.filter((band) => band.attempted > 0)
 

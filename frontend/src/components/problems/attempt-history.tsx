@@ -27,7 +27,6 @@ const outcomeStyles: Record<AttemptOutcome, string> = {
   failed: "bg-destructive/10 text-destructive",
 }
 
-/** Attempts arrive newest first. */
 export function AttemptHistory({
   attempts,
   onOpenReport,

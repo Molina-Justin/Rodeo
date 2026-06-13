@@ -6,7 +6,6 @@ import type {
   Problem,
 } from "@/types"
 
-/** Fixed clock for every test, so "3d ago" never depends on the wall clock. */
 export const NOW = new Date("2026-03-10T12:00:00-05:00")
 
 export function isoDaysAgo(days: number, hour = 12): string {
@@ -52,7 +51,6 @@ export function makeAttempt(overrides: Partial<Attempt> = {}): Attempt {
   }
 }
 
-/** A small catalog with a spread of difficulty and topic, used across suites. */
 export const CATALOG: Problem[] = [
   makeProblem({
     id: 1,
@@ -81,7 +79,6 @@ export const CATALOG: Problem[] = [
   }),
 ]
 
-/** Mixed history: a lapse and a recovery, a hint, and a fresh hard solve. */
 export const HISTORY: Attempt[] = [
   makeAttempt({
     id: "h-1",

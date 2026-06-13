@@ -108,9 +108,7 @@ function formatDate(date: Date) {
 interface AttemptFormProps {
   problemId: number
   elapsedMinutes: number
-  /** Present when editing an existing attempt. */
   attempt?: Attempt
-  /** Newly captured recording, available before the attempt has been saved. */
   audioUrl?: string
   submitLabel?: string
   durationHint?: string
@@ -290,7 +288,7 @@ export function AttemptForm({
           </Select>
         </Row>
 
-        <Row label="Notes" hint="Markdown · optional">
+        <Row label="Notes" hint="Markdown, optional">
           <NotesEditor
             value={notes}
             onChange={setNotes}

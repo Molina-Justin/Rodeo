@@ -46,8 +46,6 @@ def test_startup_logs_the_url_the_app_is_reachable_from(
     reachable = settings.model_copy(update={"public_url": "http://127.0.0.1:8123"})
     records: list[str] = []
 
-    # Applying migrations reconfigures logging mid-startup and replaces the root
-    # handlers, so capture on the logger itself rather than through caplog.
     class Capture(logging.Handler):
         def emit(self, record: logging.LogRecord) -> None:
             records.append(record.getMessage())
@@ -383,7 +381,6 @@ def test_a_staged_restore_is_applied_when_the_app_starts(settings) -> None:  # t
     marker.write_text("placeholder")
     stage_restore_request(settings, backup_name=snapshot)
 
-    # A fresh application start stands in for the container coming back up.
     with TestClient(create_app(settings)) as second:
         status_response = second.get("/api/v1/system/backups", headers=ORIGIN_HEADERS)
         assert status_response.status_code == 200

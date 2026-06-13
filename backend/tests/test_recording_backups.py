@@ -62,18 +62,15 @@ def test_deleted_recording_is_retained_then_dropped(prepared: Settings) -> None:
     mirror_recordings(prepared, now=NOW)
     (prepared.recordings_dir / "a.webm").unlink()
 
-    # First run after the deletion only marks it; the copy must survive.
     noticed = mirror_recordings(prepared, now=NOW + timedelta(days=1))
     assert noticed["removed"] == []
     assert (prepared.backup_recordings_dir / "a.webm").is_file()
     assert read_manifest(prepared)["a.webm"]["missing_since"] is not None
 
-    # Still inside the window.
     inside = mirror_recordings(prepared, now=NOW + timedelta(days=10))
     assert inside["removed"] == []
     assert (prepared.backup_recordings_dir / "a.webm").is_file()
 
-    # Past the 14-day window.
     expired = mirror_recordings(prepared, now=NOW + timedelta(days=16))
     assert expired["removed"] == ["a.webm"]
     assert not (prepared.backup_recordings_dir / "a.webm").exists()
@@ -90,7 +87,7 @@ def test_restored_recording_clears_its_pending_deletion(prepared: Settings) -> N
     mirror_recordings(prepared, now=NOW + timedelta(days=2))
 
     assert read_manifest(prepared)["a.webm"]["missing_since"] is None
-    # A file back inside the window must not be swept later.
+
     result = mirror_recordings(prepared, now=NOW + timedelta(days=40))
     assert result["removed"] == []
 

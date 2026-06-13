@@ -1,4 +1,4 @@
-"""`python -m rodeo.cli.restore` — put a snapshot back with the app stopped."""
+"""Restore a snapshot with `python -m rodeo.cli.restore` while the app is stopped."""
 
 from __future__ import annotations
 

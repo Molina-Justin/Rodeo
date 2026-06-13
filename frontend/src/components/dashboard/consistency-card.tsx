@@ -56,7 +56,7 @@ export function ConsistencyCard({
             Consistency
           </CardTitle>
           <CardDescription className={META_TEXT}>
-            Past {rangeDays} days · practice activity heatmap
+            Past {rangeDays} days, practice activity heatmap
           </CardDescription>
         </div>
 
@@ -109,7 +109,7 @@ export function ConsistencyCard({
                             <span className="font-semibold">{day.label}</span>
                             <span className="font-mono text-2xs text-muted-foreground">
                               {day.problemCount > 0
-                                ? `${day.problemCount} ${day.problemCount === 1 ? "problem" : "problems"} solved · ${day.minutes}m`
+                                ? `${day.problemCount} ${day.problemCount === 1 ? "problem" : "problems"} solved, ${day.minutes}m`
                                 : "No problems logged"}
                             </span>
                           </TooltipContent>

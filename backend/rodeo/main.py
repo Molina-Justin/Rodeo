@@ -21,8 +21,6 @@ from rodeo.static import SPAStaticFiles
 from rodeo.workers.backups import BackupScheduler
 from rodeo.workers.transcription import DurableWorker
 
-# Uvicorn configures handlers for its own loggers only; a "rodeo.*" logger would
-# propagate to an unconfigured root and never reach the container logs.
 logger = logging.getLogger("uvicorn.error")
 
 
@@ -50,7 +48,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 restored["restored"],
                 len(restored["recordings_restored"]),
             )
-        # Migrations run after a restore so an older snapshot is brought forward.
+
         upgrade_database(app_settings.resolved_database_url)
         factory = session_factory_for_url(
             app_settings.resolved_database_url,

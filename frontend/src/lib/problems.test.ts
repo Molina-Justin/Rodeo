@@ -56,7 +56,6 @@ describe("filterProblems", () => {
     expect(
       filterProblems(CATALOG, { ...ALL, status: "struggling" }, latest)
     ).toEqual([CATALOG[1]])
-    // The untouched problem is the only one left as not-started.
     expect(
       filterProblems(CATALOG, { ...ALL, status: "not-started" }, latest)
     ).toEqual([CATALOG[2]])

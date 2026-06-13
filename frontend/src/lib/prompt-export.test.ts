@@ -223,10 +223,10 @@ describe("buildAiReviewPrompt", () => {
       problem,
       attempt: makeAttempt({ outcome: "failed", notes: "Ran out of ideas." }),
       template:
-        "Review {{problem_title}} ({{difficulty}}) — I got {{outcome}}.",
+        "Review {{problem_title}} ({{difficulty}}). I got {{outcome}}.",
     })
 
-    expect(prompt).toContain("Review Two Sum (easy) — I got Failed.")
+    expect(prompt).toContain("Review Two Sum (easy). I got Failed.")
     expect(prompt).not.toContain("constructive technical-interview coach")
   })
 })

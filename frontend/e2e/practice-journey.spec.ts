@@ -2,10 +2,6 @@ import { expect, test } from "@playwright/test"
 
 import { clearWorkspace, logAttempt } from "./helpers"
 
-/**
- * The loop the app exists for: time a problem, log what happened, and watch
- * the derived state -- history, mastery, and the review queue -- follow.
- */
 
 test.beforeEach(async ({ request }) => {
   await clearWorkspace(request)
@@ -29,7 +25,6 @@ test("times a problem, logs the attempt, and shows it in the history", async ({
   const dialog = page.getByRole("dialog")
   await expect(dialog).toBeVisible()
 
-  // Audio needs a microphone, so the timer runs in its silent mode.
   await dialog.getByRole("button", { name: "Start without Audio" }).click()
   await expect(dialog.getByRole("button", { name: "Stop & log" })).toBeVisible()
 
@@ -47,7 +42,6 @@ test("times a problem, logs the attempt, and shows it in the history", async ({
 
   await expect(logDialog).toBeHidden()
 
-  // The attempt is durable: it survives a reload because the server owns it.
   await page.reload()
   await page
     .getByRole("button", { name: "Problems", exact: false })
@@ -91,9 +85,7 @@ test("moves a solved problem into the review queue once it comes due", async ({
   page,
   request,
 }) => {
-  // Solved five weeks ago, so its review interval has long since elapsed.
   await logAttempt(request, { problemId: 1, daysAgo: 35 })
-  // Solved today, so it is scheduled forward and should not be queued.
   await logAttempt(request, { problemId: 2, daysAgo: 0 })
 
   await page.goto("/")
@@ -102,8 +94,6 @@ test("moves a solved problem into the review queue once it comes due", async ({
     .first()
     .click()
 
-  // The overdue problem leads; the one solved today is listed as upcoming,
-  // never at the front of the queue.
   await expect(page.getByText("Review next")).toBeVisible()
   const lead = page
     .locator("section")

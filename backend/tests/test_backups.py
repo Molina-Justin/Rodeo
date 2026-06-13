@@ -103,7 +103,7 @@ def test_prune_keeps_the_newest_within_retention(settings: Settings) -> None:
     ]
     for path in written:
         path.write_bytes(b"")
-    # An unrelated file in the directory must survive the sweep.
+
     (settings.backups_dir / "notes.txt").write_text("keep me")
 
     removed = prune_backups(settings)
@@ -145,7 +145,6 @@ def test_scheduler_defers_to_the_newest_backup_on_disk(migrated: Settings) -> No
 
     due = BackupScheduler(migrated).due_at(now=NOW)
 
-    # A restart minutes later must not cut a second snapshot.
     assert due == written_at + timedelta(hours=24)
     assert due > datetime.now(UTC)
 
@@ -212,7 +211,7 @@ def test_snapshot_stats_counts_attempts_and_solved_problems(
 
     _seed_attempt(migrated, "a1", 1, "optimal", day=1)
     _seed_attempt(migrated, "a2", 2, "failed", day=1)
-    # A problem counts as solved only if its most recent attempt was optimal.
+
     _seed_attempt(migrated, "a3", 3, "optimal", day=1)
     _seed_attempt(migrated, "a4", 3, "failed", day=2)
 

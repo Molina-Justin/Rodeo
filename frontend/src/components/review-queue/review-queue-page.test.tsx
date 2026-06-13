@@ -5,11 +5,6 @@ import { CATALOG, NOW, makeAttempt } from "@/test/fixtures"
 import { renderWithProviders, screen, waitFor, within } from "@/test/render"
 import { resetStore, seed } from "@/test/server"
 
-/**
- * The review queue reads the wall clock through `buildReviewStates`, so the
- * clock is frozen here. `shouldAdvanceTime` keeps timers moving so
- * user-event and the query client still settle.
- */
 
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true })
@@ -40,11 +35,8 @@ describe("ReviewQueuePage", () => {
     seed({
       problems: CATALOG,
       attempts: [
-        // Solved long ago: badly overdue.
         makeAttempt({ problemId: 1, completedAt: daysBeforeNow(40) }),
-        // Solved yesterday: not yet due.
         makeAttempt({ problemId: 2, completedAt: daysBeforeNow(1) }),
-        // Failed a week ago: due, and re-scheduled tightly.
         makeAttempt({
           problemId: 4,
           completedAt: daysBeforeNow(7),
@@ -55,7 +47,6 @@ describe("ReviewQueuePage", () => {
     renderWithProviders(<ReviewQueuePage />)
 
     expect(await screen.findByText("Review next")).toBeInTheDocument()
-    // The most overdue problem leads the queue.
     expect(screen.getAllByText("Two Sum").length).toBeGreaterThan(0)
     expect(screen.getByText("ordered by due date")).toBeInTheDocument()
   })

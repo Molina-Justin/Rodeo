@@ -7,11 +7,6 @@ import {
 } from "./helpers"
 import { WEB_ORIGIN } from "../playwright.config"
 
-/**
- * The dashboard against the real backend and a real browser: the charts get
- * laid out, measured, and painted, which is the one thing neither pytest nor
- * jsdom can vouch for.
- */
 
 test.beforeEach(async ({ request }) => {
   await clearWorkspace(request)
@@ -39,7 +34,6 @@ test("renders every card and draws real charts", async ({ page, request }) => {
   await expect(page.getByText("Interview readiness")).toBeVisible()
   await expect(page.getByText(/Past 90 days/)).toBeVisible()
 
-  // A chart that failed to lay out is an SVG with no height.
   const charts = page.locator("svg.recharts-surface")
   await expect(charts.first()).toBeVisible()
   const count = await charts.count()
@@ -97,7 +91,6 @@ test("shows a coherent dashboard on a fresh install", async ({ page }) => {
 
   await expect(page.getByText("Study next")).toBeVisible()
   await expect(page.getByText("Topic mastery")).toBeVisible()
-  // No history, but the page still lays out rather than erroring.
   await expect(page.getByText("Catalog unavailable")).toHaveCount(0)
 })
 

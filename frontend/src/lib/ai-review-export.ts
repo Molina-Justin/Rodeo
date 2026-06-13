@@ -14,7 +14,6 @@ interface AiReviewExportInput {
   transcript?: string | null
   transcriptStatus?: Attempt["transcriptionStatus"]
   template?: string
-  /** Interview Goals from Settings, when the candidate has filled them in. */
   candidateGoals?: CandidateGoals | null
 }
 
@@ -25,7 +24,6 @@ function attemptDate(iso: string) {
   })
 }
 
-/** A ready-to-paste prompt for getting feedback on one saved attempt. */
 export function buildAiReviewPrompt({
   problem,
   attempt,
@@ -54,7 +52,7 @@ export function buildAiReviewPrompt({
       ? `## Audio memo transcript\n\n${transcript.trim()}\n\n> The original audio memo is attached separately. Use it to catch context or tone that the transcript misses.`
       : transcriptStatus === "queued" || transcriptStatus === "processing"
         ? "## Audio memo\n\nThe original audio memo is attached separately. Its transcript is still processing, so please review the audio directly."
-        : "## Audio memo\n\nThe original audio memo is attached separately. Please review it directly; no transcript is available."
+        : "## Audio memo\n\nThe original audio memo is attached separately. Please review it directly. No transcript is available."
     : "## Audio memo\n\nNo audio memo was recorded for this attempt."
 
   const instructions = template
@@ -68,14 +66,14 @@ export function buildAiReviewPrompt({
         target_date: candidateGoals?.targetDate || "Not specified",
         years_experience: candidateGoals?.yearsExperience ?? "Not specified",
       })
-    : `Please act as a constructive technical-interview coach. Review this attempt without immediately giving me a full solution. First assess my reasoning from the notes and audio memo, then give targeted hints and concrete next steps. Focus on correctness, algorithm choice, complexity, edge cases, implementation risks, and how I communicated my thinking. Point out what I did well too.
+    : `Review this technical interview attempt. Do not give the full solution right away. Start by evaluating the reasoning in my notes and audio memo. Then give focused hints and practical next steps. Cover correctness, algorithm choice, complexity, edge cases, implementation risks, and communication. Include what went well.
 
 Feedback I want:
-1. Summarize the approach you think I took and identify any gaps in my reasoning.
+1. Summarize my approach and identify gaps in the reasoning.
 2. Evaluate correctness and likely time/space complexity.
-3. List the most important edge cases or failure modes I should test.
-4. Give me the smallest useful hint or exercise to improve, before showing a complete solution.
-5. Suggest how I could explain this more clearly in a real interview.`
+3. List the most important edge cases to test.
+4. Give one useful hint or exercise before showing a complete solution.
+5. Explain how I could present the approach more clearly in an interview.`
 
   return `# Interview-practice attempt review
 

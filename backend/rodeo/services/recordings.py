@@ -95,7 +95,7 @@ def probe_duration_ms(path: Path) -> int:
                 )
     except RecordingUploadError:
         raise
-    except Exception as error:  # PyAV exposes several FFmpeg-specific errors.
+    except Exception as error:
         raise RecordingUploadError("recording could not be decoded") from error
 
     if end_seconds <= 0:

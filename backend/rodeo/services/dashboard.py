@@ -225,9 +225,6 @@ def dashboard(
                     item["due_count"] += 1
     focuses: list[TopicFocusResponse] = []
     for item in topic_rows.values():
-        # Large catalog topics need enough breadth to be meaningful without
-        # making the 75% target require hundreds of problems. Small topics
-        # still use every problem in their catalog as the denominator.
         mastery_denominator = min(item["problem_count"], TOPIC_MASTERY_SAMPLE_TARGET)
         item["score"] = (
             floor(item["weight"] / mastery_denominator * 100 + 0.5)

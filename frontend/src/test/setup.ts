@@ -5,16 +5,8 @@ import { afterAll, afterEach, beforeAll, vi } from "vitest"
 
 import { server } from "./server"
 
-// Recharts measures its container and draws nothing at zero width, which is
-// exactly what jsdom reports. Giving every element a real box is what makes
-// chart assertions possible at all.
 const BOX = { width: 800, height: 400 }
 
-// Started at module scope, not in `beforeAll`: setup modules are evaluated
-// before the test modules import, and `openapi-fetch` captures
-// `globalThis.fetch` when the client module loads. Starting the server later
-// leaves the API client holding the unpatched fetch, and requests escape to
-// whatever is really listening on the origin.
 server.listen({ onUnhandledRequest: "error" })
 
 class ResizeObserverStub implements ResizeObserver {

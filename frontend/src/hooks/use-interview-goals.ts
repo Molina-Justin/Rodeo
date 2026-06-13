@@ -51,7 +51,6 @@ export function useSaveInterviewGoals() {
   })
 }
 
-/** Adapts the API shape to the prompt builders' `CandidateGoals`. */
 export function toCandidateGoals(
   data: InterviewGoalsResponse | undefined
 ): CandidateGoals | null {

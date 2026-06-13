@@ -207,7 +207,6 @@ def apply_pending_restore(settings: Settings) -> RestoreResult | None:
     try:
         return restore_database(settings, backup_name=backup_name)
     except (RestoreError, OSError):
-        # Booting on the existing database beats refusing to start.
         logger.exception("Requested restore of %s failed", backup_name)
         return None
 
@@ -233,8 +232,6 @@ def restore_database(
     finally:
         temporary.unlink(missing_ok=True)
 
-    # The restored file is self-contained; a stale WAL would describe the
-    # database it replaced.
     for suffix in ("-wal", "-shm"):
         live.with_name(f"{live.name}{suffix}").unlink(missing_ok=True)
 

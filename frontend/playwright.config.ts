@@ -1,15 +1,9 @@
 import { defineConfig, devices } from "@playwright/test"
 
-/**
- * Drives the real stack: a FastAPI process on its own throwaway SQLite
- * database, and Vite proxying to it. Nothing here is mocked, so a failure
- * means the app is actually broken.
- */
 
 const API_PORT = 8123
 const WEB_PORT = 5198
 
-// Vite binds to localhost, so the browser and the Origin header use that name.
 export const WEB_ORIGIN = `http://localhost:${WEB_PORT}`
 
 export default defineConfig({
@@ -39,7 +33,6 @@ export default defineConfig({
       timeout: 120_000,
       env: {
         RODEO_ENVIRONMENT: "test",
-        // A per-run directory, so an E2E run never touches real practice data.
         RODEO_DATA_DIR: "./.e2e-data",
         RODEO_STATIC_DIR: "./.e2e-data/static",
         RODEO_TIMEZONE: "America/New_York",

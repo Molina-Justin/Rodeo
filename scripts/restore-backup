@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-# Restore a Rodeo database snapshot. Stops the container, restores, restarts.
-#
-# The restore itself lives in rodeo.services.restore so that it is testable;
-# this script only sequences the container around it.
 set -euo pipefail
 
 project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -19,7 +15,6 @@ if [[ $# -ne 1 ]]; then
   exit 2
 fi
 
-# `run --rm --no-deps` overrides the image CMD, so this never starts the API.
 rodeo_python() {
   docker compose run --rm --no-deps -T rodeo python -m rodeo.cli.restore "$@"
 }
@@ -39,7 +34,6 @@ if [[ -n "$(docker compose ps --quiet --status running 2>/dev/null)" ]]; then
   was_running=true
 fi
 
-# Stopping cleanly lets SQLite checkpoint the WAL before anything is moved.
 docker compose down
 
 restart_needed="$was_running"

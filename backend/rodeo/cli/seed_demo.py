@@ -1,4 +1,4 @@
-"""`python -m rodeo.cli.seed_demo` — populate an empty Rodeo workspace."""
+"""Populate an empty Rodeo workspace with `python -m rodeo.cli.seed_demo`."""
 
 from __future__ import annotations
 

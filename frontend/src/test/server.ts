@@ -4,12 +4,6 @@ import { setupServer } from "msw/node"
 import { CATALOG, HISTORY, NOW } from "@/test/fixtures"
 import type { Attempt, Problem } from "@/types"
 
-/**
- * A small in-memory stand-in for the API, so component tests exercise the real
- * hooks, the real openapi-fetch client, and the real TanStack Query cache
- * rather than a mocked module. Writes mutate the store, which is what makes
- * "log an attempt and watch the dashboard move" testable without a browser.
- */
 
 interface TranscriptionRecord {
   id: string
@@ -33,7 +27,6 @@ interface Store {
   interviewGoals: InterviewGoalsRecord
 }
 
-/** Matches the document origin pinned in `vitest.config.ts`. */
 const ORIGIN = "http://localhost:5199"
 
 function route(path: string): string {

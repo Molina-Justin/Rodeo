@@ -1,4 +1,4 @@
-"""`python -m rodeo.cli.fingerprint` — hash the current logical workspace."""
+"""Hash the current logical workspace with `python -m rodeo.cli.fingerprint`."""
 
 from __future__ import annotations
 

@@ -35,7 +35,6 @@ import {
 import { TARGET_SCORE, type TopicMastery } from "@/lib/dashboard"
 import { cn } from "@/lib/utils"
 
-/** Display-only shortening, so long topic names do not crowd the axis labels. */
 const ABBREVIATIONS: Record<string, string> = {
   "Binary Indexed Tree": "BIT",
   "Binary Search Tree": "BST",
@@ -57,7 +56,6 @@ const ABBREVIATIONS: Record<string, string> = {
 
 const MAX_LABEL_CHARS = 11
 
-/** Keeps every axis label inside the chart's margin, abbreviated or clipped. */
 function axisLabel(topic: string): string {
   const short = ABBREVIATIONS[topic] ?? topic
 
@@ -94,7 +92,7 @@ export function TopicMasteryCard({ mastery }: TopicMasteryCardProps) {
           Topic mastery
         </CardTitle>
         <CardDescription className={META_TEXT}>
-          {axes.length} axes · target {TARGET_SCORE}%
+          {axes.length} axes, target {TARGET_SCORE}%
         </CardDescription>
       </CardHeader>
 

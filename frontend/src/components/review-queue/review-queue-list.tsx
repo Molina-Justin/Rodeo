@@ -222,14 +222,14 @@ export function ReviewQueueList({
                         </Badge>
                       </span>
                       <span className="font-mono text-2xs text-muted-foreground tabular-nums">
-                        #{item.problemId} · {topic} · interval{" "}
-                        {item.intervalDays}d · {item.lapses}{" "}
+                        #{item.problemId}, {topic}, interval{" "}
+                        {item.intervalDays}d, {item.lapses}{" "}
                         {item.lapses === 1 ? "lapse" : "lapses"}
                       </span>
                     </span>
 
                     <span className="w-33 shrink-0 text-right font-mono text-2xs text-muted-foreground tabular-nums">
-                      {formatDuration(item.lastAttempt.durationMinutes)} ·{" "}
+                      {formatDuration(item.lastAttempt.durationMinutes)}, {" "}
                       {OUTCOME_LABELS[item.lastAttempt.outcome]}
                     </span>
 
@@ -261,7 +261,7 @@ export function ReviewQueueList({
 
       <div className="flex items-center justify-between gap-4 pt-1">
         <p className="text-sm text-muted-foreground">
-          {dueCount} due now · {lateCount} of them late
+          {dueCount} due now, {lateCount} of them late
         </p>
         <Button
           variant="outline"
@@ -269,7 +269,7 @@ export function ReviewQueueList({
           className="h-10 cursor-pointer rounded-xl border-border/80 bg-muted/40 font-semibold text-foreground hover:bg-muted"
         >
           <CheckCheckIcon className="size-4" />
-          Run review · {dueCount}
+          Run review, {dueCount}
         </Button>
       </div>
     </section>

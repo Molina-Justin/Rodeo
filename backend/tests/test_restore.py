@@ -47,7 +47,7 @@ def add_attempt_marker(settings: Settings, note: str, *, leave_in_wal: bool) -> 
     connection.execute("INSERT INTO marker VALUES (?)", (note,))
     connection.commit()
     if leave_in_wal:
-        return  # Deliberately unclosed: the process was killed.
+        return
     connection.close()
 
 
@@ -144,7 +144,7 @@ def test_restore_brings_back_recordings_the_snapshot_references(
     connection.close()
 
     snapshot = create_backup(workspace, now=NOW)
-    # The user deletes the recording; the mirror still holds it.
+
     (workspace.recordings_dir / storage_key).unlink()
 
     result = restore_database(workspace, backup_name=snapshot.name, now=NOW)
@@ -219,7 +219,6 @@ def test_restore_refuses_a_corrupt_snapshot(workspace: Settings) -> None:
     with pytest.raises(RestoreError):
         restore_database(workspace, backup_name=snapshot.name, now=NOW)
 
-    # The live database must be untouched when validation fails.
     assert markers(live_path(workspace)) == ["current work"]
 
 
@@ -235,7 +234,7 @@ def test_staged_request_is_read_once_and_removed(workspace: Settings) -> None:
 
     assert restore_request_path(workspace).is_file()
     assert take_restore_request(workspace) == snapshot.name
-    # Removing it before the restore runs is what prevents a restart loop.
+
     assert not restore_request_path(workspace).exists()
     assert take_restore_request(workspace) is None
 
@@ -265,7 +264,7 @@ def test_pending_restore_is_applied_on_the_next_start(workspace: Settings) -> No
     assert result is not None
     assert result["restored"] == snapshot.name
     assert markers(live_path(workspace)) == ["before the snapshot"]
-    # A second start must not restore again.
+
     assert apply_pending_restore(workspace) is None
 
 
@@ -289,7 +288,7 @@ def test_a_failed_restore_leaves_the_database_and_clears_the_request(
     add_attempt_marker(workspace, "current work", leave_in_wal=False)
     snapshot = create_backup(workspace, now=NOW)
     stage_restore_request(workspace, backup_name=snapshot.name, now=NOW)
-    # The snapshot rots between the request and the restart.
+
     snapshot.write_bytes(b"SQLite format 3\x00" + b"garbage" * 200)
 
     assert apply_pending_restore(workspace) is None

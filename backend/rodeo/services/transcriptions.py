@@ -140,7 +140,7 @@ def correct_transcription(
     transcription.corrected_text = payload.corrected_text
     database.flush()
     attempt = database.get(Attempt, attempt_id)
-    if attempt is None:  # Defensive: the joined lookup above already verified it.
+    if attempt is None:
         raise TranscriptionNotFoundError(f"attempt {attempt_id!r} was not found")
     recompute_problem_review_state(
         database,

@@ -178,7 +178,7 @@ export function ProblemsTable({
                           ))}
                           {problem.topics.length === 0 ? (
                             <span className="text-sm text-muted-foreground">
-                              —
+                              None
                             </span>
                           ) : null}
                         </div>
@@ -216,7 +216,7 @@ export function ProblemsTable({
 
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
-          {firstRow}–{lastRow} of {total.toLocaleString()} problems
+          {firstRow} to {lastRow} of {total.toLocaleString()} problems
         </p>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
